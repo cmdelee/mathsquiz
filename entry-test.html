@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entry Test Practice</title>
+<link rel="icon" href="icon-192.png">
+<meta name="theme-color" content="#35664F">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --bg:#EEF1E6;
+    --grain:#E3E8D8;
+    --surface:#FFFFFF;
+    --surface-2:#F6F7F0;
+    --border:#D8DECB;
+    --ink:#232B22;
+    --ink-soft:#5B6656;
+    --ink-faint:#8A9483;
+    --accent:#35664F;
+    --accent-ink:#F5FBF6;
+    --accent-soft:#DCEAE1;
+    --gold:#8B6B36;
+    --gold-ink:#FBF6EC;
+    --gold-soft:#EFE3C9;
+    --success:#2E7D4F;
+    --success-bg:#E4F2E6;
+    --error:#B4432F;
+    --error-bg:#FBE7E1;
+    --focus:#35664F;
+    --shadow: 0 1px 2px rgba(35,43,34,0.06), 0 8px 24px -12px rgba(35,43,34,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#171C16;
+      --grain:#1D231B;
+      --surface:#1F251C;
+      --surface-2:#252C21;
+      --border:#333D2C;
+      --ink:#E9ECDF;
+      --ink-soft:#AAB79D;
+      --ink-faint:#748069;
+      --accent:#74B594;
+      --accent-ink:#0E1F16;
+      --accent-soft:#243A2D;
+      --gold:#D6AD6C;
+      --gold-ink:#241C0C;
+      --gold-soft:#3A2F1B;
+      --success:#79D19C;
+      --success-bg:#1E3327;
+      --error:#E8917E;
+      --error-bg:#3A211C;
+      --focus:#74B594;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#171C16;
+    --grain:#1D231B;
+    --surface:#1F251C;
+    --surface-2:#252C21;
+    --border:#333D2C;
+    --ink:#E9ECDF;
+    --ink-soft:#AAB79D;
+    --ink-faint:#748069;
+    --accent:#74B594;
+    --accent-ink:#0E1F16;
+    --accent-soft:#243A2D;
+    --gold:#D6AD6C;
+    --gold-ink:#241C0C;
+    --gold-soft:#3A2F1B;
+    --success:#79D19C;
+    --success-bg:#1E3327;
+    --error:#E8917E;
+    --error-bg:#3A211C;
+    --focus:#74B594;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background-color:var(--bg);
+    background-image:
+      radial-gradient(circle at 1px 1px, var(--grain) 1px, transparent 1px);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{
+    max-width:700px;
+    margin:0 auto;
+    padding:40px 20px 64px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+  }
+
+  .masthead{ text-align:left; }
+  .eyebrow{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:0.95rem;
+    color:var(--accent);
+    letter-spacing:0.02em;
+  }
+  h1{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:clamp(1.9rem, 5vw, 2.5rem);
+    line-height:1.08;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .date-line{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:1rem;
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:var(--shadow);
+  }
+
+  .intro-card{ padding:18px 20px; }
+  .intro-card p{
+    margin:0;
+    font-size:0.9rem;
+    color:var(--ink-soft);
+  }
+  .intro-card p + p{ margin-top:8px; }
+  .intro-card a{ color:var(--accent); }
+
+  .quiz{ padding:24px 22px 22px; }
+  .quiz-head h2{
+    margin:0 0 4px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.4rem;
+  }
+  .quiz-sub{
+    margin:0 0 18px;
+    color:var(--ink-soft);
+    font-size:0.9rem;
+    max-width:60ch;
+  }
+
+  .paper-options{
+    display:grid;
+    gap:12px;
+  }
+  .paper-btn{
+    text-align:left;
+    padding:16px 18px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--surface-2);
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    font:inherit;
+    color:inherit;
+  }
+  .paper-btn:hover{ border-color:var(--accent); background:var(--surface); }
+  .paper-btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .paper-name{
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.05rem;
+    color:var(--ink);
+  }
+  .paper-desc{ font-size:0.85rem; color:var(--ink-soft); }
+
+  .progress-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:20px;
+  }
+  .progress-track{
+    flex:1 1 auto;
+    height:10px;
+    border-radius:999px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background:var(--accent);
+    transition:width 0.25s ease;
+  }
+  .progress-text{
+    flex:0 0 auto;
+    font-size:0.82rem;
+    font-weight:600;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+
+  .question-card{
+    padding:22px 20px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--surface-2);
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    transition:border-color 0.15s ease;
+  }
+  .question-card.is-correct{ border-color:var(--success); }
+  .question-card.is-incorrect{ border-color:var(--error); }
+  .question-card[hidden]{ display:none; }
+
+  .q-tag{
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin:0;
+  }
+  .passage-box{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:14px 16px;
+    font-size:0.9rem;
+    line-height:1.65;
+    color:var(--ink);
+    white-space:pre-line;
+  }
+  .data-table{
+    border-collapse:collapse;
+    font-size:0.88rem;
+  }
+  .data-table th, .data-table td{
+    border:1px solid var(--border);
+    padding:6px 12px;
+    text-align:left;
+  }
+  .data-table th{
+    background:var(--surface);
+    font-weight:600;
+  }
+  .q-prompt{
+    margin:0;
+    font-size:1.08rem;
+    font-weight:600;
+    line-height:1.4;
+    color:var(--ink);
+  }
+
+  .mcq-options{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .mcq-option{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    text-align:left;
+    padding:10px 14px;
+    border:1px solid var(--border);
+    border-radius:7px;
+    background:var(--surface);
+    cursor:pointer;
+    font:inherit;
+    font-size:0.95rem;
+    color:var(--ink);
+  }
+  .mcq-option:hover:not(:disabled){ border-color:var(--accent); }
+  .mcq-option:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+  .mcq-option .opt-letter{
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-weight:600;
+    color:var(--ink-faint);
+    flex:0 0 auto;
+  }
+  .mcq-option.is-correct{ border-color:var(--success); background:var(--success-bg); }
+  .mcq-option.is-incorrect{ border-color:var(--error); background:var(--error-bg); }
+  .mcq-option:disabled{ cursor:default; opacity:0.9; }
+
+  .q-answer{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .q-answer input{
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-size:1.1rem;
+    width:160px;
+    padding:9px 11px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink);
+  }
+  .q-answer input:focus-visible{
+    outline:2px solid var(--focus);
+    outline-offset:1px;
+  }
+  .q-hint{
+    margin:0;
+    font-size:0.8rem;
+    color:var(--ink-faint);
+    flex-basis:100%;
+  }
+  .q-feedback{
+    margin:0;
+    min-height:1.3em;
+    font-size:0.92rem;
+    font-weight:500;
+    color:var(--ink-soft);
+  }
+  .q-feedback.is-correct{ color:var(--success); }
+  .q-feedback.is-incorrect{ color:var(--error); }
+
+  .q-controls{ display:flex; gap:10px; }
+
+  .completion-panel{
+    padding:30px 24px;
+    text-align:center;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--accent-soft);
+  }
+  .completion-panel h3{
+    margin:0 0 8px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.5rem;
+    color:var(--ink);
+  }
+  .completion-panel p{
+    margin:0 0 18px;
+    color:var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .review-list{
+    text-align:left;
+    list-style:none;
+    margin:0 0 18px;
+    padding:14px 16px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:0.85rem;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .review-list li{ color:var(--ink-soft); }
+  .review-list strong{ color:var(--ink); }
+
+  .quiz-actions{
+    margin-top:18px;
+    padding-top:16px;
+    border-top:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    font:inherit;
+    font-weight:600;
+    font-size:0.92rem;
+    padding:10px 18px;
+    border-radius:7px;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:filter 0.12s ease, background-color 0.12s ease;
+  }
+  .btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .btn-primary{
+    background:var(--accent);
+    color:var(--accent-ink);
+  }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink);
+    border-color:var(--border);
+  }
+  .btn-ghost:hover{ background:var(--surface-2); }
+
+  .history{ padding:24px 22px 22px; }
+  .history-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .history-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 2px;
+    border-top:1px solid var(--border);
+    font-size:0.88rem;
+  }
+  .history-row:first-child{ border-top:none; }
+  .history-date{ color:var(--ink-soft); }
+  .history-score{
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-weight:600;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+  .history-note{
+    margin:14px 0 0;
+    font-size:0.78rem;
+    color:var(--ink-faint);
+  }
+  .history-empty{
+    margin:0;
+    color:var(--ink-faint);
+    font-size:0.88rem;
+  }
+
+  .foot{
+    font-size:0.78rem;
+    color:var(--ink-faint);
+    line-height:1.7;
+    padding:4px 4px 0;
+  }
+  .foot a{ color:var(--ink-soft); }
+  .foot a:hover{ color:var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="masthead">
+    <p class="eyebrow">Skipton Girls' High School · 11+ entry test</p>
+    <h1>Entry Test Practice</h1>
+    <p class="date-line">Practice questions in the style of the Adventure and Beacon papers.</p>
+  </header>
+
+  <section class="card intro-card">
+    <p>Skipton Girls' High School's Year 7 entry test (run by FSCE) uses two papers: <strong>Adventure</strong> (multiple choice, English and maths) and <strong>Beacon</strong> (short written answers, English and maths). This page has original practice questions written in that same format and style — they are <em>not</em> the real test questions, which stay confidential to FSCE. For the genuine examples, see the school's own familiarisation guide on their <a href="https://www.sghs.org.uk/our-school/admissions" target="_blank" rel="noopener">admissions page</a>.</p>
+  </section>
+
+  <div id="pickerView">
+    <section class="card quiz">
+      <div class="quiz-head">
+        <h2>Choose a paper to practice</h2>
+        <p class="quiz-sub">Each session is a fresh set of questions, marked as you go.</p>
+      </div>
+      <div class="paper-options">
+        <button class="paper-btn" data-paper="adventure">
+          <span class="paper-name">Adventure paper</span>
+          <span class="paper-desc">Multiple choice — reading, vocabulary and maths reasoning</span>
+        </button>
+        <button class="paper-btn" data-paper="beacon">
+          <span class="paper-name">Beacon paper</span>
+          <span class="paper-desc">Short written answers — spelling and maths word problems</span>
+        </button>
+        <button class="paper-btn" data-paper="mixed">
+          <span class="paper-name">Mixed practice</span>
+          <span class="paper-desc">A blend of both papers in one longer session</span>
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <section class="card quiz" id="quizSection" hidden>
+    <div class="quiz-head">
+      <h2 id="quizTitle">Practice</h2>
+      <p class="quiz-sub" id="quizSub"></p>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <span class="progress-text" id="progressText">0 of 0</span>
+    </div>
+
+    <div class="question-card" id="questionCard">
+      <p class="q-tag" id="qTag"></p>
+      <div id="qPassageWrap"></div>
+      <p class="q-prompt" id="qPrompt"></p>
+      <div id="qBody"></div>
+      <p class="q-feedback" id="qFeedback"></p>
+      <div class="q-controls">
+        <button id="checkBtn" class="btn btn-primary" hidden>Check answer</button>
+        <button id="nextBtn" class="btn btn-primary" hidden>Next question</button>
+      </div>
+    </div>
+
+    <div class="completion-panel" id="completionPanel" hidden>
+      <h3 id="completionTitle">Session complete!</h3>
+      <p id="completionStats"></p>
+      <ul class="review-list" id="reviewList" hidden></ul>
+      <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none;">
+        <button id="retryBtn" class="btn btn-primary">Practice again</button>
+        <button id="pickerBtn" class="btn btn-ghost">Choose a different paper</button>
+      </div>
+    </div>
+
+    <div class="quiz-actions" id="quitRow">
+      <button id="quitBtn" class="btn btn-ghost">Choose a different paper</button>
+    </div>
+  </section>
+
+  <section class="card history" id="historySection">
+    <div class="quiz-head">
+      <h2>Recent sessions</h2>
+    </div>
+    <p class="history-empty" id="historyEmpty">No sessions completed yet.</p>
+    <ul class="history-list" id="historyList"></ul>
+    <div class="quiz-actions">
+      <button id="clearHistoryBtn" class="btn btn-ghost">Clear history</button>
+    </div>
+    <p class="history-note">Saved only in this browser, on this device — nothing is sent anywhere.</p>
+  </section>
+
+  <footer class="foot">
+    <p>Original practice questions, written for this page — not affiliated with FSCE Ltd or Skipton Girls' High School.<br>
+    <a href="index.html">← Maths practice</a></p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  // ---------- Question banks ----------
+  // Original questions written for this page, in the style described by the
+  // school's own familiarisation material (Adventure = multiple choice,
+  // covering English and maths; Beacon = short written answers, covering
+  // English spelling and maths word problems). None of this is taken from
+  // the real FSCE test.
+
+  var LIGHTHOUSE_PASSAGE =
+    "Mia climbed the spiral staircase of the old lighthouse, her torch beam swinging across walls " +
+    "streaked with salt and rust. Nobody had lived here since the storm of 1987, but the door at the " +
+    "top was unlocked. Inside the lamp room, dust covered a small wooden desk. Mia brushed it aside " +
+    "and found a leather diary, its pages curled and yellow with age.\n\n" +
+    "She opened it carefully. The last entry, dated the night of the storm, was written in a shaky " +
+    "hand: 'The wind will not stop. I have moved the boats to the far shore, but I fear it will not " +
+    "be enough. If anyone finds this, tell them I tried.'\n\n" +
+    "Mia's heart thudded. She had read about the storm in school — three fishing boats lost, the " +
+    "keeper never found. She looked out of the window at the churning grey sea below and wondered " +
+    "what had really happened that night.";
+
+  var ADVENTURE_ITEMS = [
+    { kind:"mcq", subject:"english", passage:LIGHTHOUSE_PASSAGE,
+      prompt:"Where does Mia find the diary?",
+      options:["In a locked drawer","On a wooden desk in the lamp room","At the bottom of the staircase","Hidden inside a boat"],
+      correct:1 },
+    { kind:"mcq", subject:"english", passage:LIGHTHOUSE_PASSAGE,
+      prompt:"What can you infer about how long the lighthouse has been empty?",
+      options:["A few days","About a year","Since the storm of 1987","It has never been used"],
+      correct:2 },
+    { kind:"mcq", subject:"english", passage:LIGHTHOUSE_PASSAGE,
+      prompt:"Why did the keeper move the boats to the far shore?",
+      options:["To sell them","Because he was leaving the lighthouse for good","To try to protect them from the storm","Because visitors were arriving"],
+      correct:2 },
+    { kind:"mcq", subject:"english", passage:LIGHTHOUSE_PASSAGE,
+      prompt:"What does the word “churning” suggest about the sea in the last paragraph?",
+      options:["It was calm and still","It was rough and turning violently","It was frozen","It was sparkling in sunlight"],
+      correct:1 },
+
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “enormous”?",
+      options:["Tiny","Huge","Narrow","Quiet"], correct:1 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “reluctant”?",
+      options:["Eager","Unwilling","Confused","Careless"], correct:1 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “ancient”?",
+      options:["Modern","Very old","Broken","Valuable"], correct:1 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “generous”?",
+      options:["Selfish","Willing to give","Angry","Shy"], correct:1 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “peculiar”?",
+      options:["Ordinary","Strange","Friendly","Loud"], correct:1 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “vast”?",
+      options:["Tiny","Immense","Narrow","Empty"], correct:1 },
+
+    { kind:"mcq", subject:"maths",
+      prompt:"A recipe for 8 biscuits needs 240g of flour. How much flour is needed for 12 biscuits?",
+      options:["320g","360g","300g","280g"], correct:1 },
+    { kind:"mcq", subject:"maths",
+      prompt:"Bus tickets cost £2.40 for a child and £3.60 for an adult. A family of 2 adults and 3 children travel. How much do they pay in total?",
+      options:["£12.00","£13.20","£14.40","£15.60"], correct:2 },
+    { kind:"mcq", subject:"maths", prompt:"What is 3/4 of 60?",
+      options:["15","30","40","45"], correct:3 },
+    { kind:"mcq", subject:"maths", prompt:"A rectangular garden is 8m long and 5m wide. What is its perimeter?",
+      options:["13m","26m","40m","20m"], correct:1 },
+    { kind:"mcq", subject:"maths",
+      prompt:"The temperature at 6am was −4°C. By midday it had risen by 9°C. What was the midday temperature?",
+      options:["5°C","13°C","−13°C","−5°C"], correct:0 },
+    { kind:"mcq", subject:"maths", prompt:"A sequence goes 2, 5, 11, 23, 47 … What is the next number?",
+      options:["71","94","95","96"], correct:2 },
+    { kind:"mcq", subject:"maths", prompt:"In a class of 30 pupils, 40% walk to school. How many pupils is that?",
+      options:["10","12","15","18"], correct:1 },
+    { kind:"mcq", subject:"maths", prompt:"Which of these numbers is a common multiple of both 6 and 8?",
+      options:["16","20","24","30"], correct:2 },
+    { kind:"mcq", subject:"maths",
+      prompt:"A shop sells notebooks in packs of 5 for £3.50, or singly for 80p each. What is the cheapest way to buy 12 notebooks?",
+      options:["£9.60 (12 singles)","£8.60 (2 packs + 2 singles)","£8.40","£7.00 (2 packs only, 10 notebooks)"], correct:1 },
+    { kind:"mcq", subject:"maths",
+      prompt:"In a fruit bowl, the ratio of apples to oranges is 3:2. If there are 12 apples, how many oranges are there?",
+      options:["6","8","9","10"], correct:1 }
+  ];
+
+  var BEACON_ITEMS = [
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “It is not ___ to bring a calculator to the test.”",
+      answers:["necessary"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “I will ___ finish my homework before dinner.”",
+      answers:["definitely"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “The two paths ___ near the old oak tree.”",
+      answers:["separate"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “She felt very ___ when she tripped in front of the class.”",
+      answers:["embarrassed"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “We must protect the ___ for future generations.”",
+      answers:["environment"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “The hotel could not ___ such a large group.”",
+      answers:["accommodate"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “He was ___ pleased with his test results.”",
+      answers:["particularly"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “The magician made the rabbit ___ in a puff of smoke.”",
+      answers:["disappear"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “That song has a lovely ___.”",
+      answers:["rhythm"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “My ___ colour is blue.”",
+      answers:["favourite"] },
+
+    { kind:"short", subject:"maths",
+      prompt:"Jamie buys a sandwich for £2.35 and a drink for 95p. He pays with a £5 note. How much change does he get?",
+      answers:["1.70","£1.70"], hint:"Give your answer in pounds and pence, e.g. 1.70" },
+    { kind:"short", subject:"maths",
+      prompt:"Two angles on a straight line are 65° and x°. What is the value of x?",
+      answers:["115"], hint:"Just the number of degrees" },
+    { kind:"short", subject:"maths",
+      prompt:"A train leaves at 09:45 and arrives 2 hours 35 minutes later. What time does it arrive?",
+      answers:["12:20"], hint:"Use 24-hour time, e.g. 13:05" },
+    { kind:"short", subject:"maths", prompt:"What is 4.7 + 3.85?",
+      answers:["8.55"] },
+    { kind:"short", subject:"maths",
+      table:{ headers:["Fruit","Number sold"], rows:[["Apples","24"],["Bananas","18"],["Oranges","30"],["Pears","12"]] },
+      prompt:"How many more oranges were sold than bananas?",
+      answers:["12"] },
+    { kind:"short", subject:"maths",
+      prompt:"Pens cost 45p each, or a box of 6 for £2.40. How much is saved per pen by buying the box instead of 6 single pens?",
+      answers:["5p","0.05","£0.05"], hint:"Give your answer in pence, e.g. 5p" },
+    { kind:"short", subject:"maths",
+      prompt:"A rectangular playground is 12m by 7m. What is its area in square metres?",
+      answers:["84"] },
+    { kind:"short", subject:"maths",
+      prompt:"A triangle has angles of 50° and 65°. What is the size of the third angle?",
+      answers:["65"], hint:"Just the number of degrees" },
+    { kind:"short", subject:"maths",
+      prompt:"How many minutes are there between 10:20 and 13:05?",
+      answers:["165"], hint:"Just the number of minutes" },
+    { kind:"short", subject:"maths",
+      prompt:"A group of 4 friends share the cost of a £15.60 pizza equally. How much does each person pay?",
+      answers:["3.90","£3.90"], hint:"Give your answer in pounds and pence, e.g. 3.90" }
+  ];
+
+  var SESSION_SIZE = { adventure:10, beacon:10, mixed:15 };
+  var TAG_LABEL = {
+    adventure:"Adventure paper",
+    beacon:"Beacon paper"
+  };
+
+  // ---------- Answer checking ----------
+  function normalize(s){
+    return String(s).trim().toLowerCase().replace(/£/g, "").replace(/\s+/g, "");
+  }
+  function isNumericStr(s){
+    return /^-?\d+(\.\d+)?$/.test(s);
+  }
+  function shortAnswerCorrect(item, given){
+    var g = normalize(given);
+    if (!g) return false;
+    for (var i = 0; i < item.answers.length; i++){
+      var a = normalize(item.answers[i]);
+      if (g === a) return true;
+      if (isNumericStr(g) && isNumericStr(a) && parseFloat(g) === parseFloat(a)) return true;
+    }
+    return false;
+  }
+
+  // ---------- Local history ----------
+  var HISTORY_KEY = "entryTestHistory_v1";
+  var HISTORY_MAX = 100;
+  var HISTORY_SHOWN = 8;
+
+  function loadHistory(){
+    try {
+      var raw = window.localStorage.getItem(HISTORY_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (e){ return []; }
+  }
+  function saveHistory(list){
+    try { window.localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); } catch (e){ /* ignore */ }
+  }
+  function addHistoryRecord(rec){
+    var list = loadHistory();
+    list.unshift(rec);
+    if (list.length > HISTORY_MAX) list.length = HISTORY_MAX;
+    saveHistory(list);
+    renderHistory();
+  }
+
+  var PAPER_LABEL = { adventure:"Adventure paper", beacon:"Beacon paper", mixed:"Mixed practice" };
+
+  function formatDate(iso){
+    var d = new Date(iso);
+    return d.toLocaleDateString("en-GB", { weekday:"short", day:"numeric", month:"short" });
+  }
+
+  function renderHistory(){
+    var list = loadHistory();
+    historyEmpty.hidden = list.length !== 0;
+    historyListEl.innerHTML = "";
+    list.slice(0, HISTORY_SHOWN).forEach(function(rec){
+      var li = document.createElement("li");
+      li.className = "history-row";
+      var left = document.createElement("span");
+      left.className = "history-date";
+      left.textContent = formatDate(rec.date) + " — " + (PAPER_LABEL[rec.paper] || rec.paper);
+      var right = document.createElement("span");
+      right.className = "history-score";
+      right.textContent = rec.correct + " of " + rec.attempted + " (" + rec.pct + "%)";
+      li.appendChild(left);
+      li.appendChild(right);
+      historyListEl.appendChild(li);
+    });
+  }
+
+  // ---------- Element refs ----------
+  var pickerView = document.getElementById("pickerView");
+  var quizSection = document.getElementById("quizSection");
+  var quizTitle = document.getElementById("quizTitle");
+  var quizSub = document.getElementById("quizSub");
+  var progressFill = document.getElementById("progressFill");
+  var progressText = document.getElementById("progressText");
+  var questionCard = document.getElementById("questionCard");
+  var qTagEl = document.getElementById("qTag");
+  var qPassageWrap = document.getElementById("qPassageWrap");
+  var qPromptEl = document.getElementById("qPrompt");
+  var qBody = document.getElementById("qBody");
+  var qFeedbackEl = document.getElementById("qFeedback");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var completionPanel = document.getElementById("completionPanel");
+  var completionStats = document.getElementById("completionStats");
+  var reviewList = document.getElementById("reviewList");
+  var retryBtn = document.getElementById("retryBtn");
+  var pickerBtn = document.getElementById("pickerBtn");
+  var quitRow = document.getElementById("quitRow");
+  var quitBtn = document.getElementById("quitBtn");
+  var historyEmpty = document.getElementById("historyEmpty");
+  var historyListEl = document.getElementById("historyList");
+  var clearHistoryBtn = document.getElementById("clearHistoryBtn");
+  var historySection = document.getElementById("historySection");
+
+  // ---------- Session state ----------
+  var currentPaper = null;
+  var queue = [];
+  var qIndex = 0;
+  var correctCount = 0;
+  var attemptedCount = 0;
+  var checked = false;
+  var missed = [];
+
+  function buildQueue(paper){
+    if (paper === "adventure") return shuffle(ADVENTURE_ITEMS).slice(0, SESSION_SIZE.adventure);
+    if (paper === "beacon") return shuffle(BEACON_ITEMS).slice(0, SESSION_SIZE.beacon);
+    return shuffle(ADVENTURE_ITEMS.concat(BEACON_ITEMS)).slice(0, SESSION_SIZE.mixed);
+  }
+
+  function startSession(paper){
+    currentPaper = paper;
+    queue = buildQueue(paper);
+    qIndex = 0;
+    correctCount = 0;
+    attemptedCount = 0;
+    missed = [];
+    quizTitle.textContent = PAPER_LABEL[paper];
+    quizSub.textContent = paper === "mixed"
+      ? "A mix of Adventure and Beacon style questions."
+      : (paper === "adventure"
+          ? "Multiple choice — pick the best answer."
+          : "Type your answer into the box.");
+    pickerView.hidden = true;
+    quizSection.hidden = false;
+    completionPanel.hidden = true;
+    questionCard.hidden = false;
+    quitRow.hidden = false;
+    updateProgress();
+    loadQuestion();
+  }
+
+  function updateProgress(){
+    var total = queue.length;
+    var pct = total ? Math.round((qIndex / total) * 100) : 0;
+    progressFill.style.width = pct + "%";
+    progressText.textContent = "Question " + Math.min(qIndex + 1, total) + " of " + total;
+  }
+
+  function itemTag(item){
+    var subjectLabel = item.subject === "maths" ? "Maths" : "English";
+    if (currentPaper === "mixed"){
+      return (item.kind === "mcq" ? "Adventure" : "Beacon") + " · " + subjectLabel;
+    }
+    return TAG_LABEL[currentPaper] + " · " + subjectLabel;
+  }
+
+  function loadQuestion(){
+    if (qIndex >= queue.length){
+      finishSession();
+      return;
+    }
+    var item = queue[qIndex];
+    checked = false;
+    questionCard.classList.remove("is-correct", "is-incorrect");
+    qFeedbackEl.textContent = "";
+    qFeedbackEl.className = "q-feedback";
+    qTagEl.textContent = itemTag(item);
+    qPromptEl.textContent = item.prompt;
+    qPassageWrap.innerHTML = "";
+    qBody.innerHTML = "";
+    checkBtn.hidden = true;
+    nextBtn.hidden = true;
+
+    if (item.passage){
+      var box = document.createElement("div");
+      box.className = "passage-box";
+      box.textContent = item.passage;
+      qPassageWrap.appendChild(box);
+    }
+    if (item.table){
+      var table = document.createElement("table");
+      table.className = "data-table";
+      var thead = document.createElement("tr");
+      item.table.headers.forEach(function(h){
+        var th = document.createElement("th");
+        th.textContent = h;
+        thead.appendChild(th);
+      });
+      table.appendChild(thead);
+      item.table.rows.forEach(function(row){
+        var tr = document.createElement("tr");
+        row.forEach(function(cell){
+          var td = document.createElement("td");
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        table.appendChild(tr);
+      });
+      var tableWrap = document.createElement("div");
+      tableWrap.style.marginBottom = "4px";
+      tableWrap.appendChild(table);
+      qPassageWrap.appendChild(tableWrap);
+    }
+
+    if (item.kind === "mcq"){
+      renderMcq(item);
+    } else {
+      renderShort(item);
+    }
+
+    updateProgress();
+  }
+
+  function renderMcq(item){
+    var letters = ["A","B","C","D","E"];
+    var order = shuffle(item.options.map(function(text, i){ return { text:text, isCorrect:i === item.correct }; }));
+    var wrap = document.createElement("div");
+    wrap.className = "mcq-options";
+    order.forEach(function(opt, i){
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "mcq-option";
+      var letterSpan = document.createElement("span");
+      letterSpan.className = "opt-letter";
+      letterSpan.textContent = letters[i] + ".";
+      var textSpan = document.createElement("span");
+      textSpan.textContent = opt.text;
+      btn.appendChild(letterSpan);
+      btn.appendChild(textSpan);
+      btn.addEventListener("click", function(){
+        if (checked) return;
+        checked = true;
+        attemptedCount++;
+        var allBtns = wrap.querySelectorAll(".mcq-option");
+        allBtns.forEach(function(b){ b.disabled = true; });
+        if (opt.isCorrect){
+          correctCount++;
+          btn.classList.add("is-correct");
+          questionCard.classList.add("is-correct");
+          qFeedbackEl.textContent = "Correct!";
+          qFeedbackEl.className = "q-feedback is-correct";
+        } else {
+          btn.classList.add("is-incorrect");
+          questionCard.classList.add("is-incorrect");
+          var correctBtn = allBtns[order.findIndex(function(o){ return o.isCorrect; })];
+          if (correctBtn) correctBtn.classList.add("is-correct");
+          qFeedbackEl.textContent = "Not quite — the correct answer is highlighted.";
+          qFeedbackEl.className = "q-feedback is-incorrect";
+          missed.push({ prompt:item.prompt, correctText:item.options[item.correct] });
+        }
+        nextBtn.hidden = false;
+        nextBtn.focus();
+      });
+      wrap.appendChild(btn);
+    });
+    qBody.appendChild(wrap);
+  }
+
+  function renderShort(item){
+    var wrap = document.createElement("div");
+    wrap.className = "q-answer";
+    var input = document.createElement("input");
+    input.type = "text";
+    input.autocomplete = "off";
+    input.setAttribute("aria-label", "Answer");
+    wrap.appendChild(input);
+    if (item.hint){
+      var hint = document.createElement("p");
+      hint.className = "q-hint";
+      hint.textContent = item.hint;
+      wrap.appendChild(hint);
+    }
+    qBody.appendChild(wrap);
+    checkBtn.hidden = false;
+
+    function doCheck(){
+      if (checked) return;
+      checked = true;
+      attemptedCount++;
+      input.disabled = true;
+      checkBtn.hidden = true;
+      var isCorrect = shortAnswerCorrect(item, input.value);
+      if (isCorrect){
+        correctCount++;
+        questionCard.classList.add("is-correct");
+        qFeedbackEl.textContent = "Correct!";
+        qFeedbackEl.className = "q-feedback is-correct";
+      } else {
+        questionCard.classList.add("is-incorrect");
+        qFeedbackEl.textContent = "Not quite — the correct answer is " + item.answers[0] + ".";
+        qFeedbackEl.className = "q-feedback is-incorrect";
+        missed.push({ prompt:item.prompt, correctText:item.answers[0] });
+      }
+      nextBtn.hidden = false;
+      nextBtn.focus();
+    }
+
+    checkBtn.onclick = doCheck;
+    input.addEventListener("keydown", function(e){
+      if (e.key === "Enter"){ e.preventDefault(); doCheck(); }
+    });
+    input.focus();
+  }
+
+  nextBtn.addEventListener("click", function(){
+    qIndex++;
+    loadQuestion();
+  });
+
+  function finishSession(){
+    questionCard.hidden = true;
+    quitRow.hidden = true;
+    completionPanel.hidden = false;
+    var pct = attemptedCount ? Math.round((correctCount / attemptedCount) * 100) : 0;
+    completionStats.textContent = "You answered " + attemptedCount + " question" + (attemptedCount === 1 ? "" : "s") +
+      " and got " + correctCount + " right (" + pct + "%).";
+    if (missed.length){
+      reviewList.innerHTML = "";
+      reviewList.hidden = false;
+      missed.forEach(function(m){
+        var li = document.createElement("li");
+        li.innerHTML = "";
+        var strong = document.createElement("strong");
+        strong.textContent = m.correctText;
+        li.appendChild(document.createTextNode(m.prompt + " — "));
+        li.appendChild(strong);
+        reviewList.appendChild(li);
+      });
+    } else {
+      reviewList.hidden = true;
+    }
+    addHistoryRecord({
+      date: new Date().toISOString(),
+      paper: currentPaper,
+      attempted: attemptedCount,
+      correct: correctCount,
+      pct: pct
+    });
+  }
+
+  retryBtn.addEventListener("click", function(){
+    startSession(currentPaper);
+  });
+  pickerBtn.addEventListener("click", showPicker);
+  quitBtn.addEventListener("click", showPicker);
+
+  function showPicker(){
+    quizSection.hidden = true;
+    pickerView.hidden = false;
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll(".paper-btn"), function(btn){
+    btn.addEventListener("click", function(){
+      startSession(btn.getAttribute("data-paper"));
+    });
+  });
+
+  clearHistoryBtn.addEventListener("click", function(){
+    if (window.confirm("Clear all saved session history on this device? This can't be undone.")){
+      saveHistory([]);
+      renderHistory();
+    }
+  });
+
+  renderHistory();
+})();
+</script>
+
+</body>
+</html>

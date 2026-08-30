@@ -1,14 +1,20 @@
 # Quiz App
 
-A holiday-aware long arithmetic practice tool, built for a Year 6–7 pupil (age 11–12) at
-Skipton Parish Church of England Primary School. It checks whether today falls in one of the
-school's own holidays and sets a practice target accordingly, then keeps generating questions
-until that many are answered correctly, adapting each operation's difficulty to how she's doing
-along the way.
+Two small practice tools for the same pupil, sharing one repo and one look.
+
+- **`index.html`** — a holiday-aware long arithmetic practice tool, built for a Year 6–7 pupil
+  (age 11–12) at Skipton Parish Church of England Primary School. It checks whether today falls
+  in one of the school's own holidays and sets a practice target accordingly, then keeps
+  generating questions until that many are answered correctly, adapting each operation's
+  difficulty to how she's doing along the way.
+- **`entry-test.html`** — practice questions in the style of Skipton Girls' High School's Year 7
+  entry test (the Adventure and Beacon papers), for 11+ preparation. See its own section below.
 
 Live at: https://github.com/cmdelee/mathsquiz (GitHub Pages, once enabled)
 
-## Features
+## Maths practice (`index.html`)
+
+### Features
 
 - **Holiday-aware target**: 10 correct answers on a school holiday, 25 in term time by default,
   based on Skipton Parish School's actual published term dates (not a generic regional calendar).
@@ -48,13 +54,14 @@ All files sit together in the repo root — GitHub Pages serves them as-is, no b
 
 | File | Purpose |
 |---|---|
-| `index.html` | The whole app — markup, styles and logic in one file. |
-| `manifest.json` | PWA manifest, so it can be installed to a phone/tablet home screen. |
-| `sw.js` | Service worker — caches the app shell for offline use once installed. |
+| `index.html` | The maths practice app — markup, styles and logic in one file. |
+| `entry-test.html` | The Skipton Girls' entry test practice page — same one-file approach. |
+| `manifest.json` | PWA manifest for the maths app, so it can be installed to a phone/tablet home screen. |
+| `sw.js` | Service worker for the maths app — caches its shell for offline use once installed. |
 | `icon-192.png`, `icon-512.png` | App icons (moss green, Σ mark). |
 | `.gitignore` | Just ignores a stray local test file; nothing app-related. |
 
-## How it works
+## How the maths app works
 
 ### Holiday dates and the question target
 
@@ -115,12 +122,44 @@ Once the site is live on GitHub Pages: open it in the browser, then use the brow
 banner). It then behaves like a normal app icon, opens without browser chrome, and keeps working
 offline once it's been opened at least once.
 
+## Entry test practice (`entry-test.html`)
+
+A separate, standalone page practising the format of Skipton Girls' High School's Year 7 entry
+test, which is run by an external provider called FSCE and used by several grammar schools
+(Skipton Girls', Ermysted's, Reading School and others). Skipton Girls' sits two of FSCE's papers:
+
+- **Adventure** — multiple choice (pick one of four options), covering English (a short reading
+  passage with comprehension questions, plus vocabulary/synonym questions) and maths (reasoning
+  and problem-solving word problems).
+- **Beacon** — short written answers typed into a box, covering English (spelling in context) and
+  maths (multi-step word problems: money, angles, time, decimals, reading a data table, cost
+  comparisons, area).
+
+The page has three practice modes — Adventure only, Beacon only, or Mixed (a longer session
+blending both) — each drawing a fresh, shuffled set of questions from a bank of original
+questions written for this page (see `ADVENTURE_ITEMS` and `BEACON_ITEMS` in `entry-test.html`).
+**These are not the real FSCE questions** — those stay confidential to FSCE and are only ever
+seen in the school's own familiarisation guide (linked from the page, and from Skipton Girls'
+[admissions page](https://www.sghs.org.uk/our-school/admissions)) — this page just practises the
+same two formats and the same style/difficulty of question, written from scratch.
+
+Each session is self-marked with immediate feedback, and finishes with a score and a list of any
+missed questions to go over. Short-answer checking is a little forgiving on formatting (e.g.
+`1.70` and `£1.70` are both accepted, as are numerically-equal forms like `5` and `5.0`), but
+spelling answers need to be spelled correctly. Session history (date, paper, score) is saved to
+`localStorage` under `entryTestHistory_v1`, shown on the page itself — there's no parents page or
+PIN here, since there's nothing to protect a child from (no adaptive settings to accidentally
+reset).
+
+The two pages link to each other from their footers.
+
 ## Making changes
 
-Edit `index.html` directly — it's the single source of truth (the CSS and JS are inline, not
-built from anything else, so there's no build step to run). After editing, sanity-check it
-locally by opening the file straight in a browser (`file://` works fine, aside from the service
-worker, which needs a real HTTPS host to register).
+Edit `index.html` or `entry-test.html` directly — each is a single, self-contained file (CSS and
+JS inline, nothing built from anything else), so there's no build step to run. After editing,
+sanity-check it locally by opening the file straight in a browser (`file://` works fine for
+`entry-test.html`; `index.html`'s service worker needs a real HTTPS host to register, though the
+rest of the page still works over `file://`).
 
 To get changes onto GitHub: either edit the files directly in the GitHub web UI ("Edit" pencil
 icon on each file), use "Add file → Upload files" to replace them after editing locally, or
@@ -138,3 +177,8 @@ commit and push from a local clone with Git/GitHub Desktop.
   with access to the device — and there's no recovery option if it's forgotten short of clearing
   site data (which also clears the history, targets and child's name on that device, and prompts
   for a new PIN to be set next time).
+- The entry test page's question bank is a fixed, hand-written set (10 Adventure English items, 10
+  Adventure maths items, 10 Beacon English items, 10 Beacon maths items) — sessions shuffle and
+  sample from it, but the questions themselves don't change or grow on their own. Adding more is a
+  matter of appending further objects to `ADVENTURE_ITEMS` / `BEACON_ITEMS` in `entry-test.html`,
+  following the existing shape.
