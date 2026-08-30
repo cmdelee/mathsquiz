@@ -160,9 +160,10 @@ test, which is run by an external provider called FSCE and used by several gramm
 - **Adventure** — multiple choice (pick one of four options), covering English (short reading
   passages with comprehension questions, plus vocabulary/synonym questions) and maths (reasoning
   and problem-solving word problems).
-- **Beacon** — short written answers typed into a box, covering English (spelling in context) and
-  maths (multi-step word problems: money, angles, time, decimals, reading a data table, cost
-  comparisons, area).
+- **Beacon** — short written answers typed into a box, covering English (spelling, matching the
+  real FSCE paper's format: the word is shown with some letters already filled in, like `COM____`
+  for "compass", and the child only has to type the missing letters) and maths (multi-step word
+  problems: money, angles, time, decimals, reading a data table, cost comparisons, area).
 
 The page has three practice modes — Adventure only, Beacon only, or Mixed (a longer session
 blending both) — each drawing a fresh, shuffled set of questions from a bank of original
@@ -178,10 +179,11 @@ practises the same two formats and the same style/difficulty of question, writte
 
 Each session is self-marked with immediate feedback, and finishes with a score and a list of any
 missed questions to go over. Short-answer checking is a little forgiving on formatting (e.g.
-`1.70` and `£1.70` are both accepted, as are numerically-equal forms like `5` and `5.0`), but
-spelling answers need to be spelled correctly. The page itself shows only the most recent
-session's date, paper and score; full history (like the maths app) lives on `parents.html`,
-saved to `localStorage` under `entryTestHistory_v1`.
+`1.70` and `£1.70` are both accepted, as are numerically-equal forms like `5` and `5.0`), but the
+missing letters in a spelling question need to be spelled correctly (case and spacing don't
+matter). The page itself shows only the most recent session's date, paper and score; full
+history (like the maths app) lives on `parents.html`, saved to `localStorage` under
+`entryTestHistory_v1`.
 
 All four pages link to each other from their footers.
 

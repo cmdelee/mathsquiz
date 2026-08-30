@@ -323,6 +323,40 @@
     color:var(--ink-faint);
     flex-basis:100%;
   }
+  .spell-sentence{
+    margin:0 0 4px 0;
+    font-size:1.05rem;
+    line-height:2.1;
+    color:var(--ink);
+  }
+  .spell-scaffold{
+    display:inline-flex;
+    gap:3px;
+    vertical-align:middle;
+    margin:0 3px;
+  }
+  .spell-box{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:1.3em;
+    height:1.5em;
+    padding:0 2px;
+    border:1.5px solid var(--border);
+    border-radius:4px;
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-weight:700;
+    font-size:0.95rem;
+  }
+  .spell-box.is-given{
+    background:var(--surface);
+    color:var(--ink);
+    border-color:var(--ink-faint);
+  }
+  .spell-box.is-blank{
+    background:transparent;
+    border-style:dashed;
+  }
   .q-feedback{
     margin:0;
     min-height:1.3em;
@@ -753,66 +787,66 @@
   ];
 
   var BEACON_ITEMS = [
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “It is not ___ to bring a calculator to the test.”",
-      answers:["necessary"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “I will ___ finish my homework before dinner.”",
-      answers:["definitely"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “The two paths ___ near the old oak tree.”",
-      answers:["separate"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “She felt very ___ when she tripped in front of the class.”",
-      answers:["embarrassed"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “We must protect the ___ for future generations.”",
-      answers:["environment"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “The hotel could not ___ such a large group.”",
-      answers:["accommodate"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “He was ___ pleased with his test results.”",
-      answers:["particularly"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “The magician made the rabbit ___ in a puff of smoke.”",
-      answers:["disappear"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “That song has a lovely ___.”",
-      answers:["rhythm"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “My ___ colour is blue.”",
-      answers:["favourite"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “She stayed calm and reacted ___ when the alarm went off.”",
-      answers:["immediately"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “The ___ decided to build a new school in the town.”",
-      answers:["government"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “That song sounds very ___ — I think I've heard it before.”",
-      answers:["familiar"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “The sunset over the mountains was absolutely ___.”",
-      answers:["beautiful"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “My uncle runs a small ___ selling bicycles.”",
-      answers:["business"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “I don't ___ everything I read on the internet.”",
-      answers:["believe"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “Her birthday falls in ___, right after mine.”",
-      answers:["february"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “The queen's crown was covered in sparkling ___.”",
-      answers:["jewellery"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “He was barely ___ after hitting his head, and felt dizzy.”",
-      answers:["conscious"] },
-    { kind:"short", subject:"english",
-      prompt:"Fill in the missing word: “The shop couldn't ___ that the parcel would arrive on time.”",
-      answers:["guarantee"] },
+    { kind:"spell", subject:"english",
+      sentence:"It is not {{blank}} to bring a calculator to the test.",
+      word:"necessary", prefix:"nec", suffix:"ary" },
+    { kind:"spell", subject:"english",
+      sentence:"I will {{blank}} finish my homework before dinner.",
+      word:"definitely", prefix:"def", suffix:"ly" },
+    { kind:"spell", subject:"english",
+      sentence:"The two paths {{blank}} near the old oak tree.",
+      word:"separate", prefix:"sep", suffix:"" },
+    { kind:"spell", subject:"english",
+      sentence:"She felt very {{blank}} when she tripped in front of the class.",
+      word:"embarrassed", prefix:"em", suffix:"ed" },
+    { kind:"spell", subject:"english",
+      sentence:"We must protect the {{blank}} for future generations.",
+      word:"environment", prefix:"en", suffix:"ment" },
+    { kind:"spell", subject:"english",
+      sentence:"The hotel could not {{blank}} such a large group.",
+      word:"accommodate", prefix:"ac", suffix:"ate" },
+    { kind:"spell", subject:"english",
+      sentence:"He was {{blank}} pleased with his test results.",
+      word:"particularly", prefix:"part", suffix:"ly" },
+    { kind:"spell", subject:"english",
+      sentence:"The magician made the rabbit {{blank}} in a puff of smoke.",
+      word:"disappear", prefix:"dis", suffix:"ear" },
+    { kind:"spell", subject:"english",
+      sentence:"That song has a lovely {{blank}}.",
+      word:"rhythm", prefix:"rhy", suffix:"" },
+    { kind:"spell", subject:"english",
+      sentence:"My {{blank}} colour is blue.",
+      word:"favourite", prefix:"fav", suffix:"te" },
+    { kind:"spell", subject:"english",
+      sentence:"She stayed calm and reacted {{blank}} when the alarm went off.",
+      word:"immediately", prefix:"im", suffix:"ly" },
+    { kind:"spell", subject:"english",
+      sentence:"The {{blank}} decided to build a new school in the town.",
+      word:"government", prefix:"gov", suffix:"nt" },
+    { kind:"spell", subject:"english",
+      sentence:"That song sounds very {{blank}} — I think I've heard it before.",
+      word:"familiar", prefix:"fam", suffix:"ar" },
+    { kind:"spell", subject:"english",
+      sentence:"The sunset over the mountains was absolutely {{blank}}.",
+      word:"beautiful", prefix:"beau", suffix:"ul" },
+    { kind:"spell", subject:"english",
+      sentence:"My uncle runs a small {{blank}} selling bicycles.",
+      word:"business", prefix:"bus", suffix:"ss" },
+    { kind:"spell", subject:"english",
+      sentence:"I don't {{blank}} everything I read on the internet.",
+      word:"believe", prefix:"bel", suffix:"ve" },
+    { kind:"spell", subject:"english",
+      sentence:"Her birthday falls in {{blank}}, right after mine.",
+      word:"february", prefix:"feb", suffix:"ry" },
+    { kind:"spell", subject:"english",
+      sentence:"The queen's crown was covered in sparkling {{blank}}.",
+      word:"jewellery", prefix:"jew", suffix:"ry" },
+    { kind:"spell", subject:"english",
+      sentence:"He was barely {{blank}} after hitting his head, and felt dizzy.",
+      word:"conscious", prefix:"con", suffix:"us" },
+    { kind:"spell", subject:"english",
+      sentence:"The shop couldn't {{blank}} that the parcel would arrive on time.",
+      word:"guarantee", prefix:"guar", suffix:"ee" },
 
     { kind:"short", subject:"maths",
       prompt:"Jamie buys a sandwich for £2.35 and a drink for 95p. He pays with a £5 note. How much change does he get?",
@@ -1043,7 +1077,7 @@
     qFeedbackEl.textContent = "";
     qFeedbackEl.className = "q-feedback";
     qTagEl.textContent = itemTag(item);
-    qPromptEl.textContent = item.prompt;
+    qPromptEl.textContent = item.kind === "spell" ? "Fill in the missing letters:" : item.prompt;
     qPassageWrap.innerHTML = "";
     qBody.innerHTML = "";
     checkBtn.hidden = true;
@@ -1082,6 +1116,8 @@
 
     if (item.kind === "mcq"){
       renderMcq(item);
+    } else if (item.kind === "spell"){
+      renderSpell(item);
     } else {
       renderShort(item);
     }
@@ -1168,6 +1204,83 @@
         qFeedbackEl.textContent = "Not quite — the correct answer is " + item.answers[0] + ".";
         qFeedbackEl.className = "q-feedback is-incorrect";
         missed.push({ prompt:item.prompt, correctText:item.answers[0] });
+      }
+      nextBtn.hidden = false;
+      nextBtn.focus();
+    }
+
+    checkBtn.onclick = doCheck;
+    input.addEventListener("keydown", function(e){
+      if (e.key === "Enter"){ e.preventDefault(); doCheck(); }
+    });
+    input.focus();
+  }
+
+  // Spelling items show the word with some letters already filled in (a
+  // prefix and/or suffix), boxed like the real answer sheet, and only ask
+  // for the missing middle letters — much closer to how the actual FSCE
+  // Beacon paper spelling questions work than a blank-from-scratch prompt,
+  // and a lot less daunting since most of the word is already there.
+  function renderSpell(item){
+    var middle = item.word.slice(item.prefix.length, item.word.length - item.suffix.length);
+    var parts = item.sentence.split("{{blank}}");
+
+    function addBoxes(scaffold, str, isGiven){
+      str.split("").forEach(function(ch){
+        var box = document.createElement("span");
+        box.className = "spell-box " + (isGiven ? "is-given" : "is-blank");
+        box.textContent = isGiven ? ch.toUpperCase() : "";
+        scaffold.appendChild(box);
+      });
+    }
+
+    var para = document.createElement("p");
+    para.className = "spell-sentence";
+    para.appendChild(document.createTextNode(parts[0]));
+    var scaffold = document.createElement("span");
+    scaffold.className = "spell-scaffold";
+    addBoxes(scaffold, item.prefix, true);
+    addBoxes(scaffold, middle, false);
+    addBoxes(scaffold, item.suffix, true);
+    para.appendChild(scaffold);
+    para.appendChild(document.createTextNode(parts[1] || ""));
+    qBody.appendChild(para);
+
+    var wrap = document.createElement("div");
+    wrap.className = "q-answer";
+    var input = document.createElement("input");
+    input.type = "text";
+    input.autocomplete = "off";
+    input.setAttribute("aria-label", "Missing letters");
+    input.placeholder = "missing letters";
+    wrap.appendChild(input);
+    var hint = document.createElement("p");
+    hint.className = "q-hint";
+    hint.textContent = "Just type the " + middle.length + " missing letter" + (middle.length === 1 ? "" : "s") +
+      " shown as blank boxes above — the rest of the word is already filled in.";
+    wrap.appendChild(hint);
+    qBody.appendChild(wrap);
+    checkBtn.hidden = false;
+
+    function doCheck(){
+      if (checked) return;
+      checked = true;
+      attemptedCount++;
+      input.disabled = true;
+      checkBtn.hidden = true;
+      var isCorrect = normalize(input.value) === normalize(middle);
+      var fullWord = item.word.toUpperCase();
+      if (isCorrect){
+        correctCount++;
+        questionCard.classList.add("is-correct");
+        qFeedbackEl.textContent = "Correct! The word is " + fullWord + ".";
+        qFeedbackEl.className = "q-feedback is-correct";
+      } else {
+        questionCard.classList.add("is-incorrect");
+        qFeedbackEl.textContent = "Not quite — the missing letters were “" + middle.toUpperCase() +
+          "”, making " + fullWord + ".";
+        qFeedbackEl.className = "q-feedback is-incorrect";
+        missed.push({ prompt: parts[0] + fullWord + (parts[1] || ""), correctText: fullWord });
       }
       nextBtn.hidden = false;
       nextBtn.focus();
