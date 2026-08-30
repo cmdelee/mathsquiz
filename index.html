@@ -523,7 +523,7 @@
   <section class="quiz card" id="quizSection" data-state="term">
     <div class="quiz-head">
       <h2>Arithmetic practice</h2>
-      <p class="quiz-sub">Long multiplication, long division, long subtraction and long addition, set at Year 6 to Year 7 level. Division always divides exactly, with no remainders. Addition and subtraction can include negative numbers and negative answers. Keep answering until you reach today's target.</p>
+      <p class="quiz-sub">Long multiplication, long division, long subtraction and long addition, set at Year 6 to Year 7 level. Division always divides exactly, with no remainders. Subtraction can give a negative answer; addition always stays positive. Keep answering until you reach today's target.</p>
     </div>
 
     <div class="progress-row">
@@ -716,14 +716,10 @@
     var lo = Math.pow(10, digits-1), hi = Math.pow(10, digits)-1;
     var addends = [];
     for (var i=0; i<count; i++){
-      var val = randInt(lo, hi);
-      if (Math.random() < 0.35) val = -val; // sometimes add a negative number
-      addends.push(val);
+      addends.push(randInt(lo, hi));
     }
     var sum = addends.reduce(function(a,b){ return a+b; }, 0);
-    var equation = addends.map(function(n){
-      return n < 0 ? "(−" + fmt(Math.abs(n)) + ")" : fmt(n);
-    }).join(" + ");
+    var equation = addends.map(fmt).join(" + ");
     return {
       type:"addition",
       tag:"Long addition",
