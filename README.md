@@ -168,10 +168,10 @@ test, which is run by an external provider called FSCE and used by several gramm
 The page has three practice modes — Adventure only, Beacon only, or Mixed (a longer session
 blending both) — each drawing a fresh, shuffled set of questions from a bank of original
 questions written for this page (see `ADVENTURE_ITEMS` and `BEACON_ITEMS` in `entry-test.html`).
-The bank currently holds 100 items: 56 in `ADVENTURE_ITEMS` (three reading passages with 4
-comprehension questions each, 20 vocabulary questions, 24 maths reasoning questions) and 44 in
-`BEACON_ITEMS` (20 spelling-in-context questions, 24 maths word problems) — enough that a
-session (10–15 questions) rarely repeats the same question as the one before it across several
+The bank currently holds 999 items: 560 in `ADVENTURE_ITEMS` (30 reading passages with 4
+comprehension questions each, 200 vocabulary questions, 240 maths reasoning questions) and 439 in
+`BEACON_ITEMS` (199 spelling-scaffold questions, 240 maths word problems) — roughly ten times the
+original size, so a session (10–15 questions) very rarely repeats the same question across many
 sittings. **These are not the real FSCE questions** — those stay confidential to FSCE and are
 only ever seen in the school's own familiarisation guide (linked from the page, and from Skipton
 Girls' [admissions page](https://www.sghs.org.uk/our-school/admissions)) — this page just
@@ -212,7 +212,7 @@ commit and push from a local clone with Git/GitHub Desktop.
   with access to the device — and there's no recovery option if it's forgotten short of clearing
   site data (which also clears the history, targets and child's name on that device, and prompts
   for a new PIN to be set next time).
-- The entry test page's question bank is a fixed, hand-written set of 100 items — sessions
-  shuffle and sample from it, but the questions themselves don't change or grow on their own.
-  Adding more is a matter of appending further objects to `ADVENTURE_ITEMS` / `BEACON_ITEMS` in
+- The entry test page's question bank is a fixed, written set of 999 items — sessions shuffle
+  and sample from it, but the questions themselves don't change or grow on their own. Adding
+  more is a matter of appending further objects to `ADVENTURE_ITEMS` / `BEACON_ITEMS` in
   `entry-test.html`, following the existing shape.
