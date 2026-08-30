@@ -1,7 +1,7 @@
 {
   "name": "Quiz App",
   "short_name": "Quiz App",
-  "description": "Holiday-aware long arithmetic practice for Skipton, North Yorkshire.",
+  "description": "Maths practice and Skipton Girls' entry test practice, in one hub.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

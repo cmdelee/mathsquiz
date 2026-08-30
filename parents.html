@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parents / Admin</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#35664F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quiz App">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --bg:#EEF1E6;
+    --grain:#E3E8D8;
+    --surface:#FFFFFF;
+    --surface-2:#F6F7F0;
+    --border:#D8DECB;
+    --ink:#232B22;
+    --ink-soft:#5B6656;
+    --ink-faint:#8A9483;
+    --accent:#35664F;
+    --accent-ink:#F5FBF6;
+    --accent-soft:#DCEAE1;
+    --gold:#8B6B36;
+    --gold-ink:#FBF6EC;
+    --gold-soft:#EFE3C9;
+    --success:#2E7D4F;
+    --success-bg:#E4F2E6;
+    --error:#B4432F;
+    --error-bg:#FBE7E1;
+    --focus:#35664F;
+    --shadow: 0 1px 2px rgba(35,43,34,0.06), 0 8px 24px -12px rgba(35,43,34,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#171C16;
+      --grain:#1D231B;
+      --surface:#1F251C;
+      --surface-2:#252C21;
+      --border:#333D2C;
+      --ink:#E9ECDF;
+      --ink-soft:#AAB79D;
+      --ink-faint:#748069;
+      --accent:#74B594;
+      --accent-ink:#0E1F16;
+      --accent-soft:#243A2D;
+      --gold:#D6AD6C;
+      --gold-ink:#241C0C;
+      --gold-soft:#3A2F1B;
+      --success:#79D19C;
+      --success-bg:#1E3327;
+      --error:#E8917E;
+      --error-bg:#3A211C;
+      --focus:#74B594;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#171C16;
+    --grain:#1D231B;
+    --surface:#1F251C;
+    --surface-2:#252C21;
+    --border:#333D2C;
+    --ink:#E9ECDF;
+    --ink-soft:#AAB79D;
+    --ink-faint:#748069;
+    --accent:#74B594;
+    --accent-ink:#0E1F16;
+    --accent-soft:#243A2D;
+    --gold:#D6AD6C;
+    --gold-ink:#241C0C;
+    --gold-soft:#3A2F1B;
+    --success:#79D19C;
+    --success-bg:#1E3327;
+    --error:#E8917E;
+    --error-bg:#3A211C;
+    --focus:#74B594;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background-color:var(--bg);
+    background-image:
+      radial-gradient(circle at 1px 1px, var(--grain) 1px, transparent 1px);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{
+    max-width:700px;
+    margin:0 auto;
+    padding:40px 20px 64px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+  }
+
+  .masthead{ text-align:left; }
+  .eyebrow{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:0.95rem;
+    color:var(--accent);
+    letter-spacing:0.02em;
+  }
+  h1{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:clamp(1.9rem, 5vw, 2.5rem);
+    line-height:1.08;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .date-line{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:1rem;
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:var(--shadow);
+  }
+
+  .lock-card{
+    padding:30px 24px;
+    text-align:center;
+  }
+  .lock-card p{
+    margin:0 0 18px;
+    color:var(--ink-soft);
+    font-size:0.92rem;
+    max-width:44ch;
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  .quiz{ padding:24px 22px 22px; }
+  .quiz-head h2{
+    margin:0 0 4px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.4rem;
+  }
+  .quiz-sub{
+    margin:0 0 18px;
+    color:var(--ink-soft);
+    font-size:0.9rem;
+    max-width:60ch;
+  }
+
+  .parents-page{ padding:24px 22px 22px; }
+  .parents-block{ margin:0 0 22px; }
+  .parents-block:last-child{ margin-bottom:0; }
+  .parents-block h3{
+    margin:0 0 8px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.05rem;
+    color:var(--ink);
+  }
+  .settings-body{
+    padding:14px 16px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    gap:14px 20px;
+  }
+  .settings-field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .settings-field label{
+    font-size:0.85rem;
+    color:var(--ink-soft);
+  }
+  .settings-field input[type="number"],
+  .settings-field input[type="text"]{
+    font:inherit;
+    font-size:0.9rem;
+    padding:6px 8px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink);
+  }
+  .settings-field input[type="number"]{ width:5.5em; }
+  .settings-field input[type="text"]{ width:14em; max-width:100%; }
+  .settings-note{
+    flex-basis:100%;
+    margin:2px 0 0;
+    font-size:0.88rem;
+    color:var(--ink-soft);
+  }
+  .settings-note.is-error{ color:var(--error); }
+  .settings-note.is-success{ color:var(--success); }
+
+  .history-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .history-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 2px;
+    border-top:1px solid var(--border);
+    font-size:0.88rem;
+  }
+  .history-row:first-child{ border-top:none; }
+  .history-row.is-more{ color:var(--ink-faint); font-size:0.82rem; }
+  .history-date{ color:var(--ink-soft); }
+  .history-score{
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric:tabular-nums;
+    font-weight:600;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+  .history-note{
+    margin:14px 0 0;
+    font-size:0.78rem;
+    color:var(--ink-faint);
+  }
+
+  .quiz-actions{
+    margin-top:18px;
+    padding-top:16px;
+    border-top:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    font:inherit;
+    font-weight:600;
+    font-size:0.92rem;
+    padding:10px 18px;
+    border-radius:7px;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:filter 0.12s ease, background-color 0.12s ease;
+  }
+  .btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .btn-primary{
+    background:var(--accent);
+    color:var(--accent-ink);
+  }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink);
+    border-color:var(--border);
+  }
+  .btn-ghost:hover{ background:var(--surface-2); }
+
+  .foot{
+    font-size:0.78rem;
+    color:var(--ink-faint);
+    line-height:1.7;
+    padding:4px 4px 0;
+  }
+  .foot a{ color:var(--ink-soft); }
+  .foot a:hover{ color:var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="masthead">
+    <p class="eyebrow">Skipton · North Yorkshire</p>
+    <h1>Parents / Admin</h1>
+    <p class="date-line">Settings, history and resets for both practice apps.</p>
+  </header>
+
+  <section class="card lock-card" id="lockCard">
+    <p id="lockText">This page is protected by a parent PIN, so a child browsing the apps can't see or change anything here.</p>
+    <button id="unlockBtn" class="btn btn-primary">Enter PIN</button>
+  </section>
+
+  <div id="adminView" hidden>
+
+    <section class="card parents-page">
+      <div class="quiz-head">
+        <h2>Maths practice</h2>
+        <p class="quiz-sub">Child's name, targets, difficulty levels and session history for the maths app.</p>
+      </div>
+
+      <div class="parents-block">
+        <h3>Child's name</h3>
+        <p class="quiz-sub">Shown on the maths practice page and in reports. Leave blank to keep things generic.</p>
+        <div class="settings-body">
+          <div class="settings-field">
+            <label for="childNameInput">Name</label>
+            <input type="text" id="childNameInput" maxlength="40" autocomplete="off">
+          </div>
+          <button id="saveChildNameBtn" class="btn btn-ghost">Save name</button>
+          <p class="settings-note" id="childNameNote" hidden></p>
+        </div>
+      </div>
+
+      <div class="parents-block">
+        <h3>Targets</h3>
+        <p class="quiz-sub">How many correct answers make a full session. Change these any time.</p>
+        <div class="settings-body">
+          <div class="settings-field">
+            <label for="termTargetInput">Term time</label>
+            <input type="number" id="termTargetInput" min="1" max="200" step="1" inputmode="numeric">
+          </div>
+          <div class="settings-field">
+            <label for="holidayTargetInput">School holidays</label>
+            <input type="number" id="holidayTargetInput" min="1" max="200" step="1" inputmode="numeric">
+          </div>
+          <button id="saveTargetsBtn" class="btn btn-ghost">Save targets</button>
+          <p class="settings-note" id="targetsNote" hidden></p>
+        </div>
+      </div>
+
+      <div class="parents-block">
+        <h3>Difficulty levels</h3>
+        <ul class="history-list" id="levelList"></ul>
+      </div>
+
+      <div class="parents-block">
+        <h3>Session history</h3>
+        <p class="quiz-sub" id="mathsHistorySummary">No sessions completed yet.</p>
+        <ul class="history-list" id="mathsHistoryList"></ul>
+      </div>
+
+      <div class="quiz-actions">
+        <button id="resetDifficultyBtn" class="btn btn-ghost">Reset difficulty to easiest</button>
+        <button id="clearMathsHistoryBtn" class="btn btn-ghost">Clear maths history</button>
+      </div>
+    </section>
+
+    <section class="card parents-page">
+      <div class="quiz-head">
+        <h2>Entry test practice</h2>
+        <p class="quiz-sub">Session history for the Skipton Girls' entry test practice page.</p>
+      </div>
+
+      <div class="parents-block">
+        <h3>Session history</h3>
+        <p class="quiz-sub" id="entryHistorySummary">No sessions completed yet.</p>
+        <ul class="history-list" id="entryHistoryList"></ul>
+      </div>
+
+      <div class="quiz-actions">
+        <button id="clearEntryHistoryBtn" class="btn btn-ghost">Clear entry test history</button>
+      </div>
+    </section>
+
+    <section class="card parents-page">
+      <div class="quiz-head">
+        <h2>Parent PIN</h2>
+        <p class="quiz-sub">Shared by both apps. Changing it here updates it everywhere.</p>
+      </div>
+      <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none;">
+        <button id="changePinBtn" class="btn btn-ghost">Change parent PIN</button>
+      </div>
+      <p class="history-note">Everything on this page is saved only in this browser, on this device — nothing is sent anywhere.</p>
+    </section>
+
+  </div>
+
+  <footer class="foot">
+    <p><a href="index.html">← Back to menu</a></p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Parent PIN ----------
+  // Same self-set PIN as before, shared across this page and both practice
+  // apps via localStorage — only its hash is ever stored.
+  var PIN_KEY = "quizAppParentPinHash_v1";
+  var PIN_MIN_LENGTH = 4;
+
+  function loadPinHash(){
+    try { return window.localStorage.getItem(PIN_KEY) || null; }
+    catch (e){ return null; }
+  }
+  function savePinHash(hash){
+    try { window.localStorage.setItem(PIN_KEY, hash); return true; }
+    catch (e){ return false; }
+  }
+  function hashPin(pin){
+    var text = "quiz-app:" + pin;
+    if (window.crypto && window.crypto.subtle && window.isSecureContext){
+      return window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))
+        .then(function(buf){
+          return Array.prototype.map.call(new Uint8Array(buf), function(b){
+            return b.toString(16).padStart(2, "0");
+          }).join("");
+        })
+        .catch(function(){ return simpleHash(text); });
+    }
+    return Promise.resolve(simpleHash(text));
+  }
+  function simpleHash(text){
+    var hash = 5381;
+    for (var i = 0; i < text.length; i++){
+      hash = (((hash << 5) + hash) + text.charCodeAt(i)) & 0xFFFFFFFF;
+    }
+    return "fb" + (hash >>> 0).toString(16);
+  }
+
+  function promptSetNewPin(introText){
+    var first = window.prompt(introText || ("Choose a parent PIN (at least " + PIN_MIN_LENGTH + " digits/characters):"));
+    if (first === null) return Promise.resolve(false);
+    first = first.trim();
+    if (first.length < PIN_MIN_LENGTH){
+      window.alert("Please choose a PIN with at least " + PIN_MIN_LENGTH + " characters.");
+      return Promise.resolve(false);
+    }
+    var second = window.prompt("Enter the same PIN again to confirm:");
+    if (second === null) return Promise.resolve(false);
+    if (second.trim() !== first){
+      window.alert("Those two didn't match – nothing was changed.");
+      return Promise.resolve(false);
+    }
+    return hashPin(first).then(function(hash){
+      savePinHash(hash);
+      return true;
+    });
+  }
+
+  // ---------- Maths practice data (shared localStorage keys) ----------
+  var DIFF_KEY = "quizAppDifficulty_v1";
+  var DIFF_MIN_LEVEL = 1;
+  var DIFF_MAX_LEVEL = 6;
+  var DIFF_TYPES = ["multiplication", "division", "addition", "subtraction"];
+  var TYPE_LABELS = {
+    multiplication: "Long multiplication",
+    division: "Long division",
+    subtraction: "Long subtraction",
+    addition: "Long addition"
+  };
+
+  function loadDifficulty(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(DIFF_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    DIFF_TYPES.forEach(function(t){
+      var v = obj[t];
+      obj[t] = (typeof v === "number" && v >= DIFF_MIN_LEVEL && v <= DIFF_MAX_LEVEL) ? v : DIFF_MIN_LEVEL;
+    });
+    return obj;
+  }
+  function saveDifficulty(d){
+    try { window.localStorage.setItem(DIFF_KEY, JSON.stringify(d)); } catch (e){ /* ignore */ }
+  }
+
+  var SETTINGS_KEY = "quizAppSettings_v1";
+  var DEFAULT_TERM_TARGET = 25;
+  var DEFAULT_HOLIDAY_TARGET = 10;
+  var TARGET_MIN = 1;
+  var TARGET_MAX = 200;
+
+  function clampTarget(v, fallback){
+    v = parseInt(v, 10);
+    if (!isFinite(v) || isNaN(v)) return fallback;
+    if (v < TARGET_MIN) return TARGET_MIN;
+    if (v > TARGET_MAX) return TARGET_MAX;
+    return v;
+  }
+  function loadSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(SETTINGS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return {
+      termTarget: clampTarget(obj.termTarget, DEFAULT_TERM_TARGET),
+      holidayTarget: clampTarget(obj.holidayTarget, DEFAULT_HOLIDAY_TARGET)
+    };
+  }
+  function saveSettings(s){
+    try { window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); } catch (e){ /* ignore */ }
+  }
+
+  var CHILD_NAME_KEY = "quizAppChildName_v1";
+  var CHILD_NAME_MAX = 40;
+  function loadChildName(){
+    try {
+      var v = window.localStorage.getItem(CHILD_NAME_KEY);
+      return v ? v.slice(0, CHILD_NAME_MAX) : "";
+    } catch (e){ return ""; }
+  }
+  function saveChildName(name){
+    try { window.localStorage.setItem(CHILD_NAME_KEY, name); } catch (e){ /* ignore */ }
+  }
+
+  var MATHS_HISTORY_KEY = "quizAppHistory_v1";
+  var ENTRY_HISTORY_KEY = "entryTestHistory_v1";
+  var HISTORY_SHOWN = 20;
+
+  function loadJSONList(key){
+    try {
+      var raw = window.localStorage.getItem(key);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (e){ return []; }
+  }
+  function saveJSONList(key, list){
+    try { window.localStorage.setItem(key, JSON.stringify(list)); } catch (e){ /* ignore */ }
+  }
+
+  function pad(n){ return n < 10 ? "0"+n : ""+n; }
+  function parseISO(s){
+    var p = s.split("-");
+    return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
+  }
+
+  function appendHistoryRow(listEl, left, right, extraClass){
+    var li = document.createElement("li");
+    li.className = "history-row" + (extraClass ? " " + extraClass : "");
+    var l = document.createElement("span");
+    l.className = "history-date";
+    l.textContent = left;
+    var r = document.createElement("span");
+    r.className = "history-score";
+    r.textContent = right;
+    li.appendChild(l);
+    if (right) li.appendChild(r);
+    listEl.appendChild(li);
+  }
+
+  // ---------- Element refs ----------
+  var lockCard = document.getElementById("lockCard");
+  var lockText = document.getElementById("lockText");
+  var unlockBtn = document.getElementById("unlockBtn");
+  var adminView = document.getElementById("adminView");
+
+  var childNameInput = document.getElementById("childNameInput");
+  var saveChildNameBtn = document.getElementById("saveChildNameBtn");
+  var childNameNote = document.getElementById("childNameNote");
+
+  var termTargetInput = document.getElementById("termTargetInput");
+  var holidayTargetInput = document.getElementById("holidayTargetInput");
+  var saveTargetsBtn = document.getElementById("saveTargetsBtn");
+  var targetsNote = document.getElementById("targetsNote");
+
+  var levelList = document.getElementById("levelList");
+  var mathsHistorySummary = document.getElementById("mathsHistorySummary");
+  var mathsHistoryList = document.getElementById("mathsHistoryList");
+  var resetDifficultyBtn = document.getElementById("resetDifficultyBtn");
+  var clearMathsHistoryBtn = document.getElementById("clearMathsHistoryBtn");
+
+  var entryHistorySummary = document.getElementById("entryHistorySummary");
+  var entryHistoryList = document.getElementById("entryHistoryList");
+  var clearEntryHistoryBtn = document.getElementById("clearEntryHistoryBtn");
+
+  var changePinBtn = document.getElementById("changePinBtn");
+
+  // ---------- Render: maths practice ----------
+  var settings = loadSettings();
+  var childName = loadChildName();
+  var difficulty = loadDifficulty();
+
+  function renderChildName(){
+    childNameInput.value = childName;
+    childNameNote.hidden = true;
+  }
+  function renderTargets(){
+    termTargetInput.value = settings.termTarget;
+    holidayTargetInput.value = settings.holidayTarget;
+    targetsNote.hidden = true;
+  }
+  function renderLevels(){
+    levelList.innerHTML = "";
+    DIFF_TYPES.forEach(function(t){
+      appendHistoryRow(levelList, TYPE_LABELS[t], "Level " + difficulty[t] + " of " + DIFF_MAX_LEVEL);
+    });
+  }
+  function formatMathsHistoryDate(iso){
+    return parseISO(iso).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
+  }
+  function renderMathsHistory(){
+    var list = loadJSONList(MATHS_HISTORY_KEY);
+    mathsHistoryList.innerHTML = "";
+    if (!list.length){
+      mathsHistorySummary.textContent = "No sessions completed yet.";
+      clearMathsHistoryBtn.hidden = true;
+      return;
+    }
+    mathsHistorySummary.textContent = list.length + " session" + (list.length === 1 ? "" : "s") + " completed on this device.";
+    clearMathsHistoryBtn.hidden = false;
+    var shown = list.slice(0, HISTORY_SHOWN);
+    shown.forEach(function(rec){
+      var left = formatMathsHistoryDate(rec.date) + " · " + (rec.status === "holiday" ? "Holidays" : "Term time");
+      var right = rec.correct + "/" + rec.attempted + " (" + rec.pct + "%)";
+      appendHistoryRow(mathsHistoryList, left, right);
+    });
+    var remaining = list.length - shown.length;
+    if (remaining > 0){
+      appendHistoryRow(mathsHistoryList, "…and " + remaining + " earlier session" + (remaining === 1 ? "" : "s") + ".", "", "is-more");
+    }
+  }
+
+  // ---------- Render: entry test practice ----------
+  var ENTRY_PAPER_LABEL = { adventure:"Adventure paper", beacon:"Beacon paper", mixed:"Mixed practice" };
+  function formatEntryHistoryDate(iso){
+    return new Date(iso).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
+  }
+  function renderEntryHistory(){
+    var list = loadJSONList(ENTRY_HISTORY_KEY);
+    entryHistoryList.innerHTML = "";
+    if (!list.length){
+      entryHistorySummary.textContent = "No sessions completed yet.";
+      clearEntryHistoryBtn.hidden = true;
+      return;
+    }
+    entryHistorySummary.textContent = list.length + " session" + (list.length === 1 ? "" : "s") + " completed on this device.";
+    clearEntryHistoryBtn.hidden = false;
+    var shown = list.slice(0, HISTORY_SHOWN);
+    shown.forEach(function(rec){
+      var left = formatEntryHistoryDate(rec.date) + " · " + (ENTRY_PAPER_LABEL[rec.paper] || rec.paper);
+      var right = rec.correct + " of " + rec.attempted + " (" + rec.pct + "%)";
+      appendHistoryRow(entryHistoryList, left, right);
+    });
+    var remaining = list.length - shown.length;
+    if (remaining > 0){
+      appendHistoryRow(entryHistoryList, "…and " + remaining + " earlier session" + (remaining === 1 ? "" : "s") + ".", "", "is-more");
+    }
+  }
+
+  function renderAll(){
+    renderChildName();
+    renderTargets();
+    renderLevels();
+    renderMathsHistory();
+    renderEntryHistory();
+  }
+
+  // ---------- Handlers ----------
+  saveChildNameBtn.addEventListener("click", function(){
+    childName = childNameInput.value.trim().slice(0, CHILD_NAME_MAX);
+    saveChildName(childName);
+    childNameInput.value = childName;
+    childNameNote.textContent = childName ? "Saved." : "Cleared – the maths page will use generic wording.";
+    childNameNote.className = "settings-note is-success";
+    childNameNote.hidden = false;
+  });
+
+  saveTargetsBtn.addEventListener("click", function(){
+    var termRaw = termTargetInput.value;
+    var holidayRaw = holidayTargetInput.value;
+    var termNum = parseInt(termRaw, 10);
+    var holidayNum = parseInt(holidayRaw, 10);
+    var isValid = termRaw !== "" && holidayRaw !== "" &&
+      isFinite(termNum) && isFinite(holidayNum) &&
+      termNum >= TARGET_MIN && termNum <= TARGET_MAX &&
+      holidayNum >= TARGET_MIN && holidayNum <= TARGET_MAX;
+    if (!isValid){
+      targetsNote.textContent = "Enter a whole number between " + TARGET_MIN + " and " + TARGET_MAX + " for each.";
+      targetsNote.className = "settings-note is-error";
+      targetsNote.hidden = false;
+      return;
+    }
+    settings.termTarget = termNum;
+    settings.holidayTarget = holidayNum;
+    saveSettings(settings);
+    targetsNote.textContent = "Saved. Takes effect next time the maths page is opened.";
+    targetsNote.className = "settings-note is-success";
+    targetsNote.hidden = false;
+  });
+
+  resetDifficultyBtn.addEventListener("click", function(){
+    if (window.confirm("Reset difficulty back to the easiest level for every question type? This can't be undone.")){
+      DIFF_TYPES.forEach(function(t){ difficulty[t] = DIFF_MIN_LEVEL; });
+      saveDifficulty(difficulty);
+      renderLevels();
+    }
+  });
+
+  clearMathsHistoryBtn.addEventListener("click", function(){
+    if (window.confirm("Clear all saved maths practice history on this device? This can't be undone.")){
+      saveJSONList(MATHS_HISTORY_KEY, []);
+      renderMathsHistory();
+    }
+  });
+
+  clearEntryHistoryBtn.addEventListener("click", function(){
+    if (window.confirm("Clear all saved entry test history on this device? This can't be undone.")){
+      saveJSONList(ENTRY_HISTORY_KEY, []);
+      renderEntryHistory();
+    }
+  });
+
+  changePinBtn.addEventListener("click", function(){
+    var storedHash = loadPinHash();
+    if (!storedHash){
+      promptSetNewPin().then(function(didSet){
+        if (didSet) window.alert("Parent PIN set.");
+      });
+      return;
+    }
+    var entered = window.prompt("Enter the current parent PIN:");
+    if (entered === null) return;
+    hashPin(entered.trim()).then(function(enteredHash){
+      if (enteredHash !== storedHash){
+        window.alert("Incorrect PIN.");
+        return;
+      }
+      promptSetNewPin("Choose a new parent PIN (at least " + PIN_MIN_LENGTH + " digits/characters):").then(function(didSet){
+        if (didSet) window.alert("Parent PIN updated.");
+      });
+    });
+  });
+
+  // ---------- Unlock flow ----------
+  function unlock(){
+    lockCard.hidden = true;
+    adminView.hidden = false;
+    renderAll();
+  }
+
+  unlockBtn.addEventListener("click", function(){
+    var storedHash = loadPinHash();
+
+    if (!storedHash){
+      promptSetNewPin(
+        "No parent PIN is set up on this device yet. Choose one now (at least " +
+        PIN_MIN_LENGTH + " digits/characters) – you'll use it to get back into this page next time:"
+      ).then(function(didSet){
+        if (didSet) unlock();
+      });
+      return;
+    }
+
+    var entered = window.prompt("Enter the parent PIN:");
+    if (entered === null) return;
+    hashPin(entered.trim()).then(function(enteredHash){
+      if (enteredHash !== storedHash){
+        window.alert("Incorrect PIN.");
+        return;
+      }
+      unlock();
+    });
+  });
+
+  // ---------- Install as an app (optional, safe to fail) ----------
+  if ("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){ /* no sw.js here – fine */ });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

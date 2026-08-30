@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maths Practice</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#35664F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quiz App">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --bg:#EEF1E6;
+    --grain:#E3E8D8;
+    --surface:#FFFFFF;
+    --surface-2:#F6F7F0;
+    --border:#D8DECB;
+    --ink:#232B22;
+    --ink-soft:#5B6656;
+    --ink-faint:#8A9483;
+    --accent:#35664F;
+    --accent-ink:#F5FBF6;
+    --accent-soft:#DCEAE1;
+    --gold:#8B6B36;
+    --gold-ink:#FBF6EC;
+    --gold-soft:#EFE3C9;
+    --success:#2E7D4F;
+    --success-bg:#E4F2E6;
+    --error:#B4432F;
+    --error-bg:#FBE7E1;
+    --focus:#35664F;
+    --shadow: 0 1px 2px rgba(35,43,34,0.06), 0 8px 24px -12px rgba(35,43,34,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#171C16;
+      --grain:#1D231B;
+      --surface:#1F251C;
+      --surface-2:#252C21;
+      --border:#333D2C;
+      --ink:#E9ECDF;
+      --ink-soft:#AAB79D;
+      --ink-faint:#748069;
+      --accent:#74B594;
+      --accent-ink:#0E1F16;
+      --accent-soft:#243A2D;
+      --gold:#D6AD6C;
+      --gold-ink:#241C0C;
+      --gold-soft:#3A2F1B;
+      --success:#79D19C;
+      --success-bg:#1E3327;
+      --error:#E8917E;
+      --error-bg:#3A211C;
+      --focus:#74B594;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#171C16;
+    --grain:#1D231B;
+    --surface:#1F251C;
+    --surface-2:#252C21;
+    --border:#333D2C;
+    --ink:#E9ECDF;
+    --ink-soft:#AAB79D;
+    --ink-faint:#748069;
+    --accent:#74B594;
+    --accent-ink:#0E1F16;
+    --accent-soft:#243A2D;
+    --gold:#D6AD6C;
+    --gold-ink:#241C0C;
+    --gold-soft:#3A2F1B;
+    --success:#79D19C;
+    --success-bg:#1E3327;
+    --error:#E8917E;
+    --error-bg:#3A211C;
+    --focus:#74B594;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background-color:var(--bg);
+    background-image:
+      radial-gradient(circle at 1px 1px, var(--grain) 1px, transparent 1px);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{
+    max-width:700px;
+    margin:0 auto;
+    padding:40px 20px 64px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+  }
+
+  .masthead{ text-align:left; }
+  .eyebrow{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:0.95rem;
+    color:var(--accent);
+    letter-spacing:0.02em;
+  }
+  h1{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:clamp(1.9rem, 5vw, 2.5rem);
+    line-height:1.08;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .date-line{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:1rem;
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:var(--shadow);
+  }
+
+  .status-card{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    padding:20px 22px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-left:5px solid var(--accent);
+    border-radius:10px;
+    box-shadow:var(--shadow);
+  }
+  .status-card[data-state="holiday"]{ border-left-color:var(--gold); }
+  .status-card[data-state="term"]{ border-left-color:var(--accent); }
+
+  .status-kicker{
+    margin:0 0 4px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.3rem;
+  }
+  .status-card[data-state="holiday"] .status-kicker{ color:var(--gold); }
+  .status-card[data-state="term"] .status-kicker{ color:var(--accent); }
+
+  .status-detail{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:0.95rem;
+    max-width:38ch;
+  }
+  .status-note{
+    display:block;
+    margin-top:4px;
+    font-size:0.8rem;
+    color:var(--ink-faint);
+  }
+
+  .status-count{
+    text-align:center;
+    padding:10px 20px;
+    border-radius:8px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    min-width:110px;
+  }
+  .count-number{
+    display:block;
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-weight:600;
+    font-size:2.1rem;
+    font-variant-numeric:tabular-nums;
+    line-height:1;
+  }
+  .status-card[data-state="holiday"] .count-number{ color:var(--gold); }
+  .status-card[data-state="term"] .count-number{ color:var(--accent); }
+  .count-label{
+    display:block;
+    margin-top:4px;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+  }
+
+  details.date-check{
+    background:transparent;
+  }
+  details.date-check > summary{
+    cursor:pointer;
+    color:var(--ink-soft);
+    font-size:0.88rem;
+    list-style:none;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:2px 0;
+  }
+  details.date-check > summary::-webkit-details-marker{ display:none; }
+  details.date-check > summary::before{
+    content:"›";
+    display:inline-block;
+    font-size:1rem;
+    transition:transform 0.15s ease;
+  }
+  details.date-check[open] > summary::before{ transform:rotate(90deg); }
+  .date-check-body{
+    margin-top:10px;
+    padding:14px 16px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .date-check-body label{
+    font-size:0.85rem;
+    color:var(--ink-soft);
+  }
+  .date-check-body input[type="date"]{
+    font:inherit;
+    font-size:0.9rem;
+    padding:6px 8px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink);
+  }
+  #dateCheckResult{
+    flex-basis:100%;
+    margin:6px 0 0;
+    font-size:0.88rem;
+    color:var(--ink-soft);
+  }
+  #dateCheckResult strong{ color:var(--ink); }
+
+  .quiz{ padding:24px 22px 22px; }
+  .quiz-head h2{
+    margin:0 0 4px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.4rem;
+  }
+  .quiz-sub{
+    margin:0 0 18px;
+    color:var(--ink-soft);
+    font-size:0.9rem;
+    max-width:60ch;
+  }
+
+  .progress-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:20px;
+  }
+  .progress-track{
+    flex:1 1 auto;
+    height:10px;
+    border-radius:999px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background:var(--accent);
+    transition:width 0.25s ease;
+  }
+  .quiz[data-state="holiday"] .progress-fill{ background:var(--gold); }
+  .progress-text{
+    flex:0 0 auto;
+    font-size:0.82rem;
+    font-weight:600;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+
+  .question-card{
+    padding:22px 20px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--surface-2);
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    transition:border-color 0.15s ease;
+  }
+  .question-card.is-correct{ border-color:var(--success); }
+  .question-card.is-incorrect{ border-color:var(--error); }
+  .question-card[hidden]{ display:none; }
+
+  .q-tag{
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin:0;
+  }
+  .q-equation{
+    margin:0;
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:1.5rem;
+    font-weight:600;
+    line-height:1.3;
+    color:var(--ink);
+  }
+  .q-answer{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .q-answer input{
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-size:1.1rem;
+    font-variant-numeric:tabular-nums;
+    width:130px;
+    padding:9px 11px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink);
+    -moz-appearance:textfield;
+    appearance:textfield;
+  }
+  .q-answer input::-webkit-outer-spin-button,
+  .q-answer input::-webkit-inner-spin-button{
+    -webkit-appearance:none;
+    margin:0;
+  }
+  .q-answer input:focus-visible{
+    outline:2px solid var(--focus);
+    outline-offset:1px;
+  }
+  .q-feedback{
+    margin:0;
+    min-height:1.3em;
+    font-size:0.92rem;
+    font-weight:500;
+    color:var(--ink-soft);
+  }
+  .q-feedback.is-correct{ color:var(--success); }
+  .q-feedback.is-incorrect{ color:var(--error); }
+
+  .q-controls{ display:flex; gap:10px; }
+
+  .completion-panel{
+    padding:30px 24px;
+    text-align:center;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--accent-soft);
+  }
+  .quiz[data-state="holiday"] .completion-panel{ background:var(--gold-soft); }
+  .completion-panel h3{
+    margin:0 0 8px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.5rem;
+    color:var(--ink);
+  }
+  .completion-panel p{
+    margin:0 0 18px;
+    color:var(--ink-soft);
+    font-size:0.95rem;
+  }
+
+  .quiz-actions{
+    margin-top:18px;
+    padding-top:16px;
+    border-top:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    font:inherit;
+    font-weight:600;
+    font-size:0.92rem;
+    padding:10px 18px;
+    border-radius:7px;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:filter 0.12s ease, background-color 0.12s ease;
+  }
+  .btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .btn-primary{
+    background:var(--accent);
+    color:var(--accent-ink);
+  }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink);
+    border-color:var(--border);
+  }
+  .btn-ghost:hover{ background:var(--surface-2); }
+
+  .share-actions{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:0 0 6px;
+  }
+  .copy-note{
+    min-height:1.2em;
+    margin:0 0 14px;
+    font-size:0.82rem;
+    color:var(--success);
+  }
+
+  .history{ padding:24px 22px 22px; }
+  .history-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .history-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 2px;
+    border-top:1px solid var(--border);
+    font-size:0.88rem;
+  }
+  .history-row:first-child{ border-top:none; }
+  .history-row.is-more{ color:var(--ink-faint); font-size:0.82rem; }
+  .history-date{ color:var(--ink-soft); }
+  .history-score{
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric:tabular-nums;
+    font-weight:600;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+  .history-note{
+    margin:14px 0 0;
+    font-size:0.78rem;
+    color:var(--ink-faint);
+  }
+
+  .foot{
+    font-size:0.78rem;
+    color:var(--ink-faint);
+    line-height:1.6;
+    padding:4px 4px 0;
+  }
+  .foot a{ color:var(--ink-soft); }
+  .foot a:hover{ color:var(--accent); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; }
+  }
+
+  @media (max-width:480px){
+    .status-card{ padding:18px; }
+    .q-answer input{ width:110px; }
+    .q-equation{ font-size:1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="masthead">
+    <p class="eyebrow">Skipton · North Yorkshire</p>
+    <h1 id="pageTitle">Today's maths practice</h1>
+    <p class="date-line" id="todayLabel"></p>
+  </header>
+
+  <section class="status-card" id="statusCard" data-state="term">
+    <div class="status-main">
+      <p class="status-kicker" id="statusKicker">Checking today's date…</p>
+      <p class="status-detail" id="statusDetail"></p>
+    </div>
+    <div class="status-count">
+      <span class="count-number" id="countNumber">–</span>
+      <span class="count-label">correct to finish</span>
+    </div>
+  </section>
+
+  <details class="date-check">
+    <summary>Check a different date</summary>
+    <div class="date-check-body">
+      <label for="dateInput">Date</label>
+      <input type="date" id="dateInput">
+      <button id="dateCheckBtn" class="btn btn-ghost">Check</button>
+      <p id="dateCheckResult"></p>
+    </div>
+  </details>
+
+  <section class="quiz card" id="quizSection" data-state="term">
+    <div class="quiz-head">
+      <h2>Arithmetic practice</h2>
+      <p class="quiz-sub">Long multiplication, long division, long subtraction and long addition, set at Year 6 to Year 7 level. Division always divides exactly, with no remainders. Subtraction can give a negative answer; addition always stays positive. Keep answering until you reach today's target.</p>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <p class="progress-text" id="progressText">0 of 25 correct</p>
+    </div>
+
+    <div class="question-card" id="questionCard">
+      <p class="q-tag" id="qTag"></p>
+      <p class="q-equation" id="qEquation"></p>
+      <div class="q-answer" id="qAnswerInputs"></div>
+      <p class="q-feedback" id="qFeedback"></p>
+      <div class="q-controls">
+        <button id="checkBtn" class="btn btn-primary">Check answer</button>
+        <button id="nextBtn" class="btn btn-primary" hidden>Next question</button>
+      </div>
+    </div>
+
+    <div class="completion-panel" id="completionPanel" hidden>
+      <h3 id="completionTitle">Target reached!</h3>
+      <p id="completionStats"></p>
+
+      <div class="share-actions">
+        <button id="copyBtn" class="btn btn-ghost">Copy report</button>
+        <button id="shareBtn" class="btn btn-ghost" hidden>Share report…</button>
+      </div>
+      <p class="copy-note" id="copyNote" aria-live="polite"></p>
+
+      <button id="restartBtnMain" class="btn btn-primary">Practice again</button>
+    </div>
+
+    <div class="quiz-actions">
+      <button id="restartBtn" class="btn btn-ghost">Start over</button>
+    </div>
+  </section>
+
+  <section class="history card" id="lastSessionSection">
+    <div class="quiz-head">
+      <h2>Last session</h2>
+      <p class="quiz-sub" id="lastSessionSummary">No sessions completed yet.</p>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p><a href="index.html">← Back to menu</a></p>
+    <p><a href="parents.html">Parents / Admin →</a></p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Skipton Parish Church of England Primary School term dates ----------
+  // Source: the school's own published term dates page, checked August 2026:
+  // https://www.parish.ycst.co.uk/parents/term-dates
+  // Holiday windows are derived from the school's "first day of term" / "last
+  // day of term" dates (the two least ambiguous fields they publish), so a
+  // range runs from the day after one term ends to the day before the next
+  // one starts. INSET (staff training) days are deliberately NOT included as
+  // holidays here, even though there's no school that day – they're ordinary
+  // term time as far as this app's holiday/term split is concerned, so an
+  // INSET day sitting right next to a real holiday trims that holiday's
+  // start/end back to the actual last/first day of term either side of it.
+  // "confirmed:false" marks the tail end of the dataset, where the following
+  // academic year's dates were not yet published when checked.
+  var HOLIDAYS = [
+    { start:"2026-07-17", end:"2026-09-06", label:"summer holidays",             confirmed:true },
+    { start:"2026-10-26", end:"2026-10-30", label:"October half term",           confirmed:true },
+    { start:"2026-12-19", end:"2027-01-04", label:"Christmas holidays",          confirmed:true },
+    { start:"2027-02-08", end:"2027-02-12", label:"February half term",          confirmed:true },
+    { start:"2027-03-20", end:"2027-04-04", label:"Easter holidays",             confirmed:true },
+    { start:"2027-05-31", end:"2027-06-04", label:"May half term",               confirmed:true },
+    { start:"2027-07-24", end:"2027-09-05", label:"summer holidays",             confirmed:true },
+    { start:"2027-10-25", end:"2027-10-29", label:"October half term",           confirmed:true },
+    { start:"2027-12-18", end:"2028-01-04", label:"Christmas holidays",          confirmed:true },
+    { start:"2028-02-21", end:"2028-02-25", label:"February half term",          confirmed:true },
+    { start:"2028-04-08", end:"2028-04-23", label:"Easter holidays",             confirmed:true },
+    { start:"2028-05-01", end:"2028-05-01", label:"early May bank holiday",      confirmed:true },
+    { start:"2028-05-29", end:"2028-06-02", label:"May half term",               confirmed:true },
+    { start:"2028-07-27", end:"2028-09-01", label:"summer holidays",             confirmed:false }
+  ];
+  var DATA_START = "2026-07-17";
+  var DATA_END   = "2028-09-01";
+
+  function pad(n){ return n < 10 ? "0"+n : ""+n; }
+  function toISO(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  function parseISO(s){
+    var p = s.split("-");
+    return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
+  }
+  function addDays(d, n){
+    var r = new Date(d.getTime());
+    r.setDate(r.getDate()+n);
+    return r;
+  }
+  function formatLong(d){
+    return d.toLocaleDateString("en-GB", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
+  }
+  function formatShort(d){
+    return d.toLocaleDateString("en-GB", { weekday:"long", day:"numeric", month:"long" });
+  }
+
+  // Simple fallback for dates beyond the published dataset, so the page
+  // still gives a reasonable answer a couple of years from now rather than
+  // breaking outright. Flagged as an estimate wherever it's used.
+  function heuristicIsHoliday(d){
+    var m = d.getMonth()+1, day = d.getDate();
+    if ((m===12 && day>=18) || (m===1 && day<=4)) return { isHoliday:true, label:"Christmas holidays" };
+    if (m===2 && day>=8 && day<=25) return { isHoliday:true, label:"February half term" };
+    if ((m===5 && day>=24) || (m===6 && day<=4)) return { isHoliday:true, label:"May half term" };
+    if ((m===7 && day>=17) || (m===8) || (m===9 && day<=7)) return { isHoliday:true, label:"summer holidays" };
+    return { isHoliday:false };
+  }
+
+  function getStatus(d){
+    var iso = toISO(d);
+    if (iso < DATA_START || iso > DATA_END){
+      var h = heuristicIsHoliday(d);
+      return {
+        isHoliday: h.isHoliday,
+        label: h.label || null,
+        estimated: true,
+        nextChangeText: "Term dates aren't published this far ahead yet, so this is an estimate based on a typical school year."
+      };
+    }
+    for (var i=0; i<HOLIDAYS.length; i++){
+      var win = HOLIDAYS[i];
+      if (iso >= win.start && iso <= win.end){
+        var backTo = addDays(parseISO(win.end), 1);
+        var note = win.confirmed ? "" : " (2028/29 dates weren't published yet when this was last checked, so the end of this break is an estimate.)";
+        return {
+          isHoliday:true,
+          label:win.label,
+          estimated: !win.confirmed,
+          nextChangeText: "Back to school " + formatShort(backTo) + "." + note
+        };
+      }
+    }
+    // Term time: find the next holiday window that starts after today.
+    var next = null;
+    for (var j=0; j<HOLIDAYS.length; j++){
+      if (HOLIDAYS[j].start > iso){ next = HOLIDAYS[j]; break; }
+    }
+    var nextText = next
+      ? "Next up: " + next.label + ", from " + formatShort(parseISO(next.start)) + "."
+      : "";
+    return { isHoliday:false, label:null, estimated:false, nextChangeText:nextText };
+  }
+
+  // ---------- Question generation ----------
+  function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+  function fmt(n){ return n.toLocaleString("en-GB"); }
+  function pick(arr){ return arr[randInt(0, arr.length-1)]; }
+
+  // ---------- Adaptive difficulty ----------
+  // Each operation type has its own level (1 = easiest, 6 = hardest), saved
+  // on this device. A run of correct answers nudges the level up; a single
+  // wrong answer drops it straight back down. Every new session starts one
+  // level below wherever the last one settled – a gentle warm-up – so it
+  // starts easy for a brand-new device and gradually climbs over weeks as
+  // she improves, without ever getting stuck too hard after a rough run.
+  var DIFF_KEY = "quizAppDifficulty_v1";
+  var DIFF_MIN_LEVEL = 1;
+  var DIFF_MAX_LEVEL = 6;
+  var DIFF_STREAK_TO_LEVEL_UP = 3;
+  var DIFF_TYPES = ["multiplication", "division", "addition", "subtraction"];
+
+  // Index 0 = level 1 (easiest) … index 5 = level 6 (hardest).
+  var MULT_LEVELS = [
+    { aMin:10,   aMax:99,   bMin:11, bMax:15 },
+    { aMin:10,   aMax:99,   bMin:11, bMax:20 },
+    { aMin:100,  aMax:999,  bMin:11, bMax:20 },
+    { aMin:100,  aMax:999,  bMin:11, bMax:30 },
+    { aMin:100,  aMax:999,  bMin:21, bMax:50 },
+    { aMin:1000, aMax:9999, bMin:21, bMax:99 }
+  ];
+  var DIV_LEVELS = [
+    { bMin:11, bMax:15, dMin:100,  dMax:999 },
+    { bMin:11, bMax:20, dMin:100,  dMax:999 },
+    { bMin:11, bMax:20, dMin:1000, dMax:9999 },
+    { bMin:11, bMax:30, dMin:1000, dMax:9999 },
+    { bMin:21, bMax:50, dMin:1000, dMax:9999 },
+    { bMin:21, bMax:99, dMin:1000, dMax:9999 }
+  ];
+  var ADD_LEVELS = [
+    { digits:[3],     p3:0 },
+    { digits:[3,4],   p3:0 },
+    { digits:[4],     p3:0.2 },
+    { digits:[4,5],   p3:0.35 },
+    { digits:[5],     p3:0.45 },
+    { digits:[4,5,6], p3:0.45 }
+  ];
+  var SUB_LEVELS = [
+    { digits:[3] },
+    { digits:[3,4] },
+    { digits:[4] },
+    { digits:[4,5] },
+    { digits:[5] },
+    { digits:[4,5,6] }
+  ];
+
+  function loadDifficulty(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(DIFF_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    DIFF_TYPES.forEach(function(t){
+      var v = obj[t];
+      obj[t] = (typeof v === "number" && v >= DIFF_MIN_LEVEL && v <= DIFF_MAX_LEVEL) ? v : DIFF_MIN_LEVEL;
+    });
+    return obj;
+  }
+
+  function saveDifficulty(){
+    try { window.localStorage.setItem(DIFF_KEY, JSON.stringify(difficulty)); } catch (e){ /* ignore */ }
+  }
+
+  var difficulty = loadDifficulty();
+  var difficultyStreak = { multiplication:0, division:0, addition:0, subtraction:0 };
+
+  // ---------- Targets (how many correct answers make a session) ----------
+  var SETTINGS_KEY = "quizAppSettings_v1";
+  var DEFAULT_TERM_TARGET = 25;
+  var DEFAULT_HOLIDAY_TARGET = 10;
+  var TARGET_MIN = 1;
+  var TARGET_MAX = 200;
+
+  function clampTarget(v, fallback){
+    v = parseInt(v, 10);
+    if (!isFinite(v) || isNaN(v)) return fallback;
+    if (v < TARGET_MIN) return TARGET_MIN;
+    if (v > TARGET_MAX) return TARGET_MAX;
+    return v;
+  }
+
+  function loadSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(SETTINGS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return {
+      termTarget: clampTarget(obj.termTarget, DEFAULT_TERM_TARGET),
+      holidayTarget: clampTarget(obj.holidayTarget, DEFAULT_HOLIDAY_TARGET)
+    };
+  }
+
+  function saveSettings(){
+    try { window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e){ /* ignore */ }
+  }
+
+  var settings = loadSettings();
+
+  // ---------- Child's name (optional, set from the parents page) ----------
+  var CHILD_NAME_KEY = "quizAppChildName_v1";
+  var CHILD_NAME_MAX = 40;
+
+  function loadChildName(){
+    try {
+      var v = window.localStorage.getItem(CHILD_NAME_KEY);
+      return v ? v.slice(0, CHILD_NAME_MAX) : "";
+    } catch (e){ return ""; }
+  }
+
+  function saveChildName(name){
+    try { window.localStorage.setItem(CHILD_NAME_KEY, name); } catch (e){ /* ignore */ }
+  }
+
+  var childName = loadChildName();
+
+  function applyChildName(){
+    pageTitle.textContent = childName ? childName + "'s maths practice" : "Today's maths practice";
+  }
+
+  function warmUpDifficultyForSession(){
+    DIFF_TYPES.forEach(function(t){
+      difficulty[t] = Math.max(DIFF_MIN_LEVEL, difficulty[t] - 1);
+      difficultyStreak[t] = 0;
+    });
+    saveDifficulty();
+  }
+
+  function recordAnswerForDifficulty(type, isCorrect){
+    if (isCorrect){
+      difficultyStreak[type]++;
+      if (difficultyStreak[type] >= DIFF_STREAK_TO_LEVEL_UP){
+        difficulty[type] = Math.min(DIFF_MAX_LEVEL, difficulty[type] + 1);
+        difficultyStreak[type] = 0;
+      }
+    } else {
+      difficulty[type] = Math.max(DIFF_MIN_LEVEL, difficulty[type] - 1);
+      difficultyStreak[type] = 0;
+    }
+    saveDifficulty();
+  }
+
+  function genMultiplication(){
+    var cfg = MULT_LEVELS[difficulty.multiplication - 1];
+    var a = randInt(cfg.aMin, cfg.aMax);
+    var b = randInt(cfg.bMin, cfg.bMax);
+    return {
+      type:"multiplication",
+      tag:"Long multiplication",
+      equation: fmt(a) + " × " + fmt(b),
+      kind:"single",
+      answer: a*b
+    };
+  }
+
+  function genDivision(){
+    // Always divides exactly (no remainder) – daughter hasn't covered
+    // remainders yet, so the answer is always a whole, round number.
+    var cfg = DIV_LEVELS[difficulty.division - 1];
+    var b = randInt(cfg.bMin, cfg.bMax);
+    var qMin = Math.max(1, Math.ceil(cfg.dMin/b));
+    var qMax = Math.floor(cfg.dMax/b);
+    var q = randInt(qMin, qMax);
+    var dividend = b*q;
+    return {
+      type:"division",
+      tag:"Long division",
+      equation: fmt(dividend) + " ÷ " + b,
+      kind:"single",
+      answer: q
+    };
+  }
+
+  function genAddition(){
+    var cfg = ADD_LEVELS[difficulty.addition - 1];
+    var digits = pick(cfg.digits);
+    var count = Math.random() < cfg.p3 ? 3 : 2;
+    var lo = Math.pow(10, digits-1), hi = Math.pow(10, digits)-1;
+    var addends = [];
+    for (var i=0; i<count; i++){
+      addends.push(randInt(lo, hi));
+    }
+    var sum = addends.reduce(function(a,b){ return a+b; }, 0);
+    var equation = addends.map(fmt).join(" + ");
+    return {
+      type:"addition",
+      tag:"Long addition",
+      equation: equation,
+      kind:"single",
+      answer: sum
+    };
+  }
+
+  function genSubtraction(){
+    var cfg = SUB_LEVELS[difficulty.subtraction - 1];
+    var digits = pick(cfg.digits);
+    var lo = Math.pow(10, digits-1), hi = Math.pow(10, digits)-1;
+    var a = randInt(lo, hi);
+    var b = randInt(lo, hi); // no longer forced smaller than a, so the answer can be negative
+    return {
+      type:"subtraction",
+      tag:"Long subtraction",
+      equation: fmt(a) + " − " + fmt(b),
+      kind:"single",
+      answer: a-b
+    };
+  }
+
+  // Question-type mix: 20% each of the four types, plus a fifth 20% slice
+  // that's picked at random from all four (so each type lands around a
+  // quarter of the time overall, with that last slice free to repeat any type).
+  function pickType(){
+    var r = Math.random();
+    if (r < 0.2) return "multiplication";
+    if (r < 0.4) return "division";
+    if (r < 0.6) return "subtraction";
+    if (r < 0.8) return "addition";
+    return pick(["multiplication", "division", "subtraction", "addition"]);
+  }
+
+  function generateByType(type){
+    if (type === "multiplication") return genMultiplication();
+    if (type === "division") return genDivision();
+    if (type === "subtraction") return genSubtraction();
+    return genAddition();
+  }
+
+  function cleanNumber(str){
+    if (str == null) return NaN;
+    var cleaned = str.replace(/[,\s]/g, "").trim();
+    if (cleaned === "") return NaN;
+    return parseInt(cleaned, 10);
+  }
+
+  // ---------- Practice session ----------
+  var target = 25;
+  var correctCount = 0;
+  var attemptedCount = 0;
+  var currentQuestion = null;
+  var checked = false;
+  var sessionLog = [];
+
+  var quizSection = document.getElementById("quizSection");
+  var questionCard = document.getElementById("questionCard");
+  var qTagEl = document.getElementById("qTag");
+  var qEquationEl = document.getElementById("qEquation");
+  var qAnswerInputs = document.getElementById("qAnswerInputs");
+  var qFeedbackEl = document.getElementById("qFeedback");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var restartBtn = document.getElementById("restartBtn");
+  var restartBtnMain = document.getElementById("restartBtnMain");
+  var completionPanel = document.getElementById("completionPanel");
+  var completionTitle = document.getElementById("completionTitle");
+  var completionStats = document.getElementById("completionStats");
+  var progressFill = document.getElementById("progressFill");
+  var progressText = document.getElementById("progressText");
+  var copyBtn = document.getElementById("copyBtn");
+  var shareBtn = document.getElementById("shareBtn");
+  var copyNote = document.getElementById("copyNote");
+  var lastSessionSection = document.getElementById("lastSessionSection");
+  var lastSessionSummary = document.getElementById("lastSessionSummary");
+  var pageTitle = document.getElementById("pageTitle");
+
+  // ---------- Local history (this device only – nothing leaves the browser) ----------
+  var HISTORY_KEY = "quizAppHistory_v1";
+  var HISTORY_MAX = 200;
+
+  function loadHistory(){
+    try {
+      var raw = window.localStorage.getItem(HISTORY_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (e){
+      return null; // storage unavailable (private browsing, disabled, etc.)
+    }
+  }
+
+  function saveHistory(list){
+    try {
+      window.localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+      return true;
+    } catch (e){
+      return false;
+    }
+  }
+
+  function addHistoryRecord(record){
+    var list = loadHistory();
+    if (list === null) return;
+    list.unshift(record);
+    if (list.length > HISTORY_MAX) list.length = HISTORY_MAX;
+    saveHistory(list);
+    renderHistory();
+  }
+
+  function formatHistoryDate(iso){
+    return parseISO(iso).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
+  }
+
+  function historyRowText(rec){
+    return {
+      left: formatHistoryDate(rec.date) + " · " + (rec.status === "holiday" ? "Holidays" : "Term time"),
+      right: rec.correct + "/" + rec.attempted + " (" + rec.pct + "%)"
+    };
+  }
+
+  // Shown to the child on the main page: only ever the most recent session,
+  // never a browsable list – full history and reset controls live on the
+  // separate, PIN-gated parents/admin page (parents.html), which reads and
+  // writes the same localStorage keys as this page.
+  function renderLastSession(list){
+    lastSessionSection.hidden = false;
+    if (list === null || !list.length){
+      lastSessionSummary.textContent = "No sessions completed yet.";
+      return;
+    }
+    var row = historyRowText(list[0]);
+    lastSessionSummary.textContent = row.left + " · " + row.right;
+  }
+
+  function renderHistory(){
+    renderLastSession(loadHistory());
+  }
+
+  function handleEnter(e){
+    if (e.key === "Enter"){
+      e.preventDefault();
+      if (!checked) checkCurrentAnswer(); else loadNextQuestion();
+    }
+  }
+
+  function updateProgress(){
+    var pct = Math.min(100, Math.round((correctCount/target)*100));
+    progressFill.style.width = pct + "%";
+    progressText.textContent = correctCount + " of " + target + " correct" +
+      (attemptedCount > correctCount ? " · " + attemptedCount + " attempted" : "");
+  }
+
+  function renderQuestion(q){
+    qTagEl.textContent = q.tag;
+    qEquationEl.textContent = q.equation + " =";
+    qAnswerInputs.innerHTML = "";
+    questionCard.classList.remove("is-correct", "is-incorrect");
+    qFeedbackEl.textContent = "";
+    qFeedbackEl.className = "q-feedback";
+
+    var input = document.createElement("input");
+    // type="number" is what gets a compact numeric keypad on mobile instead
+    // of the full text keyboard, and – unlike inputmode="numeric" on a plain
+    // text field – the browser still includes a minus key on it, so negative
+    // addition/subtraction answers can still be typed.
+    input.type = "number";
+    input.inputMode = "numeric";
+    input.className = "single-input";
+    input.setAttribute("aria-label", "Answer");
+    qAnswerInputs.appendChild(input);
+    input.addEventListener("keydown", handleEnter);
+
+    checkBtn.hidden = false;
+    nextBtn.hidden = true;
+    checked = false;
+
+    var firstInput = qAnswerInputs.querySelector("input");
+    if (firstInput) firstInput.focus();
+  }
+
+  function loadNextQuestion(){
+    if (correctCount >= target) return;
+    currentQuestion = generateByType(pickType());
+    renderQuestion(currentQuestion);
+  }
+
+  function checkCurrentAnswer(){
+    if (checked || !currentQuestion) return;
+    var q = currentQuestion;
+    var isCorrect = false;
+    var correctText = "";
+
+    var val = cleanNumber(qAnswerInputs.querySelector(".single-input").value);
+    isCorrect = (val === q.answer);
+    correctText = fmt(q.answer);
+
+    checked = true;
+    attemptedCount++;
+    sessionLog.push({ type:q.type, tag:q.tag, equation:q.equation, correctText:correctText, isCorrect:isCorrect });
+    recordAnswerForDifficulty(q.type, isCorrect);
+    if (isCorrect){
+      correctCount++;
+      questionCard.classList.add("is-correct");
+      qFeedbackEl.textContent = "Correct.";
+      qFeedbackEl.className = "q-feedback is-correct";
+    } else {
+      questionCard.classList.add("is-incorrect");
+      qFeedbackEl.textContent = "Not quite – the answer is " + correctText + ".";
+      qFeedbackEl.className = "q-feedback is-incorrect";
+    }
+
+    updateProgress();
+
+    if (correctCount >= target){
+      finishPractice();
+    } else {
+      checkBtn.hidden = true;
+      nextBtn.hidden = false;
+      nextBtn.focus();
+    }
+  }
+
+  function finishPractice(){
+    questionCard.hidden = true;
+    completionPanel.hidden = false;
+    completionTitle.textContent = childName ? "Well done, " + childName + "!" : "Target reached!";
+    var pct = Math.round((correctCount/attemptedCount)*100);
+    completionStats.textContent = "You answered " + attemptedCount + " question" + (attemptedCount===1 ? "" : "s") +
+      " and got " + correctCount + " right (" + pct + "%) to reach today's target of " + target + ".";
+    restartBtnMain.focus();
+
+    addHistoryRecord({
+      date: toISO(today),
+      status: quizState,
+      label: status.label || null,
+      target: target,
+      attempted: attemptedCount,
+      correct: correctCount,
+      pct: pct
+    });
+  }
+
+  function startPractice(){
+    correctCount = 0;
+    attemptedCount = 0;
+    checked = false;
+    sessionLog = [];
+    warmUpDifficultyForSession();
+    completionPanel.hidden = true;
+    questionCard.hidden = false;
+    updateProgress();
+    loadNextQuestion();
+  }
+
+  var TYPE_LABELS = {
+    multiplication: "Long multiplication",
+    division: "Long division",
+    subtraction: "Long subtraction",
+    addition: "Long addition"
+  };
+
+  function buildReportText(){
+    var pct = attemptedCount ? Math.round((correctCount/attemptedCount)*100) : 0;
+    var byType = {
+      multiplication: { a:0, c:0 },
+      division: { a:0, c:0 },
+      subtraction: { a:0, c:0 },
+      addition: { a:0, c:0 }
+    };
+    var missed = [];
+    sessionLog.forEach(function(entry){
+      byType[entry.type].a++;
+      if (entry.isCorrect) byType[entry.type].c++;
+      else missed.push(entry);
+    });
+
+    var lines = [];
+    lines.push("Quiz App – practice report");
+    lines.push("");
+    if (childName) lines.push("Name: " + childName);
+    lines.push("Date: " + formatLong(new Date()));
+    lines.push("Status: " + (quizState === "holiday"
+      ? "School holidays" + (status.label ? " (" + status.label + ")" : "")
+      : "Term time"));
+    lines.push("Target: " + target + " correct answers");
+    lines.push("Questions attempted: " + attemptedCount);
+    lines.push("Correct: " + correctCount + " (" + pct + "%)");
+    lines.push("");
+    lines.push("By type:");
+    Object.keys(TYPE_LABELS).forEach(function(t){
+      lines.push("  " + TYPE_LABELS[t] + ": " + byType[t].c + " of " + byType[t].a + " correct");
+    });
+    if (missed.length){
+      lines.push("");
+      lines.push("Questions to go over:");
+      missed.forEach(function(m){
+        lines.push("  " + m.equation + " = " + m.correctText + "  (" + m.tag + ")");
+      });
+    }
+    lines.push("");
+    lines.push("— Quiz App");
+    return lines.join("\n");
+  }
+
+  function showCopyNote(text){
+    copyNote.textContent = text;
+    window.clearTimeout(showCopyNote._t);
+    showCopyNote._t = window.setTimeout(function(){ copyNote.textContent = ""; }, 4000);
+  }
+
+  function legacyCopy(text){
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "-1000px";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    showCopyNote(ok ? "Copied to clipboard." : "Couldn't copy automatically — you'll need to select and copy the text yourself.");
+  }
+
+  function copyReport(){
+    var text = buildReportText();
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(
+        function(){ showCopyNote("Copied to clipboard."); },
+        function(){ legacyCopy(text); }
+      );
+    } else {
+      legacyCopy(text);
+    }
+  }
+
+  function shareReport(){
+    if (!navigator.share) return;
+    navigator.share({ title:"Quiz App report", text: buildReportText() }).catch(function(){
+      // Viewer cancelled the share sheet, or the browser refused it — nothing to do.
+    });
+  }
+
+  if (typeof navigator !== "undefined" && navigator.share){
+    shareBtn.hidden = false;
+  }
+
+  checkBtn.addEventListener("click", checkCurrentAnswer);
+  nextBtn.addEventListener("click", loadNextQuestion);
+  restartBtn.addEventListener("click", startPractice);
+  restartBtnMain.addEventListener("click", startPractice);
+  copyBtn.addEventListener("click", copyReport);
+  shareBtn.addEventListener("click", shareReport);
+
+  // ---------- Status banner ----------
+  var today = new Date();
+  applyChildName();
+  document.getElementById("todayLabel").textContent = formatLong(today);
+
+  var status = getStatus(today);
+  target = status.isHoliday ? settings.holidayTarget : settings.termTarget;
+
+  var statusCard = document.getElementById("statusCard");
+  var statusKicker = document.getElementById("statusKicker");
+  var statusDetail = document.getElementById("statusDetail");
+  var countNumber = document.getElementById("countNumber");
+
+  var quizState = status.isHoliday ? "holiday" : "term";
+  statusCard.dataset.state = quizState;
+  quizSection.dataset.state = quizState;
+  if (status.isHoliday){
+    statusKicker.textContent = "It's the school holidays" + (status.label ? " – " + status.label : "");
+  } else {
+    statusKicker.textContent = "It's term time";
+  }
+  var detailHTML = status.nextChangeText || "";
+  if (status.estimated){
+    detailHTML += (detailHTML ? " " : "") + "This date is beyond the published term dates, so treat it as a best guess.";
+  }
+  statusDetail.textContent = detailHTML;
+  countNumber.textContent = target;
+
+  startPractice();
+
+  // ---------- Check a different date ----------
+  var dateInput = document.getElementById("dateInput");
+  var dateCheckBtn = document.getElementById("dateCheckBtn");
+  var dateCheckResult = document.getElementById("dateCheckResult");
+  dateInput.value = toISO(today);
+
+  dateCheckBtn.addEventListener("click", function(){
+    var val = dateInput.value;
+    if (!val) return;
+    var d = parseISO(val);
+    var s = getStatus(d);
+    var t = s.isHoliday ? settings.holidayTarget : settings.termTarget;
+    var line = formatLong(d) + " – <strong>" + (s.isHoliday ? "school holidays" : "term time") + "</strong>";
+    if (s.isHoliday && s.label) line += " (" + s.label + ")";
+    line += ". That would be a target of " + t + " correct answers.";
+    if (s.estimated) line += " Estimated – beyond published term dates.";
+    dateCheckResult.innerHTML = line;
+  });
+
+  renderHistory();
+
+  // ---------- Install as an app (optional, safe to fail) ----------
+  // Only meaningful when served from a real host alongside sw.js/manifest.json
+  // (e.g. GitHub Pages) – silently does nothing when those aren't present.
+  if ("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){ /* no sw.js here – fine */ });
+    });
+  }
+
+})();
+</script>
+
+</body>
+</html>

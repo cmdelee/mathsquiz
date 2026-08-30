@@ -1,9 +1,19 @@
-// Minimal offline cache for Quiz App, so a practice session already
-// installed on a device still opens without a live internet connection.
-// Question generation and history are local anyway; this just caches the
-// app shell (not the Google Fonts request, which falls through to network).
-var CACHE_NAME = "quiz-app-v1";
-var CORE_ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+// Minimal offline cache for the Quiz App hub (maths practice, entry test
+// practice, and the parents/admin page), so a session already installed on
+// a device still opens without a live internet connection. Question
+// generation and history are local anyway; this just caches the app shell
+// (not the Google Fonts request, which falls through to network).
+var CACHE_NAME = "quiz-app-v2";
+var CORE_ASSETS = [
+  "./",
+  "./index.html",
+  "./maths-quiz.html",
+  "./entry-test.html",
+  "./parents.html",
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png"
+];
 
 self.addEventListener("install", function (event) {
   event.waitUntil(

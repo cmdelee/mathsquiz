@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Entry Test Practice</title>
+<link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#35664F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quiz App">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
   :root{
@@ -520,21 +525,17 @@
     </div>
   </section>
 
-  <section class="card history" id="historySection">
+  <section class="history card" id="lastSessionSection">
     <div class="quiz-head">
-      <h2>Recent sessions</h2>
+      <h2>Last session</h2>
+      <p class="quiz-sub" id="lastSessionSummary">No sessions completed yet.</p>
     </div>
-    <p class="history-empty" id="historyEmpty">No sessions completed yet.</p>
-    <ul class="history-list" id="historyList"></ul>
-    <div class="quiz-actions">
-      <button id="clearHistoryBtn" class="btn btn-ghost">Clear history</button>
-    </div>
-    <p class="history-note">Saved only in this browser, on this device — nothing is sent anywhere.</p>
   </section>
 
   <footer class="foot">
-    <p>Original practice questions, written for this page — not affiliated with FSCE Ltd or Skipton Girls' High School.<br>
-    <a href="index.html">← Maths practice</a></p>
+    <p>Original practice questions, written for this page — not affiliated with FSCE Ltd or Skipton Girls' High School.</p>
+    <p><a href="index.html">← Back to menu</a></p>
+    <p><a href="parents.html">Parents / Admin →</a></p>
   </footer>
 
 </div>
@@ -571,6 +572,33 @@
     "keeper never found. She looked out of the window at the churning grey sea below and wondered " +
     "what had really happened that night.";
 
+  var ATTIC_MAP_PASSAGE =
+    "Tom found the box while clearing out his grandmother's attic. Inside, wrapped in an old " +
+    "newspaper, was a map — not printed, but hand-drawn in fading ink, with a red cross marked " +
+    "near a cluster of hills labelled 'Blackthorn Ridge'. Along the bottom, in the same shaky " +
+    "handwriting as the map's compass rose, someone had written: 'For whoever finds this — the " +
+    "old mine is not as empty as they think.'\n\n" +
+    "Tom's grandmother had grown up near Blackthorn Ridge, though she never talked about it much. " +
+    "He remembered her once saying the hills were 'best left alone', and changing the subject " +
+    "before he could ask why.\n\n" +
+    "He turned the map over. On the back, someone had sketched a rough tunnel system, with one " +
+    "passage marked simply: 'Do not go this way.' Tom sat back on his heels, the dust from the " +
+    "attic floor settling around him, and wondered whether some family stories stayed buried for " +
+    "a reason.";
+
+  var BOTTLE_MESSAGE_PASSAGE =
+    "Priya was combing the beach for shells when her foot caught on something half-buried in the " +
+    "sand — a glass bottle, its neck sealed with wax gone brittle with age. Inside, rolled tight, " +
+    "was a strip of paper.\n\n" +
+    "She prised out the cork and unrolled it carefully on a flat rock. The ink had smudged in " +
+    "places, but most of the words were still readable: 'If you are reading this, the tide has " +
+    "carried me further than I hoped. We set out from the harbour on the 3rd, three of us, " +
+    "heading north along the coast. The weather turned faster than we expected.'\n\n" +
+    "There was no name, no date beyond 'the 3rd', and no way of knowing how long the bottle had " +
+    "drifted before washing up here. Priya looked out at the grey water, suddenly much more aware " +
+    "of how far it stretched, and how little it gave away about what had happened to whoever " +
+    "wrote those words.";
+
   var ADVENTURE_ITEMS = [
     { kind:"mcq", subject:"english", passage:LIGHTHOUSE_PASSAGE,
       prompt:"Where does Mia find the diary?",
@@ -589,6 +617,40 @@
       options:["It was calm and still","It was rough and turning violently","It was frozen","It was sparkling in sunlight"],
       correct:1 },
 
+    { kind:"mcq", subject:"english", passage:ATTIC_MAP_PASSAGE,
+      prompt:"Where does Tom find the map?",
+      options:["In a shop","In his grandmother's attic","Buried in a field","At school"],
+      correct:1 },
+    { kind:"mcq", subject:"english", passage:ATTIC_MAP_PASSAGE,
+      prompt:"What can you infer about how Tom's grandmother felt about Blackthorn Ridge?",
+      options:["She loved visiting it","She was uneasy about it and avoided discussing it","She had never heard of it","She wanted to sell the land"],
+      correct:1 },
+    { kind:"mcq", subject:"english", passage:ATTIC_MAP_PASSAGE,
+      prompt:"What does the note on the map suggest about the old mine?",
+      options:["It has been completely emptied","It might still contain something","It was never used","It was destroyed in a fire"],
+      correct:1 },
+    { kind:"mcq", subject:"english", passage:ATTIC_MAP_PASSAGE,
+      prompt:"What does the word “sketched” mean in the passage?",
+      options:["Painted in bright colours","Drawn roughly or quickly","Photographed","Erased"],
+      correct:1 },
+
+    { kind:"mcq", subject:"english", passage:BOTTLE_MESSAGE_PASSAGE,
+      prompt:"How does Priya find the bottle?",
+      options:["Someone hands it to her","She finds it buried in the sand while looking for shells","It floats past her while swimming","She buys it at a shop"],
+      correct:1 },
+    { kind:"mcq", subject:"english", passage:BOTTLE_MESSAGE_PASSAGE,
+      prompt:"What can you infer happened to the people mentioned in the note?",
+      options:["They arrived safely at their destination","Something went wrong with their journey, and their fate is unknown","They wrote the note as a joke","They were never at sea"],
+      correct:1 },
+    { kind:"mcq", subject:"english", passage:BOTTLE_MESSAGE_PASSAGE,
+      prompt:"Why can't Priya work out exactly when the note was written?",
+      options:["The writing is in a foreign language","There is no full date, only “the 3rd”","The bottle has no cork","She cannot read cursive writing"],
+      correct:1 },
+    { kind:"mcq", subject:"english", passage:BOTTLE_MESSAGE_PASSAGE,
+      prompt:"What does the phrase “how little it gave away” suggest about the sea, in the last sentence?",
+      options:["The sea is shallow and easy to see through","The sea keeps its secrets and doesn't reveal what happened","The sea is completely calm","The sea is far away"],
+      correct:1 },
+
     { kind:"mcq", subject:"english", prompt:"Which word means the same as “enormous”?",
       options:["Tiny","Huge","Narrow","Quiet"], correct:1 },
     { kind:"mcq", subject:"english", prompt:"Which word means the same as “reluctant”?",
@@ -601,6 +663,34 @@
       options:["Ordinary","Strange","Friendly","Loud"], correct:1 },
     { kind:"mcq", subject:"english", prompt:"Which word means the same as “vast”?",
       options:["Tiny","Immense","Narrow","Empty"], correct:1 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “diminish”?",
+      options:["Grow smaller","Increase","Disappear instantly","Multiply"], correct:0 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “furious”?",
+      options:["Extremely angry","Mildly annoyed","Very happy","Confused"], correct:0 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “cautious”?",
+      options:["Careful","Careless","Brave","Curious"], correct:0 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “vivid”?",
+      options:["Bright and clear","Dull","Blurry","Dark"], correct:0 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “exhausted”?",
+      options:["Very tired","Wide awake","Hungry","Excited"], correct:0 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “hesitant”?",
+      options:["Unsure","Confident","Angry","Patient"], correct:0 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “abundant”?",
+      options:["Plentiful","Scarce","Average","Hidden"], correct:0 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “concealed”?",
+      options:["Hidden","Revealed","Painted","Broken"], correct:0 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “triumphant”?",
+      options:["Feeling victorious","Feeling defeated","Feeling bored","Feeling scared"], correct:0 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “fragile”?",
+      options:["Easily broken","Very strong","Waterproof","Flexible"], correct:0 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “solitary”?",
+      options:["Alone","Crowded","Noisy","Cheerful"], correct:0 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “gradually”?",
+      options:["Slowly, over time","Suddenly","Occasionally","Permanently"], correct:0 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “essential”?",
+      options:["Absolutely necessary","Unimportant","Optional","Forbidden"], correct:0 },
+    { kind:"mcq", subject:"english", prompt:"Which word means the same as “astonished”?",
+      options:["Greatly surprised","Completely bored","Slightly annoyed","Very tired"], correct:0 },
 
     { kind:"mcq", subject:"maths",
       prompt:"A recipe for 8 biscuits needs 240g of flour. How much flour is needed for 12 biscuits?",
@@ -626,7 +716,40 @@
       options:["£9.60 (12 singles)","£8.60 (2 packs + 2 singles)","£8.40","£7.00 (2 packs only, 10 notebooks)"], correct:1 },
     { kind:"mcq", subject:"maths",
       prompt:"In a fruit bowl, the ratio of apples to oranges is 3:2. If there are 12 apples, how many oranges are there?",
-      options:["6","8","9","10"], correct:1 }
+      options:["6","8","9","10"], correct:1 },
+    { kind:"mcq", subject:"maths",
+      prompt:"A book costs £12.99. It's reduced by 20% in a sale. Roughly how much does it cost now, to the nearest pound?",
+      options:["£8","£10","£11","£13"], correct:1 },
+    { kind:"mcq", subject:"maths", prompt:"What is the mean (average) of 4, 7, 9, 12 and 18?",
+      options:["9","10","11","12"], correct:1 },
+    { kind:"mcq", subject:"maths", prompt:"A train travels 180 miles in 3 hours. What is its average speed?",
+      options:["45 mph","60 mph","75 mph","90 mph"], correct:1 },
+    { kind:"mcq", subject:"maths", prompt:"If x + 15 = 42, what is x?",
+      options:["17","27","37","57"], correct:1 },
+    { kind:"mcq", subject:"maths", prompt:"A cube has sides of 4cm. What is its volume?",
+      options:["16 cm³","48 cm³","64 cm³","12 cm³"], correct:2 },
+    { kind:"mcq", subject:"maths", prompt:"Which of these fractions is equivalent to 2/3?",
+      options:["4/9","6/9","3/6","5/8"], correct:1 },
+    { kind:"mcq", subject:"maths",
+      prompt:"A spinner has 8 equal sections numbered 1 to 8. What is the probability of landing on an even number?",
+      options:["1/8","1/4","1/2","3/4"], correct:2 },
+    { kind:"mcq", subject:"maths", prompt:"Round 4,867 to the nearest hundred.",
+      options:["4,800","4,850","4,900","5,000"], correct:2 },
+    { kind:"mcq", subject:"maths", prompt:"What is 15% of 200?",
+      options:["20","25","30","35"], correct:2 },
+    { kind:"mcq", subject:"maths",
+      prompt:"Jack buys 3 items costing £4.50, £2.75 and £1.80. He pays with a £20 note. How much change does he get?",
+      options:["£9.05","£10.05","£10.95","£11.95"], correct:2 },
+    { kind:"mcq", subject:"maths", prompt:"What is the next number in this sequence: 3, 6, 12, 24, 48, …?",
+      options:["60","72","96","100"], correct:2 },
+    { kind:"mcq", subject:"maths",
+      prompt:"A pizza is cut into 8 equal slices. Amir eats 3 slices. What fraction of the pizza is left?",
+      options:["3/8","5/8","1/2","5/16"], correct:1 },
+    { kind:"mcq", subject:"maths", prompt:"Which of these numbers is a prime number?",
+      options:["21","27","29","33"], correct:2 },
+    { kind:"mcq", subject:"maths",
+      prompt:"A recipe needs 500g of flour to serve 4 people. How much flour is needed to serve 10 people?",
+      options:["1,000g","1,100g","1,250g","1,500g"], correct:2 }
   ];
 
   var BEACON_ITEMS = [
@@ -660,6 +783,36 @@
     { kind:"short", subject:"english",
       prompt:"Fill in the missing word: “My ___ colour is blue.”",
       answers:["favourite"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “She stayed calm and reacted ___ when the alarm went off.”",
+      answers:["immediately"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “The ___ decided to build a new school in the town.”",
+      answers:["government"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “That song sounds very ___ — I think I've heard it before.”",
+      answers:["familiar"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “The sunset over the mountains was absolutely ___.”",
+      answers:["beautiful"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “My uncle runs a small ___ selling bicycles.”",
+      answers:["business"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “I don't ___ everything I read on the internet.”",
+      answers:["believe"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “Her birthday falls in ___, right after mine.”",
+      answers:["february"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “The queen's crown was covered in sparkling ___.”",
+      answers:["jewellery"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “He was barely ___ after hitting his head, and felt dizzy.”",
+      answers:["conscious"] },
+    { kind:"short", subject:"english",
+      prompt:"Fill in the missing word: “The shop couldn't ___ that the parcel would arrive on time.”",
+      answers:["guarantee"] },
 
     { kind:"short", subject:"maths",
       prompt:"Jamie buys a sandwich for £2.35 and a drink for 95p. He pays with a £5 note. How much change does he get?",
@@ -690,7 +843,50 @@
       answers:["165"], hint:"Just the number of minutes" },
     { kind:"short", subject:"maths",
       prompt:"A group of 4 friends share the cost of a £15.60 pizza equally. How much does each person pay?",
-      answers:["3.90","£3.90"], hint:"Give your answer in pounds and pence, e.g. 3.90" }
+      answers:["3.90","£3.90"], hint:"Give your answer in pounds and pence, e.g. 3.90" },
+
+    { kind:"short", subject:"maths",
+      prompt:"A jacket costs £45. In a sale it's reduced by 30%. What is the sale price?",
+      answers:["31.50","£31.50"], hint:"Give your answer in pounds and pence, e.g. 31.50" },
+    { kind:"short", subject:"maths",
+      prompt:"A school has 320 pupils. 3/8 of them walk to school. How many pupils is that?",
+      answers:["120"] },
+    { kind:"short", subject:"maths",
+      prompt:"A rectangular field is 45m long and 30m wide. What is its perimeter?",
+      answers:["150"], hint:"Just the number of metres" },
+    { kind:"short", subject:"maths",
+      prompt:"Sarah has £50. She spends £12.75 on a book and £8.40 on a magazine. How much does she have left?",
+      answers:["28.85","£28.85"], hint:"Give your answer in pounds and pence, e.g. 28.85" },
+    { kind:"short", subject:"maths",
+      prompt:"A car travels at 50mph for 3 hours. How far does it travel?",
+      answers:["150"], hint:"Just the number of miles" },
+    { kind:"short", subject:"maths",
+      prompt:"A water tank is a cuboid 2m long, 1m wide and 1.5m tall. What is its volume in cubic metres?",
+      answers:["3"] },
+    { kind:"short", subject:"maths",
+      prompt:"In a bag of marbles, the ratio of red to blue marbles is 2:5. If there are 10 red marbles, how many blue marbles are there?",
+      answers:["25"] },
+    { kind:"short", subject:"maths",
+      prompt:"What is the mean of these five test scores: 60, 72, 68, 75, 80?",
+      answers:["71"] },
+    { kind:"short", subject:"maths",
+      prompt:"Round 2,384 to the nearest ten.",
+      answers:["2380"] },
+    { kind:"short", subject:"maths",
+      prompt:"A baker makes 144 muffins and packs them into boxes of 6. How many boxes does she need?",
+      answers:["24"] },
+    { kind:"short", subject:"maths",
+      prompt:"Two numbers have a difference of 17. The larger number is 42. What is the smaller number?",
+      answers:["25"] },
+    { kind:"short", subject:"maths",
+      prompt:"A recipe uses 750ml of milk. How many litres is that?",
+      answers:["0.75","0.75l"], hint:"Give your answer in litres, e.g. 0.75" },
+    { kind:"short", subject:"maths",
+      prompt:"Emma buys 4 packets of stickers costing £1.35 each. How much does she spend in total?",
+      answers:["5.40","£5.40"], hint:"Give your answer in pounds and pence, e.g. 5.40" },
+    { kind:"short", subject:"maths",
+      prompt:"A film starts at 19:40 and lasts 1 hour 50 minutes. What time does it finish?",
+      answers:["21:30"], hint:"Use 24-hour time, e.g. 21:05" }
   ];
 
   var SESSION_SIZE = { adventure:10, beacon:10, mixed:15 };
@@ -718,9 +914,11 @@
   }
 
   // ---------- Local history ----------
+  // Only the most recent session shows here — full history and the "clear
+  // history" control live on the separate, PIN-gated parents/admin page
+  // (parents.html), which reads and writes this same localStorage key.
   var HISTORY_KEY = "entryTestHistory_v1";
   var HISTORY_MAX = 100;
-  var HISTORY_SHOWN = 8;
 
   function loadHistory(){
     try {
@@ -737,7 +935,7 @@
     list.unshift(rec);
     if (list.length > HISTORY_MAX) list.length = HISTORY_MAX;
     saveHistory(list);
-    renderHistory();
+    renderLastSession();
   }
 
   var PAPER_LABEL = { adventure:"Adventure paper", beacon:"Beacon paper", mixed:"Mixed practice" };
@@ -747,23 +945,15 @@
     return d.toLocaleDateString("en-GB", { weekday:"short", day:"numeric", month:"short" });
   }
 
-  function renderHistory(){
+  function renderLastSession(){
     var list = loadHistory();
-    historyEmpty.hidden = list.length !== 0;
-    historyListEl.innerHTML = "";
-    list.slice(0, HISTORY_SHOWN).forEach(function(rec){
-      var li = document.createElement("li");
-      li.className = "history-row";
-      var left = document.createElement("span");
-      left.className = "history-date";
-      left.textContent = formatDate(rec.date) + " — " + (PAPER_LABEL[rec.paper] || rec.paper);
-      var right = document.createElement("span");
-      right.className = "history-score";
-      right.textContent = rec.correct + " of " + rec.attempted + " (" + rec.pct + "%)";
-      li.appendChild(left);
-      li.appendChild(right);
-      historyListEl.appendChild(li);
-    });
+    if (!list.length){
+      lastSessionSummary.textContent = "No sessions completed yet.";
+      return;
+    }
+    var rec = list[0];
+    lastSessionSummary.textContent = formatDate(rec.date) + " — " + (PAPER_LABEL[rec.paper] || rec.paper) +
+      " · " + rec.correct + " of " + rec.attempted + " (" + rec.pct + "%)";
   }
 
   // ---------- Element refs ----------
@@ -788,10 +978,7 @@
   var pickerBtn = document.getElementById("pickerBtn");
   var quitRow = document.getElementById("quitRow");
   var quitBtn = document.getElementById("quitBtn");
-  var historyEmpty = document.getElementById("historyEmpty");
-  var historyListEl = document.getElementById("historyList");
-  var clearHistoryBtn = document.getElementById("clearHistoryBtn");
-  var historySection = document.getElementById("historySection");
+  var lastSessionSummary = document.getElementById("lastSessionSummary");
 
   // ---------- Session state ----------
   var currentPaper = null;
@@ -1046,14 +1233,14 @@
     });
   });
 
-  clearHistoryBtn.addEventListener("click", function(){
-    if (window.confirm("Clear all saved session history on this device? This can't be undone.")){
-      saveHistory([]);
-      renderHistory();
-    }
-  });
+  renderLastSession();
 
-  renderHistory();
+  // ---------- Install as an app (optional, safe to fail) ----------
+  if ("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){ /* no sw.js here – fine */ });
+    });
+  }
 })();
 </script>
 
