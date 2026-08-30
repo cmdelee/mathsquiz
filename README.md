@@ -10,8 +10,9 @@ Live at: https://github.com/cmdelee/mathsquiz (GitHub Pages, once enabled)
 
 ## Features
 
-- **Holiday-aware target**: 10 correct answers on a school holiday, 25 in term time, based on
-  Skipton Parish School's actual published term dates (not a generic regional calendar).
+- **Holiday-aware target**: 10 correct answers on a school holiday, 25 in term time by default,
+  based on Skipton Parish School's actual published term dates (not a generic regional calendar).
+  Both numbers can be changed at any time from the parents page.
 - **Four question types**: long multiplication, long division, long subtraction and long
   addition, roughly evenly mixed. Division always divides exactly (no remainders, since that
   hasn't been covered yet). Subtraction can land on a negative answer; addition always stays
@@ -27,10 +28,15 @@ Live at: https://github.com/cmdelee/mathsquiz (GitHub Pages, once enabled)
   the device's native share sheet — no email, no accounts, no data leaves the device at all.
 - **Local history**: the main page shows the most recent session's score. Full history lives on
   a separate parents page.
-- **Parents page**: a small "Parents" link in the footer, protected by a PIN. Getting in at all
-  needs the PIN — not just resetting something — so a child can't see or touch it. It shows the
-  full session history, the current difficulty level for each operation, and two reset buttons
-  (clear history; reset difficulty back to the easiest level).
+- **Child's name**: optional, set from the parents page. When set, it personalises the page
+  title ("Poppy's maths practice") and the end-of-session message, and appears in copied/shared
+  reports.
+- **Parents page**: a small "Parents" link in the footer, protected by a PIN that the parent
+  chooses themselves the first time they open it on a device (see below). Getting in at all
+  needs the PIN — not just resetting something — so a child can't see or touch it. It holds the
+  child's name, the session targets, the full session history, the current difficulty level for
+  each operation, and the reset/change controls (clear history, reset difficulty to the easiest
+  level, change the PIN).
 - **Installable as an app**: a Progressive Web App — "Add to Home Screen" on a phone or tablet
   gives it its own icon and offline support, no app store needed.
 - **Numeric keypad on mobile**: answer fields bring up a compact number pad rather than the
@@ -69,6 +75,10 @@ clearly flagged in the UI as an estimate. **This will need updating** once the s
 the 2028/29 calendar — replace the `HOLIDAYS` array with the new dates from the school's term
 dates page, following the same "derive from first/last day of term, exclude INSET days" approach.
 
+The 10/25 targets themselves are just defaults — the parents page has a "Targets" section where
+either number can be changed (1–200), stored in `localStorage` under `quizAppSettings_v1`. A
+change applies immediately without resetting whatever's already been answered that session.
+
 ### Question generation and difficulty
 
 Questions are generated in-browser, no backend — see `pickType()` for the roughly-even mix
@@ -88,10 +98,15 @@ Session history is saved to `localStorage` under `quizAppHistory_v1` — nothing
 ever. The main practice page only ever shows the most recent session's date and score; the full
 list lives on the parents page.
 
-The parents page sits behind a fixed PIN (`1724`) — only its SHA-256 hash is in the source
-(search for `EXPECTED_PIN_HASH`), not the PIN itself, though this is a lock against an idle tap
-from a child, not real security, since anyone reading the public source could work it out. The
-PIN is checked once, to open the page at all; the reset buttons inside it don't ask again.
+The parents page sits behind a PIN that the parent sets themselves — the first time "Parents" is
+tapped on a device, there's no PIN yet, so it asks you to choose one (typed twice, to catch typos)
+instead of showing any history or settings. Only the PIN's SHA-256 hash is stored, in
+`localStorage` under `quizAppParentPinHash_v1`, never the PIN itself. From then on the same PIN
+gets back in, and a "Change parent PIN" button inside the page lets you set a new one (it asks for
+the current PIN first). The PIN is checked once, to open the page at all; the other buttons inside
+it don't ask again.
+
+The child's name, if set, is stored in `localStorage` under `quizAppChildName_v1`.
 
 ### Installing on a phone or tablet
 
@@ -116,7 +131,10 @@ commit and push from a local clone with Git/GitHub Desktop.
 - The holiday calendar is hand-maintained — it doesn't pull from any live source, and if the
   school changes its published dates after this was last checked, the app won't know until the
   `HOLIDAYS` array is updated by hand.
-- History, the parent PIN check, and difficulty levels are all per-browser, per-device — using
-  both Chrome and Samsung Internet on the same tablet, for instance, keeps two separate copies
-  of everything, and reinstalling or clearing site data resets all of it.
-- The parent PIN is a fixed value baked into the public source, not a real secret.
+- History, the parent PIN, the child's name, targets and difficulty levels are all per-browser,
+  per-device — using both Chrome and Samsung Internet on the same tablet, for instance, keeps two
+  separate copies of everything, and reinstalling or clearing site data resets all of it.
+- The parent PIN is a lock against an idle tap from a child, not real security against someone
+  with access to the device — and there's no recovery option if it's forgotten short of clearing
+  site data (which also clears the history, targets and child's name on that device, and prompts
+  for a new PIN to be set next time).

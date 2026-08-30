@@ -520,7 +520,8 @@
     font-size:0.85rem;
     color:var(--ink-soft);
   }
-  .settings-field input[type="number"]{
+  .settings-field input[type="number"],
+  .settings-field input[type="text"]{
     font:inherit;
     font-size:0.9rem;
     padding:6px 8px;
@@ -528,8 +529,9 @@
     border:1px solid var(--border);
     background:var(--surface);
     color:var(--ink);
-    width:5.5em;
   }
+  .settings-field input[type="number"]{ width:5.5em; }
+  .settings-field input[type="text"]{ width:14em; max-width:100%; }
   .settings-note{
     flex-basis:100%;
     margin:2px 0 0;
@@ -558,7 +560,7 @@
 
   <header class="masthead">
     <p class="eyebrow">Skipton · North Yorkshire</p>
-    <h1>Today's maths practice</h1>
+    <h1 id="pageTitle">Today's maths practice</h1>
     <p class="date-line" id="todayLabel"></p>
   </header>
 
@@ -606,7 +608,7 @@
     </div>
 
     <div class="completion-panel" id="completionPanel" hidden>
-      <h3>Target reached!</h3>
+      <h3 id="completionTitle">Target reached!</h3>
       <p id="completionStats"></p>
 
       <div class="share-actions">
@@ -635,7 +637,20 @@
   <section class="card parents-page" id="parentsPage" hidden>
     <div class="quiz-head">
       <h2>Parents</h2>
-      <p class="quiz-sub">Full session history, current difficulty levels, and reset controls.</p>
+      <p class="quiz-sub">Child's name, targets, full session history, current difficulty levels, and reset controls.</p>
+    </div>
+
+    <div class="parents-block">
+      <h3>Child's name</h3>
+      <p class="quiz-sub">Shown on the practice page and in reports. Leave blank to keep things generic.</p>
+      <div class="settings-body">
+        <div class="settings-field">
+          <label for="childNameInput">Name</label>
+          <input type="text" id="childNameInput" maxlength="40" autocomplete="off">
+        </div>
+        <button id="saveChildNameBtn" class="btn btn-ghost">Save name</button>
+        <p class="settings-note" id="childNameNote" hidden></p>
+      </div>
     </div>
 
     <div class="parents-block">
@@ -669,6 +684,7 @@
     <div class="quiz-actions">
       <button id="resetDifficultyBtn" class="btn btn-ghost">Reset difficulty to easiest</button>
       <button id="clearHistoryBtn" class="btn btn-ghost">Clear history</button>
+      <button id="changePinBtn" class="btn btn-ghost">Change parent PIN</button>
     </div>
     <p class="history-note">Saved only in this browser, on this device – nothing is sent anywhere.</p>
 
@@ -891,6 +907,27 @@
 
   var settings = loadSettings();
 
+  // ---------- Child's name (optional, set from the parents page) ----------
+  var CHILD_NAME_KEY = "quizAppChildName_v1";
+  var CHILD_NAME_MAX = 40;
+
+  function loadChildName(){
+    try {
+      var v = window.localStorage.getItem(CHILD_NAME_KEY);
+      return v ? v.slice(0, CHILD_NAME_MAX) : "";
+    } catch (e){ return ""; }
+  }
+
+  function saveChildName(name){
+    try { window.localStorage.setItem(CHILD_NAME_KEY, name); } catch (e){ /* ignore */ }
+  }
+
+  var childName = loadChildName();
+
+  function applyChildName(){
+    pageTitle.textContent = childName ? childName + "'s maths practice" : "Today's maths practice";
+  }
+
   function warmUpDifficultyForSession(){
     DIFF_TYPES.forEach(function(t){
       difficulty[t] = Math.max(DIFF_MIN_LEVEL, difficulty[t] - 1);
@@ -1024,6 +1061,7 @@
   var restartBtn = document.getElementById("restartBtn");
   var restartBtnMain = document.getElementById("restartBtnMain");
   var completionPanel = document.getElementById("completionPanel");
+  var completionTitle = document.getElementById("completionTitle");
   var completionStats = document.getElementById("completionStats");
   var progressFill = document.getElementById("progressFill");
   var progressText = document.getElementById("progressText");
@@ -1045,6 +1083,11 @@
   var fullHistorySummary = document.getElementById("fullHistorySummary");
   var historyListEl = document.getElementById("historyList");
   var clearHistoryBtn = document.getElementById("clearHistoryBtn");
+  var changePinBtn = document.getElementById("changePinBtn");
+  var childNameInput = document.getElementById("childNameInput");
+  var saveChildNameBtn = document.getElementById("saveChildNameBtn");
+  var childNameNote = document.getElementById("childNameNote");
+  var pageTitle = document.getElementById("pageTitle");
 
   // ---------- Local history (this device only – nothing leaves the browser) ----------
   var HISTORY_KEY = "quizAppHistory_v1";
@@ -1159,12 +1202,23 @@
     renderLevels();
   }
 
-  // ---------- Parent PIN, protecting "Clear history" ----------
-  // Fixed parent PIN (not user-set). Only its hash lives in the source, so
-  // the PIN itself isn't sitting there in plain text for a curious reader.
-  // This is a lock against an impatient tap from a child, not real security:
-  // anyone motivated could brute-force a 4-digit PIN from this public source.
-  var EXPECTED_PIN_HASH = "f30f2b2004c3b4c12ac2eeffa8adda02847c3d467bc4d07b8a691f9e21d4b3c4";
+  // ---------- Parent PIN, protecting the parents page ----------
+  // The parent chooses their own PIN the first time they open the parents
+  // page on a device; only its hash is stored (in localStorage, on that
+  // device), never the PIN itself. This is a lock against an idle tap from
+  // a child, not real security against someone with access to the device.
+  var PIN_KEY = "quizAppParentPinHash_v1";
+  var PIN_MIN_LENGTH = 4;
+
+  function loadPinHash(){
+    try { return window.localStorage.getItem(PIN_KEY) || null; }
+    catch (e){ return null; }
+  }
+
+  function savePinHash(hash){
+    try { window.localStorage.setItem(PIN_KEY, hash); return true; }
+    catch (e){ return false; }
+  }
 
   function hashPin(pin){
     var text = "quiz-app:" + pin;
@@ -1211,6 +1265,23 @@
       saveDifficulty();
       renderLevels();
     }
+  });
+
+  // ---------- Child's name (parents page) ----------
+  function renderChildName(){
+    childNameInput.value = childName;
+    childNameNote.hidden = true;
+    childNameNote.className = "settings-note";
+  }
+
+  saveChildNameBtn.addEventListener("click", function(){
+    childName = childNameInput.value.trim().slice(0, CHILD_NAME_MAX);
+    saveChildName(childName);
+    applyChildName();
+    childNameInput.value = childName;
+    childNameNote.textContent = childName ? "Saved." : "Cleared – the page will use generic wording.";
+    childNameNote.className = "settings-note is-success";
+    childNameNote.hidden = false;
   });
 
   // ---------- Targets (parents page) ----------
@@ -1260,6 +1331,7 @@
   // so a child browsing the app never even sees history or reset options.
   function openParentsPage(){
     renderHistory();
+    renderChildName();
     renderTargets();
     mainView.hidden = true;
     parentsPage.hidden = false;
@@ -1271,11 +1343,44 @@
     mainView.hidden = false;
   }
 
+  function promptSetNewPin(introText){
+    var first = window.prompt(introText || ("Choose a parent PIN (at least " + PIN_MIN_LENGTH + " digits/characters):"));
+    if (first === null) return Promise.resolve(false);
+    first = first.trim();
+    if (first.length < PIN_MIN_LENGTH){
+      window.alert("Please choose a PIN with at least " + PIN_MIN_LENGTH + " characters.");
+      return Promise.resolve(false);
+    }
+    var second = window.prompt("Enter the same PIN again to confirm:");
+    if (second === null) return Promise.resolve(false);
+    if (second.trim() !== first){
+      window.alert("Those two didn't match – nothing was changed.");
+      return Promise.resolve(false);
+    }
+    return hashPin(first).then(function(hash){
+      savePinHash(hash);
+      return true;
+    });
+  }
+
   parentsLinkBtn.addEventListener("click", function(){
+    var storedHash = loadPinHash();
+
+    if (!storedHash){
+      // No PIN set up on this device yet – the parent chooses one now.
+      promptSetNewPin(
+        "No parent PIN is set up on this device yet. Choose one now (at least " +
+        PIN_MIN_LENGTH + " digits/characters) – you'll use it to get back into this page next time:"
+      ).then(function(didSet){
+        if (didSet) openParentsPage();
+      });
+      return;
+    }
+
     var entered = window.prompt("Enter the parent PIN to view the parents page:");
     if (entered === null) return;
     hashPin(entered.trim()).then(function(enteredHash){
-      if (enteredHash !== EXPECTED_PIN_HASH){
+      if (enteredHash !== storedHash){
         window.alert("Incorrect PIN.");
         return;
       }
@@ -1284,6 +1389,27 @@
   });
 
   closeParentsBtn.addEventListener("click", closeParentsPage);
+
+  changePinBtn.addEventListener("click", function(){
+    var storedHash = loadPinHash();
+    if (!storedHash){
+      promptSetNewPin().then(function(didSet){
+        if (didSet) window.alert("Parent PIN set.");
+      });
+      return;
+    }
+    var entered = window.prompt("Enter the current parent PIN:");
+    if (entered === null) return;
+    hashPin(entered.trim()).then(function(enteredHash){
+      if (enteredHash !== storedHash){
+        window.alert("Incorrect PIN.");
+        return;
+      }
+      promptSetNewPin("Choose a new parent PIN (at least " + PIN_MIN_LENGTH + " digits/characters):").then(function(didSet){
+        if (didSet) window.alert("Parent PIN updated.");
+      });
+    });
+  });
 
   function handleEnter(e){
     if (e.key === "Enter"){
@@ -1372,6 +1498,7 @@
   function finishPractice(){
     questionCard.hidden = true;
     completionPanel.hidden = false;
+    completionTitle.textContent = childName ? "Well done, " + childName + "!" : "Target reached!";
     var pct = Math.round((correctCount/attemptedCount)*100);
     completionStats.textContent = "You answered " + attemptedCount + " question" + (attemptedCount===1 ? "" : "s") +
       " and got " + correctCount + " right (" + pct + "%) to reach today's target of " + target + ".";
@@ -1425,6 +1552,7 @@
     var lines = [];
     lines.push("Quiz App – practice report");
     lines.push("");
+    if (childName) lines.push("Name: " + childName);
     lines.push("Date: " + formatLong(new Date()));
     lines.push("Status: " + (quizState === "holiday"
       ? "School holidays" + (status.label ? " (" + status.label + ")" : "")
@@ -1503,6 +1631,7 @@
 
   // ---------- Status banner ----------
   var today = new Date();
+  applyChildName();
   document.getElementById("todayLabel").textContent = formatLong(today);
 
   var status = getStatus(today);
