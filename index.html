@@ -681,12 +681,100 @@
   function fmt(n){ return n.toLocaleString("en-GB"); }
   function pick(arr){ return arr[randInt(0, arr.length-1)]; }
 
+  // ---------- Adaptive difficulty ----------
+  // Each operation type has its own level (1 = easiest, 6 = hardest), saved
+  // on this device. A run of correct answers nudges the level up; a single
+  // wrong answer drops it straight back down. Every new session starts one
+  // level below wherever the last one settled – a gentle warm-up – so it
+  // starts easy for a brand-new device and gradually climbs over weeks as
+  // she improves, without ever getting stuck too hard after a rough run.
+  var DIFF_KEY = "quizAppDifficulty_v1";
+  var DIFF_MIN_LEVEL = 1;
+  var DIFF_MAX_LEVEL = 6;
+  var DIFF_STREAK_TO_LEVEL_UP = 3;
+  var DIFF_TYPES = ["multiplication", "division", "addition", "subtraction"];
+
+  // Index 0 = level 1 (easiest) … index 5 = level 6 (hardest).
+  var MULT_LEVELS = [
+    { aMin:10,   aMax:99,   bMin:11, bMax:15 },
+    { aMin:10,   aMax:99,   bMin:11, bMax:20 },
+    { aMin:100,  aMax:999,  bMin:11, bMax:20 },
+    { aMin:100,  aMax:999,  bMin:11, bMax:30 },
+    { aMin:100,  aMax:999,  bMin:21, bMax:50 },
+    { aMin:1000, aMax:9999, bMin:21, bMax:99 }
+  ];
+  var DIV_LEVELS = [
+    { bMin:11, bMax:15, dMin:100,  dMax:999 },
+    { bMin:11, bMax:20, dMin:100,  dMax:999 },
+    { bMin:11, bMax:20, dMin:1000, dMax:9999 },
+    { bMin:11, bMax:30, dMin:1000, dMax:9999 },
+    { bMin:21, bMax:50, dMin:1000, dMax:9999 },
+    { bMin:21, bMax:99, dMin:1000, dMax:9999 }
+  ];
+  var ADD_LEVELS = [
+    { digits:[3],     p3:0 },
+    { digits:[3,4],   p3:0 },
+    { digits:[4],     p3:0.2 },
+    { digits:[4,5],   p3:0.35 },
+    { digits:[5],     p3:0.45 },
+    { digits:[4,5,6], p3:0.45 }
+  ];
+  var SUB_LEVELS = [
+    { digits:[3] },
+    { digits:[3,4] },
+    { digits:[4] },
+    { digits:[4,5] },
+    { digits:[5] },
+    { digits:[4,5,6] }
+  ];
+
+  function loadDifficulty(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(DIFF_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    DIFF_TYPES.forEach(function(t){
+      var v = obj[t];
+      obj[t] = (typeof v === "number" && v >= DIFF_MIN_LEVEL && v <= DIFF_MAX_LEVEL) ? v : DIFF_MIN_LEVEL;
+    });
+    return obj;
+  }
+
+  function saveDifficulty(){
+    try { window.localStorage.setItem(DIFF_KEY, JSON.stringify(difficulty)); } catch (e){ /* ignore */ }
+  }
+
+  var difficulty = loadDifficulty();
+  var difficultyStreak = { multiplication:0, division:0, addition:0, subtraction:0 };
+
+  function warmUpDifficultyForSession(){
+    DIFF_TYPES.forEach(function(t){
+      difficulty[t] = Math.max(DIFF_MIN_LEVEL, difficulty[t] - 1);
+      difficultyStreak[t] = 0;
+    });
+    saveDifficulty();
+  }
+
+  function recordAnswerForDifficulty(type, isCorrect){
+    if (isCorrect){
+      difficultyStreak[type]++;
+      if (difficultyStreak[type] >= DIFF_STREAK_TO_LEVEL_UP){
+        difficulty[type] = Math.min(DIFF_MAX_LEVEL, difficulty[type] + 1);
+        difficultyStreak[type] = 0;
+      }
+    } else {
+      difficulty[type] = Math.max(DIFF_MIN_LEVEL, difficulty[type] - 1);
+      difficultyStreak[type] = 0;
+    }
+    saveDifficulty();
+  }
+
   function genMultiplication(){
-    // Kept to a 3-digit number by a smaller 2-digit multiplier (11-30) –
-    // still needs the long multiplication method (two partial products),
-    // without the number size making it unmanageable at this age.
-    var a = randInt(100, 999);
-    var b = randInt(11, 30);
+    var cfg = MULT_LEVELS[difficulty.multiplication - 1];
+    var a = randInt(cfg.aMin, cfg.aMax);
+    var b = randInt(cfg.bMin, cfg.bMax);
     return {
       type:"multiplication",
       tag:"Long multiplication",
@@ -699,11 +787,10 @@
   function genDivision(){
     // Always divides exactly (no remainder) – daughter hasn't covered
     // remainders yet, so the answer is always a whole, round number.
-    // Divisor kept to 11-30 (rather than up to 99) – a smaller divisor
-    // is much easier to estimate against at this age.
-    var b = randInt(11, 30);
-    var qMin = Math.max(1, Math.ceil(1000/b));
-    var qMax = Math.floor(9999/b);
+    var cfg = DIV_LEVELS[difficulty.division - 1];
+    var b = randInt(cfg.bMin, cfg.bMax);
+    var qMin = Math.max(1, Math.ceil(cfg.dMin/b));
+    var qMax = Math.floor(cfg.dMax/b);
     var q = randInt(qMin, qMax);
     var dividend = b*q;
     return {
@@ -716,8 +803,9 @@
   }
 
   function genAddition(){
-    var digits = pick([4,5,6]);
-    var count = Math.random() < 0.55 ? 2 : 3;
+    var cfg = ADD_LEVELS[difficulty.addition - 1];
+    var digits = pick(cfg.digits);
+    var count = Math.random() < cfg.p3 ? 3 : 2;
     var lo = Math.pow(10, digits-1), hi = Math.pow(10, digits)-1;
     var addends = [];
     for (var i=0; i<count; i++){
@@ -735,7 +823,8 @@
   }
 
   function genSubtraction(){
-    var digits = pick([4,5,6]);
+    var cfg = SUB_LEVELS[difficulty.subtraction - 1];
+    var digits = pick(cfg.digits);
     var lo = Math.pow(10, digits-1), hi = Math.pow(10, digits)-1;
     var a = randInt(lo, hi);
     var b = randInt(lo, hi); // no longer forced smaller than a, so the answer can be negative
@@ -994,6 +1083,7 @@
     checked = true;
     attemptedCount++;
     sessionLog.push({ type:q.type, tag:q.tag, equation:q.equation, correctText:correctText, isCorrect:isCorrect });
+    recordAnswerForDifficulty(q.type, isCorrect);
     if (isCorrect){
       correctCount++;
       questionCard.classList.add("is-correct");
@@ -1040,6 +1130,7 @@
     attemptedCount = 0;
     checked = false;
     sessionLog = [];
+    warmUpDifficultyForSession();
     completionPanel.hidden = true;
     questionCard.hidden = false;
     updateProgress();
