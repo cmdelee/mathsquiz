@@ -682,8 +682,11 @@
   function pick(arr){ return arr[randInt(0, arr.length-1)]; }
 
   function genMultiplication(){
-    var a = randInt(1000, 9999);
-    var b = randInt(11, 99);
+    // Kept to a 3-digit number by a smaller 2-digit multiplier (11-30) –
+    // still needs the long multiplication method (two partial products),
+    // without the number size making it unmanageable at this age.
+    var a = randInt(100, 999);
+    var b = randInt(11, 30);
     return {
       type:"multiplication",
       tag:"Long multiplication",
@@ -696,7 +699,9 @@
   function genDivision(){
     // Always divides exactly (no remainder) – daughter hasn't covered
     // remainders yet, so the answer is always a whole, round number.
-    var b = randInt(11, 99);
+    // Divisor kept to 11-30 (rather than up to 99) – a smaller divisor
+    // is much easier to estimate against at this age.
+    var b = randInt(11, 30);
     var qMin = Math.max(1, Math.ceil(1000/b));
     var qMax = Math.floor(9999/b);
     var q = randInt(qMin, qMax);
