@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Skipton Sums</title>
+<title>Quiz App</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#35664F">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Skipton Sums">
+<meta name="apple-mobile-web-app-title" content="Quiz App">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
@@ -343,6 +343,13 @@
     border:1px solid var(--border);
     background:var(--surface);
     color:var(--ink);
+    -moz-appearance:textfield;
+    appearance:textfield;
+  }
+  .q-answer input::-webkit-outer-spin-button,
+  .q-answer input::-webkit-inner-spin-button{
+    -webkit-appearance:none;
+    margin:0;
   }
   .q-answer input:focus-visible{
     outline:2px solid var(--focus);
@@ -561,7 +568,7 @@
     <div class="quiz-actions">
       <button id="clearHistoryBtn" class="btn btn-ghost" hidden>Clear history</button>
     </div>
-    <p class="history-note">Saved only in this browser, on this device – nothing is sent anywhere.</p>
+    <p class="history-note">Saved only in this browser, on this device – nothing is sent anywhere. Clearing history needs a parent PIN.</p>
   </section>
 
   <footer class="foot">
@@ -796,7 +803,7 @@
   var clearHistoryBtn = document.getElementById("clearHistoryBtn");
 
   // ---------- Local history (this device only – nothing leaves the browser) ----------
-  var HISTORY_KEY = "skiptonSumsHistory_v1";
+  var HISTORY_KEY = "quizAppHistory_v1";
   var HISTORY_MAX = 200;
   var HISTORY_SHOWN = 20;
 
@@ -874,11 +881,78 @@
     }
   }
 
-  clearHistoryBtn.addEventListener("click", function(){
+  // ---------- Parent PIN, protecting "Clear history" ----------
+  // The PIN itself is never stored – only a hash of it, on this device.
+  // This is a lock against an impatient tap from a child, not real security:
+  // anyone reading this public source code can see exactly how it works.
+  var PIN_KEY = "quizAppParentPinHash_v1";
+
+  function hashPin(pin){
+    var text = "quiz-app:" + pin;
+    if (window.crypto && window.crypto.subtle && window.isSecureContext){
+      return window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))
+        .then(function(buf){
+          return Array.prototype.map.call(new Uint8Array(buf), function(b){
+            return b.toString(16).padStart(2, "0");
+          }).join("");
+        })
+        .catch(function(){ return simpleHash(text); });
+    }
+    return Promise.resolve(simpleHash(text));
+  }
+
+  function simpleHash(text){
+    // Fallback for contexts without Web Crypto (e.g. very old browsers).
+    // Not cryptographic – just avoids storing the PIN as plain text.
+    var hash = 5381;
+    for (var i = 0; i < text.length; i++){
+      hash = (((hash << 5) + hash) + text.charCodeAt(i)) & 0xFFFFFFFF;
+    }
+    return "fb" + (hash >>> 0).toString(16);
+  }
+
+  function getStoredPinHash(){
+    try { return window.localStorage.getItem(PIN_KEY); } catch (e){ return null; }
+  }
+
+  function setStoredPinHash(hash){
+    try { window.localStorage.setItem(PIN_KEY, hash); return true; } catch (e){ return false; }
+  }
+
+  function doClearHistory(){
     if (window.confirm("Clear all saved history on this device? This can't be undone.")){
       saveHistory([]);
       renderHistory();
     }
+  }
+
+  clearHistoryBtn.addEventListener("click", function(){
+    var storedHash = getStoredPinHash();
+
+    if (!storedHash){
+      var newPin = window.prompt("No parent PIN is set yet. Create one now (4+ characters) – you'll need it to clear history in future:");
+      if (newPin === null) return;
+      newPin = newPin.trim();
+      if (newPin.length < 4){
+        window.alert("PIN must be at least 4 characters. Nothing was saved.");
+        return;
+      }
+      hashPin(newPin).then(function(hash){
+        setStoredPinHash(hash);
+        doClearHistory();
+      });
+      return;
+    }
+
+    var entered = window.prompt("Enter the parent PIN to clear history:");
+    if (entered === null) return;
+    hashPin(entered.trim()).then(function(enteredHash){
+      if (enteredHash !== storedHash){
+        window.alert("Incorrect PIN. History was not cleared.");
+        return;
+      }
+      doClearHistory();
+    });
   });
 
   function handleEnter(e){
@@ -904,10 +978,12 @@
     qFeedbackEl.className = "q-feedback";
 
     var input = document.createElement("input");
-    input.type = "text";
-    // Addition and subtraction answers can be negative, so give those a
-    // keyboard with a minus sign on it rather than a digits-only numeric pad.
-    input.inputMode = (q.type === "addition" || q.type === "subtraction") ? "text" : "numeric";
+    // type="number" is what gets a compact numeric keypad on mobile instead
+    // of the full text keyboard, and – unlike inputmode="numeric" on a plain
+    // text field – the browser still includes a minus key on it, so negative
+    // addition/subtraction answers can still be typed.
+    input.type = "number";
+    input.inputMode = "numeric";
     input.className = "single-input";
     input.setAttribute("aria-label", "Answer");
     qAnswerInputs.appendChild(input);
@@ -1015,7 +1091,7 @@
     });
 
     var lines = [];
-    lines.push("Skipton Sums – practice report");
+    lines.push("Quiz App – practice report");
     lines.push("");
     lines.push("Date: " + formatLong(new Date()));
     lines.push("Status: " + (quizState === "holiday"
@@ -1037,7 +1113,7 @@
       });
     }
     lines.push("");
-    lines.push("— Skipton Sums");
+    lines.push("— Quiz App");
     return lines.join("\n");
   }
 
@@ -1077,7 +1153,7 @@
 
   function shareReport(){
     if (!navigator.share) return;
-    navigator.share({ title:"Skipton Sums report", text: buildReportText() }).catch(function(){
+    navigator.share({ title:"Quiz App report", text: buildReportText() }).catch(function(){
       // Viewer cancelled the share sheet, or the browser refused it — nothing to do.
     });
   }
