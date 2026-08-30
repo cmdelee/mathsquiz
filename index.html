@@ -478,6 +478,30 @@
   .foot a{ color:var(--ink-soft); }
   .foot a:hover{ color:var(--accent); }
 
+  .link-btn{
+    font:inherit;
+    font-size:0.78rem;
+    background:none;
+    border:none;
+    padding:0;
+    margin-top:8px;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  .link-btn:hover{ color:var(--accent); }
+  .link-btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+
+  .parents-page{ padding:24px 22px 22px; }
+  .parents-block{ margin:0 0 22px; }
+  .parents-block h3{
+    margin:0 0 8px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.05rem;
+    color:var(--ink);
+  }
+
   @media (prefers-reduced-motion: reduce){
     *{ transition:none !important; }
   }
@@ -492,6 +516,8 @@
 </head>
 <body>
 <div class="page">
+
+  <div id="mainView">
 
   <header class="masthead">
     <p class="eyebrow">Skipton · North Yorkshire</p>
@@ -560,20 +586,46 @@
     </div>
   </section>
 
-  <section class="history card" id="historySection">
+  <section class="history card" id="lastSessionSection">
     <div class="quiz-head">
-      <h2>Your history</h2>
-      <p class="quiz-sub" id="historySummary">No sessions completed yet.</p>
+      <h2>Last session</h2>
+      <p class="quiz-sub" id="lastSessionSummary">No sessions completed yet.</p>
     </div>
-    <ul class="history-list" id="historyList"></ul>
+  </section>
+
+  </div>
+
+  <section class="card parents-page" id="parentsPage" hidden>
+    <div class="quiz-head">
+      <h2>Parents</h2>
+      <p class="quiz-sub">Full session history, current difficulty levels, and reset controls.</p>
+    </div>
+
+    <div class="parents-block">
+      <h3>Difficulty levels</h3>
+      <ul class="history-list" id="levelList"></ul>
+    </div>
+
+    <div class="parents-block">
+      <h3>Session history</h3>
+      <p class="quiz-sub" id="fullHistorySummary">No sessions completed yet.</p>
+      <ul class="history-list" id="historyList"></ul>
+    </div>
+
     <div class="quiz-actions">
-      <button id="clearHistoryBtn" class="btn btn-ghost" hidden>Clear history</button>
+      <button id="resetDifficultyBtn" class="btn btn-ghost">Reset difficulty to easiest</button>
+      <button id="clearHistoryBtn" class="btn btn-ghost">Clear history</button>
     </div>
-    <p class="history-note">Saved only in this browser, on this device – nothing is sent anywhere. Clearing history needs a parent PIN.</p>
+    <p class="history-note">Saved only in this browser, on this device – nothing is sent anywhere.</p>
+
+    <div class="quiz-actions">
+      <button id="closeParentsBtn" class="btn btn-primary">Back to quiz</button>
+    </div>
   </section>
 
   <footer class="foot">
     <p>Holiday dates follow North Yorkshire Council's standard school calendar for 2025–2028, checked August 2026. Academies and independent schools sometimes set slightly different dates, so confirm with your child's school if it matters. <a href="https://www.northyorks.gov.uk/school-term-and-holiday-dates" target="_blank" rel="noopener">Source: northyorks.gov.uk</a></p>
+    <p><button id="parentsLinkBtn" class="link-btn">Parents</button></p>
   </footer>
 
 </div>
@@ -888,8 +940,15 @@
   var copyBtn = document.getElementById("copyBtn");
   var shareBtn = document.getElementById("shareBtn");
   var copyNote = document.getElementById("copyNote");
-  var historySection = document.getElementById("historySection");
-  var historySummary = document.getElementById("historySummary");
+  var mainView = document.getElementById("mainView");
+  var lastSessionSection = document.getElementById("lastSessionSection");
+  var lastSessionSummary = document.getElementById("lastSessionSummary");
+  var parentsPage = document.getElementById("parentsPage");
+  var parentsLinkBtn = document.getElementById("parentsLinkBtn");
+  var closeParentsBtn = document.getElementById("closeParentsBtn");
+  var resetDifficultyBtn = document.getElementById("resetDifficultyBtn");
+  var levelListEl = document.getElementById("levelList");
+  var fullHistorySummary = document.getElementById("fullHistorySummary");
   var historyListEl = document.getElementById("historyList");
   var clearHistoryBtn = document.getElementById("clearHistoryBtn");
 
@@ -930,46 +989,80 @@
     return parseISO(iso).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
   }
 
-  function renderHistory(){
-    var list = loadHistory();
-    if (list === null){
-      historySection.hidden = true;
+  function historyRowText(rec){
+    return {
+      left: formatHistoryDate(rec.date) + " · " + (rec.status === "holiday" ? "Holidays" : "Term time"),
+      right: rec.correct + "/" + rec.attempted + " (" + rec.pct + "%)"
+    };
+  }
+
+  function appendHistoryRow(listEl, left, right, extraClass){
+    var li = document.createElement("li");
+    li.className = "history-row" + (extraClass ? " " + extraClass : "");
+    var l = document.createElement("span");
+    l.className = "history-date";
+    l.textContent = left;
+    var r = document.createElement("span");
+    r.className = "history-score";
+    r.textContent = right;
+    li.appendChild(l);
+    if (right) li.appendChild(r);
+    listEl.appendChild(li);
+  }
+
+  // Shown to the child on the main page: only ever the most recent session,
+  // never a browsable list – full history lives on the parents page.
+  function renderLastSession(list){
+    lastSessionSection.hidden = false;
+    if (list === null || !list.length){
+      lastSessionSummary.textContent = "No sessions completed yet.";
       return;
     }
-    historySection.hidden = false;
-    historyListEl.innerHTML = "";
+    var row = historyRowText(list[0]);
+    lastSessionSummary.textContent = row.left + " · " + row.right;
+  }
 
-    if (!list.length){
-      historySummary.textContent = "No sessions completed yet – finish a practice session to start building your history.";
+  // Full history + reset controls: only ever rendered into the PIN-gated
+  // parents page, never shown to the child.
+  function renderFullHistory(list){
+    historyListEl.innerHTML = "";
+    if (list === null){
+      fullHistorySummary.textContent = "History isn't available in this browser (private browsing or storage disabled).";
       clearHistoryBtn.hidden = true;
       return;
     }
-
-    historySummary.textContent = list.length + " session" + (list.length === 1 ? "" : "s") + " completed on this device.";
+    if (!list.length){
+      fullHistorySummary.textContent = "No sessions completed yet.";
+      clearHistoryBtn.hidden = true;
+      return;
+    }
+    fullHistorySummary.textContent = list.length + " session" + (list.length === 1 ? "" : "s") + " completed on this device.";
     clearHistoryBtn.hidden = false;
 
     var shown = list.slice(0, HISTORY_SHOWN);
     shown.forEach(function(rec){
-      var li = document.createElement("li");
-      li.className = "history-row";
-      var left = document.createElement("span");
-      left.className = "history-date";
-      left.textContent = formatHistoryDate(rec.date) + " · " + (rec.status === "holiday" ? "Holidays" : "Term time");
-      var right = document.createElement("span");
-      right.className = "history-score";
-      right.textContent = rec.correct + "/" + rec.attempted + " (" + rec.pct + "%)";
-      li.appendChild(left);
-      li.appendChild(right);
-      historyListEl.appendChild(li);
+      var row = historyRowText(rec);
+      appendHistoryRow(historyListEl, row.left, row.right);
     });
 
     var remaining = list.length - shown.length;
     if (remaining > 0){
-      var more = document.createElement("li");
-      more.className = "history-row is-more";
-      more.textContent = "…and " + remaining + " earlier session" + (remaining === 1 ? "" : "s") + ".";
-      historyListEl.appendChild(more);
+      appendHistoryRow(historyListEl, "…and " + remaining + " earlier session" + (remaining === 1 ? "" : "s") + ".", "", "is-more");
     }
+  }
+
+  function renderLevels(){
+    levelListEl.innerHTML = "";
+    DIFF_TYPES.forEach(function(t){
+      appendHistoryRow(levelListEl, TYPE_LABELS[t], "Level " + difficulty[t] + " of " + DIFF_MAX_LEVEL);
+    });
+  }
+
+  function renderHistory(){
+    var list = loadHistory();
+    renderLastSession(list);
+    renderFullHistory(list);
+    renderLevels();
   }
 
   // ---------- Parent PIN, protecting "Clear history" ----------
@@ -1010,17 +1103,50 @@
     }
   }
 
-  clearHistoryBtn.addEventListener("click", function(){
-    var entered = window.prompt("Enter the parent PIN to clear history:");
+  // The PIN is checked once, to get into the parents page at all – the
+  // reset buttons on it don't ask again, since a child can't reach them
+  // without already having got past that check.
+  clearHistoryBtn.addEventListener("click", doClearHistory);
+
+  resetDifficultyBtn.addEventListener("click", function(){
+    if (window.confirm("Reset difficulty back to the easiest level for every question type? This can't be undone.")){
+      DIFF_TYPES.forEach(function(t){
+        difficulty[t] = DIFF_MIN_LEVEL;
+        difficultyStreak[t] = 0;
+      });
+      saveDifficulty();
+      renderLevels();
+    }
+  });
+
+  // ---------- Parents page (view reports, reset controls) ----------
+  // Getting in at all needs the PIN, not just the reset buttons inside –
+  // so a child browsing the app never even sees history or reset options.
+  function openParentsPage(){
+    renderHistory();
+    mainView.hidden = true;
+    parentsPage.hidden = false;
+    closeParentsBtn.focus();
+  }
+
+  function closeParentsPage(){
+    parentsPage.hidden = true;
+    mainView.hidden = false;
+  }
+
+  parentsLinkBtn.addEventListener("click", function(){
+    var entered = window.prompt("Enter the parent PIN to view the parents page:");
     if (entered === null) return;
     hashPin(entered.trim()).then(function(enteredHash){
       if (enteredHash !== EXPECTED_PIN_HASH){
-        window.alert("Incorrect PIN. History was not cleared.");
+        window.alert("Incorrect PIN.");
         return;
       }
-      doClearHistory();
+      openParentsPage();
     });
   });
+
+  closeParentsBtn.addEventListener("click", closeParentsPage);
 
   function handleEnter(e){
     if (e.key === "Enter"){
