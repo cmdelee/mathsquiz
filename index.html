@@ -488,6 +488,7 @@
     .q-equation{ font-size:1.25rem; }
   }
 </style>
+
 </head>
 <body>
 <div class="page">
@@ -882,10 +883,11 @@
   }
 
   // ---------- Parent PIN, protecting "Clear history" ----------
-  // The PIN itself is never stored – only a hash of it, on this device.
+  // Fixed parent PIN (not user-set). Only its hash lives in the source, so
+  // the PIN itself isn't sitting there in plain text for a curious reader.
   // This is a lock against an impatient tap from a child, not real security:
-  // anyone reading this public source code can see exactly how it works.
-  var PIN_KEY = "quizAppParentPinHash_v1";
+  // anyone motivated could brute-force a 4-digit PIN from this public source.
+  var EXPECTED_PIN_HASH = "f30f2b2004c3b4c12ac2eeffa8adda02847c3d467bc4d07b8a691f9e21d4b3c4";
 
   function hashPin(pin){
     var text = "quiz-app:" + pin;
@@ -911,14 +913,6 @@
     return "fb" + (hash >>> 0).toString(16);
   }
 
-  function getStoredPinHash(){
-    try { return window.localStorage.getItem(PIN_KEY); } catch (e){ return null; }
-  }
-
-  function setStoredPinHash(hash){
-    try { window.localStorage.setItem(PIN_KEY, hash); return true; } catch (e){ return false; }
-  }
-
   function doClearHistory(){
     if (window.confirm("Clear all saved history on this device? This can't be undone.")){
       saveHistory([]);
@@ -927,27 +921,10 @@
   }
 
   clearHistoryBtn.addEventListener("click", function(){
-    var storedHash = getStoredPinHash();
-
-    if (!storedHash){
-      var newPin = window.prompt("No parent PIN is set yet. Create one now (4+ characters) – you'll need it to clear history in future:");
-      if (newPin === null) return;
-      newPin = newPin.trim();
-      if (newPin.length < 4){
-        window.alert("PIN must be at least 4 characters. Nothing was saved.");
-        return;
-      }
-      hashPin(newPin).then(function(hash){
-        setStoredPinHash(hash);
-        doClearHistory();
-      });
-      return;
-    }
-
     var entered = window.prompt("Enter the parent PIN to clear history:");
     if (entered === null) return;
     hashPin(entered.trim()).then(function(enteredHash){
-      if (enteredHash !== storedHash){
+      if (enteredHash !== EXPECTED_PIN_HASH){
         window.alert("Incorrect PIN. History was not cleared.");
         return;
       }
@@ -1230,5 +1207,6 @@
 
 })();
 </script>
+
 </body>
 </html>
