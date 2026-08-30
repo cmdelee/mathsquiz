@@ -501,6 +501,43 @@
     font-size:1.05rem;
     color:var(--ink);
   }
+  .settings-body{
+    padding:14px 16px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    gap:14px 20px;
+  }
+  .settings-field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .settings-field label{
+    font-size:0.85rem;
+    color:var(--ink-soft);
+  }
+  .settings-field input[type="number"]{
+    font:inherit;
+    font-size:0.9rem;
+    padding:6px 8px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink);
+    width:5.5em;
+  }
+  .settings-note{
+    flex-basis:100%;
+    margin:2px 0 0;
+    font-size:0.88rem;
+    color:var(--ink-soft);
+  }
+  .settings-note.is-error{ color:var(--error); }
+  .settings-note.is-success{ color:var(--success); }
 
   @media (prefers-reduced-motion: reduce){
     *{ transition:none !important; }
@@ -512,9 +549,9 @@
     .q-equation{ font-size:1.25rem; }
   }
 </style>
-
 </head>
 <body>
+
 <div class="page">
 
   <div id="mainView">
@@ -599,6 +636,23 @@
     <div class="quiz-head">
       <h2>Parents</h2>
       <p class="quiz-sub">Full session history, current difficulty levels, and reset controls.</p>
+    </div>
+
+    <div class="parents-block">
+      <h3>Targets</h3>
+      <p class="quiz-sub">How many correct answers make a full session. Change these any time – school patterns can change, and this won't reset what's already been done today.</p>
+      <div class="settings-body">
+        <div class="settings-field">
+          <label for="termTargetInput">Term time</label>
+          <input type="number" id="termTargetInput" min="1" max="200" step="1" inputmode="numeric">
+        </div>
+        <div class="settings-field">
+          <label for="holidayTargetInput">School holidays</label>
+          <input type="number" id="holidayTargetInput" min="1" max="200" step="1" inputmode="numeric">
+        </div>
+        <button id="saveTargetsBtn" class="btn btn-ghost">Save targets</button>
+        <p class="settings-note" id="targetsNote" hidden></p>
+      </div>
     </div>
 
     <div class="parents-block">
@@ -803,6 +857,40 @@
   var difficulty = loadDifficulty();
   var difficultyStreak = { multiplication:0, division:0, addition:0, subtraction:0 };
 
+  // ---------- Targets (how many correct answers make a session) ----------
+  var SETTINGS_KEY = "quizAppSettings_v1";
+  var DEFAULT_TERM_TARGET = 25;
+  var DEFAULT_HOLIDAY_TARGET = 10;
+  var TARGET_MIN = 1;
+  var TARGET_MAX = 200;
+
+  function clampTarget(v, fallback){
+    v = parseInt(v, 10);
+    if (!isFinite(v) || isNaN(v)) return fallback;
+    if (v < TARGET_MIN) return TARGET_MIN;
+    if (v > TARGET_MAX) return TARGET_MAX;
+    return v;
+  }
+
+  function loadSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(SETTINGS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return {
+      termTarget: clampTarget(obj.termTarget, DEFAULT_TERM_TARGET),
+      holidayTarget: clampTarget(obj.holidayTarget, DEFAULT_HOLIDAY_TARGET)
+    };
+  }
+
+  function saveSettings(){
+    try { window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (e){ /* ignore */ }
+  }
+
+  var settings = loadSettings();
+
   function warmUpDifficultyForSession(){
     DIFF_TYPES.forEach(function(t){
       difficulty[t] = Math.max(DIFF_MIN_LEVEL, difficulty[t] - 1);
@@ -950,6 +1038,10 @@
   var closeParentsBtn = document.getElementById("closeParentsBtn");
   var resetDifficultyBtn = document.getElementById("resetDifficultyBtn");
   var levelListEl = document.getElementById("levelList");
+  var termTargetInput = document.getElementById("termTargetInput");
+  var holidayTargetInput = document.getElementById("holidayTargetInput");
+  var saveTargetsBtn = document.getElementById("saveTargetsBtn");
+  var targetsNote = document.getElementById("targetsNote");
   var fullHistorySummary = document.getElementById("fullHistorySummary");
   var historyListEl = document.getElementById("historyList");
   var clearHistoryBtn = document.getElementById("clearHistoryBtn");
@@ -1121,11 +1213,54 @@
     }
   });
 
+  // ---------- Targets (parents page) ----------
+  function renderTargets(){
+    termTargetInput.value = settings.termTarget;
+    holidayTargetInput.value = settings.holidayTarget;
+    targetsNote.hidden = true;
+    targetsNote.className = "settings-note";
+  }
+
+  function showTargetsNote(text, kind){
+    targetsNote.textContent = text;
+    targetsNote.className = "settings-note" + (kind ? " is-" + kind : "");
+    targetsNote.hidden = false;
+  }
+
+  saveTargetsBtn.addEventListener("click", function(){
+    var termRaw = termTargetInput.value;
+    var holidayRaw = holidayTargetInput.value;
+    var termNum = parseInt(termRaw, 10);
+    var holidayNum = parseInt(holidayRaw, 10);
+    var isValid = termRaw !== "" && holidayRaw !== "" &&
+      isFinite(termNum) && isFinite(holidayNum) &&
+      termNum >= TARGET_MIN && termNum <= TARGET_MAX &&
+      holidayNum >= TARGET_MIN && holidayNum <= TARGET_MAX;
+
+    if (!isValid){
+      showTargetsNote("Enter a whole number between " + TARGET_MIN + " and " + TARGET_MAX + " for each.", "error");
+      return;
+    }
+
+    settings.termTarget = termNum;
+    settings.holidayTarget = holidayNum;
+    saveSettings();
+    renderTargets();
+    showTargetsNote("Saved.", "success");
+
+    // Reflect the new target straight away if it applies to today, without
+    // resetting whatever's already been answered in the current session.
+    target = status.isHoliday ? settings.holidayTarget : settings.termTarget;
+    countNumber.textContent = target;
+    updateProgress();
+  });
+
   // ---------- Parents page (view reports, reset controls) ----------
   // Getting in at all needs the PIN, not just the reset buttons inside –
   // so a child browsing the app never even sees history or reset options.
   function openParentsPage(){
     renderHistory();
+    renderTargets();
     mainView.hidden = true;
     parentsPage.hidden = false;
     closeParentsBtn.focus();
@@ -1371,7 +1506,7 @@
   document.getElementById("todayLabel").textContent = formatLong(today);
 
   var status = getStatus(today);
-  target = status.isHoliday ? 10 : 25;
+  target = status.isHoliday ? settings.holidayTarget : settings.termTarget;
 
   var statusCard = document.getElementById("statusCard");
   var statusKicker = document.getElementById("statusKicker");
@@ -1406,7 +1541,7 @@
     if (!val) return;
     var d = parseISO(val);
     var s = getStatus(d);
-    var t = s.isHoliday ? 10 : 25;
+    var t = s.isHoliday ? settings.holidayTarget : settings.termTarget;
     var line = formatLong(d) + " – <strong>" + (s.isHoliday ? "school holidays" : "term time") + "</strong>";
     if (s.isHoliday && s.label) line += " (" + s.label + ")";
     line += ". That would be a target of " + t + " correct answers.";
