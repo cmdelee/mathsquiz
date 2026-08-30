@@ -1031,12 +1031,27 @@
     qFeedbackEl.className = "q-feedback";
 
     var input = document.createElement("input");
-    // type="number" is what gets a compact numeric keypad on mobile instead
-    // of the full text keyboard, and – unlike inputmode="numeric" on a plain
-    // text field – the browser still includes a minus key on it, so negative
-    // addition/subtraction answers can still be typed.
-    input.type = "number";
-    input.inputMode = "numeric";
+    // Multiplication, division and addition answers are never negative here,
+    // so those get the compact numeric keypad (type="number" + inputmode
+    // "numeric") for easy mobile typing. Subtraction answers CAN be
+    // negative, but on-device testing showed that keypad hides the minus
+    // key on iOS regardless of inputmode, and on Android "numeric" and
+    // "decimal" modes disagree on whether they show one either – there's no
+    // inputmode value that reliably includes a minus sign on both. So
+    // subtraction falls back to a plain text field, which always has the
+    // full keyboard (and therefore a minus key) available, even though it's
+    // a little less convenient to type into on a phone.
+    if (q.type === "subtraction"){
+      input.type = "text";
+      input.inputMode = "text";
+      input.autocapitalize = "off";
+      input.autocorrect = "off";
+      input.spellcheck = false;
+    } else {
+      input.type = "number";
+      input.inputMode = "numeric";
+    }
+    input.autocomplete = "off";
     input.className = "single-input";
     input.setAttribute("aria-label", "Answer");
     qAnswerInputs.appendChild(input);
