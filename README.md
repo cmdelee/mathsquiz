@@ -24,10 +24,13 @@ All files sit together in the repo root — GitHub Pages serves them as-is, no b
 - **Holiday dates**: hardcoded in `index.html` (search for `HOLIDAYS`), sourced from Skipton
   Parish CE Primary School's own published term dates (https://www.parish.ycst.co.uk/parents/term-dates),
   currently covering July 2026 through summer 2028. Each range is derived from the school's
-  "first day of term" / "last day of term" dates, with INSET (staff training) days folded in
-  or listed separately. Dates beyond that fall back to a rough estimate, clearly flagged in the
-  UI. **These will need updating** once the school publishes the 2028/29 calendar — replace the
-  `HOLIDAYS` array with the new dates from the school's term dates page.
+  "first day of term" / "last day of term" dates. INSET (staff training) days are deliberately
+  *not* counted as holidays — they're treated as ordinary term time, even though there's no
+  school that day — so a holiday sitting next to an INSET day is trimmed back to the real
+  last/first day of term either side of it. Dates beyond the dataset fall back to a rough
+  estimate, clearly flagged in the UI. **These will need updating** once the school publishes
+  the 2028/29 calendar — replace the `HOLIDAYS` array with the new dates from the school's term
+  dates page.
 - **Questions**: generated in-browser, no backend, mixed roughly equally across the four
   operation types — see `pickType()`. Division always divides exactly (no remainders).
   Subtraction can land on a negative answer; addition always stays positive.
