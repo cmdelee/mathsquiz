@@ -1293,19 +1293,29 @@
   // A deliberate, always-available way to force a fresh check for updates,
   // rather than waiting for the browser to notice on its own (which can lag
   // behind a new deployment). Behind a confirmation so a stray tap can't
-  // trigger it.
+  // trigger it. As well as asking the service worker to check for an
+  // update, this explicitly empties every cache bucket the app owns
+  // before reloading — belt and braces on top of sw.js now fetching
+  // network-first, so this is a genuine "get me the current version of
+  // everything" button rather than one that might still hand back
+  // something stale from a cache.
   var refreshAppBtn = document.getElementById("refreshAppBtn");
   if (refreshAppBtn){
     refreshAppBtn.addEventListener("click", function(){
       if (!window.confirm("This will refresh the app and check for the latest updates. Continue?")) return;
+      var reload = function(){ window.location.reload(); };
+      var clearCaches = function(){
+        if (!("caches" in window)) return Promise.resolve();
+        return caches.keys().then(function(keys){
+          return Promise.all(keys.map(function(k){ return caches.delete(k); }));
+        }).catch(function(){});
+      };
       if ("serviceWorker" in navigator){
         navigator.serviceWorker.getRegistration().then(function(reg){
           return reg ? reg.update() : null;
-        }).catch(function(){}).then(function(){
-          window.location.reload();
-        });
+        }).catch(function(){}).then(clearCaches).then(reload);
       } else {
-        window.location.reload();
+        clearCaches().then(reload);
       }
     });
   }

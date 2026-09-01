@@ -4,7 +4,7 @@
 // internet connection. Question generation and history are local anyway;
 // this just caches the app shell (not the Google Fonts request, which
 // falls through to network).
-var CACHE_NAME = "quiz-app-v4";
+var CACHE_NAME = "quiz-app-v5";
 var CORE_ASSETS = [
   "./",
   "./index.html",
@@ -42,18 +42,23 @@ self.addEventListener("fetch", function (event) {
   // Only handle same-origin requests; let cross-origin (Google Fonts) go straight to network.
   if (new URL(event.request.url).origin !== self.location.origin) return;
 
+  // Network-first, cache as an offline fallback only. This used to be
+  // cache-first-then-revalidate: it returned whatever was already cached
+  // immediately and only updated the cache in the background for *next*
+  // time, which meant a page (and everything baked into it - the question
+  // bank, answer-checking rules, all of it) could keep showing content
+  // from an old deploy for a while even after a hard refresh. Network-first
+  // means every load while online gets the current version straight away;
+  // the cache only gets used when the network request actually fails.
   event.respondWith(
-    caches.match(event.request).then(function (cached) {
-      var network = fetch(event.request)
-        .then(function (response) {
-          if (response && response.ok) {
-            var copy = response.clone();
-            caches.open(CACHE_NAME).then(function (cache) { cache.put(event.request, copy); });
-          }
-          return response;
-        })
-        .catch(function () { return cached; });
-      return cached || network;
-    })
+    fetch(event.request)
+      .then(function (response) {
+        if (response && response.ok) {
+          var copy = response.clone();
+          caches.open(CACHE_NAME).then(function (cache) { cache.put(event.request, copy); });
+        }
+        return response;
+      })
+      .catch(function () { return caches.match(event.request); })
   );
 });
