@@ -257,6 +257,7 @@
     letter-spacing:0.03em;
     text-transform:uppercase;
   }
+  .ai-badge[hidden]{ display:none; }
   .marks-badge{
     display:inline-block;
     padding:2px 8px;
@@ -295,6 +296,43 @@
     outline-offset:1px;
   }
   .long-answer-box:disabled{ opacity:0.75; }
+
+  .q-answer-short{ display:flex; flex-direction:column; gap:8px; }
+  .short-answer-box{
+    font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size:1rem;
+    width:100%;
+    padding:12px 14px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink);
+  }
+  .short-answer-box:focus-visible{
+    outline:2px solid var(--focus);
+    outline-offset:1px;
+  }
+  .short-answer-box:disabled{ opacity:0.75; }
+
+  .q-answer-mcq{ display:flex; flex-direction:column; gap:10px; }
+  .mcq-option{
+    text-align:left;
+    padding:12px 14px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--surface);
+    cursor:pointer;
+    font:inherit;
+    font-size:0.98rem;
+    color:inherit;
+  }
+  .mcq-option:hover{ border-color:var(--accent); }
+  .mcq-option:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .mcq-option.is-selected{ border-color:var(--accent); background:var(--accent-soft); font-weight:600; }
+  .mcq-option:disabled{ cursor:default; opacity:0.75; }
+  .mcq-option.is-selected:disabled{ opacity:1; }
+  .mcq-option.reveal-correct{ border-color:var(--success); background:var(--success-bg); }
+  .mcq-option.reveal-incorrect{ border-color:var(--error); background:var(--error-bg); }
 
   .ai-disclosure-card{ padding:22px 20px; }
   .ai-disclosure-card h2{
@@ -477,18 +515,18 @@
   <header class="masthead">
     <p class="eyebrow">Just for fun</p>
     <h1>Trivia</h1>
-    <p class="date-line">Long-answer questions, marked by AI.</p>
+    <p class="date-line">25 questions a session — a mix of quick picks and a few marked by AI.</p>
   </header>
 
   <section class="card intro-card">
-    <p>Long-answer trivia across three subjects — Greek Mythology, Harry Potter and Stranger Things — pitched at a strong Year 6 reader who already knows them well. Each session picks 5 random questions from that subject's own bank of 20, so no two sessions are quite the same. They're free-text rather than multiple choice, since there's no single correct wording to match against — each answer is marked by sending it to an AI (Claude) instead of matching it against a fixed list of accepted answers.</p>
+    <p>Trivia across four subjects — Greek Mythology, Harry Potter, Stranger Things and Red Dwarf — pitched at a strong Year 6 reader who already knows them well. Each session is 25 random questions from that subject's own pool: mostly quick multiple-choice and single-word questions marked instantly, plus up to 5 longer free-text ones. The free-text questions don't have one fixed correct wording, so those are marked by sending them to an AI (Claude) instead of matching against a fixed list of accepted answers — everything else is matched and marked on this device, with nothing sent anywhere.</p>
     <p>This is a standalone page, separate from the 11+ entry test practice — it's here purely for fun, with its own progress tracking below rather than on the main Progress page.</p>
   </section>
 
   <section class="card quiz" id="notSetUpCard" hidden>
     <div class="quiz-head">
       <h2>Not set up yet</h2>
-      <p class="quiz-sub">Questions here are marked by AI, which needs an API key set up first — nothing is sent anywhere until that's done.</p>
+      <p class="quiz-sub">A few questions each session are marked by AI, which needs an API key set up first — nothing is sent anywhere until that's done.</p>
     </div>
     <p class="quiz-note">Ask a parent to open the <a href="admin.html">Parents / Admin</a> page and set this up under "AI marking".</p>
   </section>
@@ -496,7 +534,7 @@
   <section class="card quiz" id="subjectPickerCard" hidden>
     <div class="quiz-head">
       <h2>Pick a subject</h2>
-      <p class="quiz-sub">5 random questions each time, one at a time — take your time and write as much as you know.</p>
+      <p class="quiz-sub">25 random questions each time, one at a time — a mix of quick picks and a few longer ones to write.</p>
     </div>
     <div class="subject-options">
       <button class="subject-btn" data-subject="mythology">
@@ -511,14 +549,18 @@
         <span class="subject-name">Stranger Things</span>
         <span class="subject-desc">Hawkins, the Upside Down, and the gang who take it on.</span>
       </button>
+      <button class="subject-btn" data-subject="red-dwarf">
+        <span class="subject-name">Red Dwarf</span>
+        <span class="subject-desc">Three million years from home, with a crew of misfits and a very smart ship's computer.</span>
+      </button>
     </div>
   </section>
 
   <section class="card ai-disclosure-card" id="aiDisclosureView" hidden>
     <h2>Before you start: how this is marked</h2>
-    <p>These questions don't have one fixed correct wording, so instead of matching what's typed against a list of accepted answers, each answer is sent to an AI (Claude, using the API key entered on the Parents / Admin page) along with the question and a short rubric of what a good answer should cover. It reads the answer and marks it correct, partly there, or not quite — the same way a person marking it would, just automatically.</p>
-    <p>What's actually sent: the question text, the marking rubric, and whatever's typed into the answer box — nothing else about you or the device. It goes straight from this browser to Anthropic's API (the company that makes Claude), not through any server run by this app.</p>
-    <p>This explanation only appears once, on this device — every question here carries a small "AI-marked" badge afterwards as an ongoing reminder that it works this way.</p>
+    <p>Most questions here are multiple-choice or single-word, matched and marked straight away on this device — nothing sent anywhere for those. A handful of longer, free-text questions each session don't have one fixed correct wording though, so instead of matching what's typed against a list of accepted answers, each of those is sent to an AI (Claude, using the API key entered on the Parents / Admin page) along with the question and a short rubric of what a good answer should cover. It reads the answer and marks it out of a few marks — the same way a person marking it would, just automatically.</p>
+    <p>What's actually sent for those longer questions: the question text, the marking rubric, and whatever's typed into the answer box — nothing else about you or the device. It goes straight from this browser to Anthropic's API (the company that makes Claude), not through any server run by this app.</p>
+    <p>This explanation only appears once, on this device — every AI-marked question carries a small "AI-marked" badge afterwards as an ongoing reminder that it works this way.</p>
     <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none;">
       <button id="aiDisclosureContinueBtn" class="btn btn-primary" type="button">Continue</button>
       <button id="aiDisclosureBackBtn" class="btn btn-ghost" type="button">Back</button>
@@ -528,7 +570,7 @@
   <section class="card quiz" id="quizSection" hidden>
     <div class="quiz-head">
       <h2 id="quizTitle">Trivia</h2>
-      <p class="quiz-sub">Write as much as you know — each question is worth a few marks, one for each thing a good answer should cover, so partial credit is fine.</p>
+      <p class="quiz-sub">Most questions are quick multiple-choice or single-word picks, marked straight away. The longer ones are worth a few marks each, one for each thing a good answer should cover, so partial credit is fine there.</p>
     </div>
 
     <div class="progress-row" id="progressRow">
@@ -540,7 +582,7 @@
       <div class="q-tag-row">
         <p class="q-tag" id="qTag">Trivia</p>
         <span class="marks-badge" id="marksBadge">0 marks</span>
-        <span class="ai-badge">AI-marked</span>
+        <span class="ai-badge" id="aiBadge">AI-marked</span>
       </div>
       <p class="q-prompt" id="qPrompt"></p>
       <div id="qBody"></div>
@@ -579,7 +621,7 @@
   </section>
 
   <footer class="foot">
-    <p>Marked by sending each answer to Claude, using the API key set up on the Parents / Admin page — see that page for the full explanation of what's sent.</p>
+    <p>Multiple-choice and quick-answer questions are marked on this device. Longer, free-text questions are marked by sending the answer to Claude, using the API key set up on the Parents / Admin page — see that page for the full explanation of what's sent.</p>
     <p><a href="index.html">← Back to menu</a></p>
     <p><a href="admin.html">Parents / Admin →</a></p>
   </footer>
@@ -591,19 +633,28 @@
   "use strict";
 
   // ---------- Subjects ----------
-  // Each subject is a self-contained bank of 20 long-answer questions; a
-  // session always draws 5 at random from whichever bank was chosen, so no
-  // two sessions look quite the same. Adding a future subject is just
-  // another entry here plus another item bank below — everything else
-  // (AI marking, disclosure, history, progress) already works generically.
+  // Each subject is a self-contained pool of questions: a bank of 20
+  // long-answer questions (AI-marked) plus a bank of roughly 100
+  // multiple-choice/single-word questions (marked instantly, no AI). A
+  // session draws QUESTIONS_PER_SESSION at random from whichever subject
+  // was chosen — a mix of both kinds, capped so it's never mostly
+  // long-answer — so no two sessions look quite the same. Adding a future
+  // subject is just another entry here plus another couple of item banks
+  // below — everything else (AI marking, disclosure, history, progress)
+  // already works generically.
   var SUBJECTS = [
     { key:"mythology", name:"Greek Mythology" },
     { key:"harry-potter", name:"Harry Potter" },
-    { key:"stranger-things", name:"Stranger Things" }
+    { key:"stranger-things", name:"Stranger Things" },
+    { key:"red-dwarf", name:"Red Dwarf" }
   ];
   var SUBJECT_NAME = {};
   SUBJECTS.forEach(function(s){ SUBJECT_NAME[s.key] = s.name; });
-  var QUESTIONS_PER_SESSION = 5;
+  var QUESTIONS_PER_SESSION = 25;
+  // However many long-answer (AI-marked) questions land in one session, it
+  // never exceeds this — the rest are always multiple-choice/quick-answer,
+  // so a session is never mostly slow, free-text AI marking.
+  var MAX_LONG_PER_SESSION = 5;
 
   // ---------- The question banks ----------
   // Free-text questions with no single right wording, so they're marked by
@@ -620,6 +671,7 @@
         "He is the god of the sky and thunder, and his weapon is a thunderbolt/lightning bolt",
         "Any other accurate fact – e.g. he is the son of Cronus and Rhea, he overthrew his father, he is married to Hera, or he is the father of many other gods and heroes"
       ],
+      marksAvailable:2,
       modelAnswer:"Zeus is the king of the gods and rules over Mount Olympus. He is the god of the sky and thunder, and his weapon is a lightning bolt. He is the son of Cronus and Rhea, and he is married to the goddess Hera." },
     { kind:"long", subject:"mythology",
       prompt:"Tell the story of Pandora's Box (or Pandora's Jar) in your own words. What was inside it, and what happened when it was opened?",
@@ -629,6 +681,7 @@
         "All the evils of the world (sickness, sadness, war, and so on) escaped into the world",
         "Hope was the one thing left inside once she closed it again"
       ],
+      marksAvailable:4,
       modelAnswer:"Pandora was the first woman on earth. She was given a jar and told never to open it, but she was so curious that she opened it anyway. All the bad things in the world, like sickness and sadness, flew out. She managed to close the lid just in time to keep one thing inside: hope." },
     { kind:"long", subject:"mythology",
       prompt:"Heracles (Hercules) had to complete twelve very difficult tasks known as the Twelve Labours. Explain why he had to do them, and describe two of the labours.",
@@ -637,6 +690,7 @@
         "Names and describes at least one real labour accurately – e.g. slaying the Nemean Lion, capturing the Golden Hind, cleaning the Augean stables in a single day, capturing Cerberus, killing the Hydra, and so on",
         "Names and describes a second real labour accurately"
       ],
+      marksAvailable:3,
       modelAnswer:"Heracles had to complete the Twelve Labours as a punishment, because Hera had driven him mad and he had accidentally killed his own family. One labour was killing the Nemean Lion, whose skin couldn't be pierced by weapons, so he had to strangle it. Another was cleaning the Augean stables, which hadn't been cleaned in years, by redirecting a river through them in a single day." },
     { kind:"long", subject:"mythology",
       prompt:"What is the Labyrinth, who built it, and what creature lived inside it? Then explain how Theseus managed to escape after defeating it.",
@@ -646,6 +700,7 @@
         "Theseus volunteered to go in and kill the Minotaur",
         "Ariadne gave him a ball of thread (or string) so he could find his way back out again"
       ],
+      marksAvailable:4,
       modelAnswer:"The Labyrinth was a huge maze built by Daedalus for King Minos of Crete, to hold the Minotaur, a monster that was half man and half bull. Theseus volunteered to go in and kill it. Before he went in, Princess Ariadne gave him a ball of thread to unravel as he walked, so that after he defeated the Minotaur he could follow the thread back out." },
     { kind:"long", subject:"mythology",
       prompt:"Choose two Greek gods or goddesses. Explain what each one is god or goddess of, and compare them – how are they similar, and how are they different?",
@@ -654,6 +709,7 @@
         "Correctly states at least one domain or power for each of them",
         "Makes a genuine comparison rather than just listing two separate facts – a real similarity or a real difference between them"
       ],
+      marksAvailable:3,
       modelAnswer:"Athena is the goddess of wisdom and war strategy, while Ares is the god of war too, but of violent, chaotic battle rather than clever strategy. They are similar because they are both connected to war, but different because Athena represents wisdom and careful planning, while Ares represents raw aggression and bloodshed." },
     { kind:"long", subject:"mythology",
       prompt:"How did the Greeks finally get inside the walled city of Troy, after ten years of war? Explain the trick they used.",
@@ -663,6 +719,7 @@
         "The Trojans brought the horse inside their walls",
         "At night the hidden soldiers climbed out and opened the gates for the rest of the Greek army"
       ],
+      marksAvailable:4,
       modelAnswer:"After ten years of fighting outside Troy, the Greeks built a giant wooden horse and hid soldiers inside it. They left the horse outside the city and pretended to sail away, so the Trojans thought it was a gift and dragged it inside their walls. That night, the hidden Greek soldiers climbed out of the horse and opened the gates, letting the rest of the Greek army in to capture the city." },
     { kind:"long", subject:"mythology",
       prompt:"Who was Medusa, and what happened if you looked directly at her? Explain how Perseus managed to defeat her.",
@@ -672,6 +729,7 @@
         "Perseus used a reflective shield (or polished shield/mirror) to look at her safely rather than looking at her directly",
         "He cut off her head while using this method"
       ],
+      marksAvailable:4,
       modelAnswer:"Medusa was a Gorgon, a monster with living snakes instead of hair, and anyone who looked directly at her face would instantly turn to stone. To defeat her safely, Perseus looked at her reflection in his polished shield instead of looking at her directly, and used this to cut off her head without ever meeting her eyes." },
     { kind:"long", subject:"mythology",
       prompt:"Daedalus built wings for himself and his son Icarus to escape from Crete. What warning did he give Icarus, and what happened when Icarus ignored it?",
@@ -681,6 +739,7 @@
         "Icarus got overexcited/overconfident and flew too high anyway",
         "The wax melted and Icarus fell into the sea and drowned"
       ],
+      marksAvailable:4,
       modelAnswer:"Daedalus built wings out of feathers held together with wax so that he and his son Icarus could escape from Crete by flying. He warned Icarus not to fly too close to the sun, because the heat would melt the wax. Icarus got carried away with the thrill of flying and soared too high anyway, so the wax melted, his wings fell apart, and he fell into the sea and drowned." },
     { kind:"long", subject:"mythology",
       prompt:"Who was Achilles, and what was special (and dangerous) about the story of his heel?",
@@ -690,6 +749,7 @@
         "His mother held him by the heel while dipping him, so his heel was never touched by the water and stayed vulnerable",
         "He was eventually killed by an arrow to his heel – this is where 'Achilles' heel' comes from"
       ],
+      marksAvailable:4,
       modelAnswer:"Achilles was one of the greatest Greek warriors in the Trojan War. As a baby, his mother Thetis dipped him into the River Styx to make him invulnerable, but she held him by his heel, so the water never touched that one spot and it stayed weak. Years later he was killed by an arrow that struck him in that exact heel — which is where we get the phrase 'Achilles' heel' for someone's one weak point." },
     { kind:"long", subject:"mythology",
       prompt:"During his journey home from Troy, Odysseus and his men were trapped by a Cyclops named Polyphemus. Explain how Odysseus tricked him and escaped.",
@@ -700,6 +760,7 @@
         "When Polyphemus called for help he shouted that 'Nobody' had hurt him, so the other Cyclopes didn't come",
         "Odysseus and his men escaped by hiding underneath the giant's sheep"
       ],
+      marksAvailable:5,
       modelAnswer:"Odysseus and his men were trapped in a cave by a one-eyed giant called Polyphemus. Odysseus cleverly told the Cyclops his name was 'Nobody'. He got Polyphemus drunk and then blinded his single eye while he slept. When Polyphemus screamed for help, he shouted that 'Nobody' had hurt him, so the other Cyclopes ignored him. The next morning, Odysseus and his men escaped by clinging to the undersides of the giant's sheep as they were let out to graze." },
     { kind:"long", subject:"mythology",
       prompt:"Explain the myth of Persephone and Hades, and how the Ancient Greeks used this story to explain the seasons.",
@@ -709,6 +770,7 @@
         "A deal was made for Persephone to spend part of the year in the Underworld and part with her mother",
         "When Persephone is with Hades it is autumn/winter; when she returns it is spring/summer"
       ],
+      marksAvailable:4,
       modelAnswer:"Hades, god of the Underworld, took Persephone down to live with him. Her mother Demeter, the goddess of the harvest, was so devastated that she let all the crops on earth die. Eventually a deal was struck so Persephone spends part of the year with Hades and part with her mother. When she's in the Underworld, Demeter grieves and nothing grows, giving us autumn and winter; when Persephone returns to her, the earth blooms again, giving us spring and summer." },
     { kind:"long", subject:"mythology",
       prompt:"Who was Prometheus, and why was he punished so severely by Zeus?",
@@ -718,6 +780,7 @@
         "This let humans have warmth, cook food, and develop technology/civilisation",
         "As punishment, Zeus chained him to a rock where an eagle ate his liver every day, which grew back to be eaten again"
       ],
+      marksAvailable:4,
       modelAnswer:"Prometheus was a Titan who felt sorry for humans because they had no fire. He stole fire from the gods on Mount Olympus and gave it to humankind, letting them keep warm, cook and eventually build civilisation. Zeus was furious and punished him horribly: he chained Prometheus to a rock, where an eagle came every day to eat his liver, which then grew back overnight so the punishment could happen again and again." },
     { kind:"long", subject:"mythology",
       prompt:"Describe the Greek Underworld and the creature called Cerberus that guards it.",
@@ -727,6 +790,7 @@
         "His job is to guard the entrance/gates of the Underworld",
         "He stops the dead from leaving (and often the living from entering)"
       ],
+      marksAvailable:4,
       modelAnswer:"The Underworld is the Greek realm of the dead, ruled over by the god Hades. Guarding its entrance is Cerberus, a monstrous dog with three heads. His job is to make sure nobody who is dead can leave, and to stop living people from sneaking in, so almost nothing gets past him in either direction." },
     { kind:"long", subject:"mythology",
       prompt:"Who is Poseidon, and what is he the god of? Describe at least two things you know about him.",
@@ -735,6 +799,7 @@
         "His weapon/symbol is a trident",
         "Any other accurate fact – e.g. brother of Zeus, also associated with earthquakes and/or horses, lives in an underwater palace"
       ],
+      marksAvailable:2,
       modelAnswer:"Poseidon is the Greek god of the sea, and his symbol is a three-pronged trident. He is the brother of Zeus and Hades, and as well as ruling the ocean he is also linked to earthquakes and horses, which he was said to have created." },
     { kind:"long", subject:"mythology",
       prompt:"Tell the story of King Midas and the golden touch. What went wrong with his wish, and how was it fixed?",
@@ -744,6 +809,7 @@
         "It went wrong when things he needed – like food and drink – also turned to gold",
         "He had to ask for the gift to be taken away, usually by washing in a river, to undo it"
       ],
+      marksAvailable:4,
       modelAnswer:"King Midas was granted one wish and asked that everything he touched would turn to gold. At first he was thrilled, turning ordinary objects into gold. But it quickly went wrong: his food and drink turned to gold the moment he touched them, so he couldn't eat or drink. Horrified, he begged to have the gift removed, and was told to wash in a river, which washed the golden touch away." },
     { kind:"long", subject:"mythology",
       prompt:"Tell the story of Narcissus and Echo. What happens to each of them, and why?",
@@ -753,14 +819,17 @@
         "Narcissus was extremely vain and fell in love with his own reflection in a pool of water",
         "He was so obsessed he couldn't leave and eventually wasted away"
       ],
+      marksAvailable:4,
       modelAnswer:"Echo was a nymph who was cursed so she could only repeat the last words someone else had said, never speak first. She fell in love with a beautiful but very vain young man called Narcissus, but couldn't tell him because of her curse. Narcissus later saw his own reflection in a pool of water and fell hopelessly in love with it, refusing to leave. He eventually wasted away staring at himself." },
     { kind:"long", subject:"mythology",
       prompt:"Name at least four of the twelve Olympian gods and goddesses, and say what each one is god or goddess of.",
       rubric:[
-        "Names at least four real Olympians correctly",
-        "Gives a correct domain/power for each one named",
-        "No made-up gods or clearly wrong domains for the ones chosen"
+        "Names a first real Olympian correctly, with a correct domain/power",
+        "Names a second real Olympian correctly, with a correct domain/power",
+        "Names a third real Olympian correctly, with a correct domain/power",
+        "Names a fourth real Olympian correctly, with a correct domain/power"
       ],
+      marksAvailable:4,
       modelAnswer:"Four of the twelve Olympians are Zeus, king of the gods and god of the sky and thunder; Hera, his wife and the goddess of marriage and family; Athena, the goddess of wisdom and strategic warfare; and Apollo, the god of the sun, music and prophecy." },
     { kind:"long", subject:"mythology",
       prompt:"Tell the story of Arachne and Athena. Why did Athena punish Arachne, and what did Arachne become?",
@@ -770,6 +839,7 @@
         "Arachne's weaving was excellent (and mocked/insulted the gods), which angered Athena",
         "Athena turned Arachne into a spider as punishment, so she could weave forever"
       ],
+      marksAvailable:4,
       modelAnswer:"Arachne was a mortal woman who was such a brilliant weaver that she boasted she was better than the goddess Athena herself. Athena challenged her to a weaving contest, and Arachne's tapestry was so perfect — and mocked the gods so cheekily — that Athena flew into a rage. As punishment, Athena turned Arachne into a spider, condemning her to weave beautiful webs forever." },
     { kind:"long", subject:"mythology",
       prompt:"Who is Hermes, and what is he the god of? Describe at least two things you know about him.",
@@ -778,6 +848,7 @@
         "He is also linked to travellers, thieves and/or trade, and has winged sandals that let him move incredibly fast",
         "Any other accurate fact – e.g. son of Zeus, guide for souls travelling to the Underworld"
       ],
+      marksAvailable:2,
       modelAnswer:"Hermes is the messenger of the gods, famous for delivering messages incredibly quickly for Zeus and the other Olympians. He wears winged sandals that let him fly, and he is also the god of travellers, trade and even thieves. He is a son of Zeus, and he also guides the souls of the dead down to the Underworld." },
     { kind:"long", subject:"mythology",
       prompt:"Who is Hades, and what is he the god of? Describe at least two things you know about him, and correct one common myth people have about him.",
@@ -787,6 +858,7 @@
         "Correctly notes he is often confused with 'the devil' but is not evil – he simply rules the dead, and isn't a villain in the original myths",
         "Any other accurate fact – e.g. married to Persephone, associated with wealth found underground, owns Cerberus"
       ],
+      marksAvailable:3,
       modelAnswer:"Hades is the god of the Underworld and ruler of the dead, and the brother of Zeus and Poseidon. Unlike how he's sometimes shown in modern stories, in the original Greek myths he isn't evil or a devil figure — he simply does the important job of ruling over the dead fairly. He is married to Persephone, and his name is also linked to wealth, since precious metals come from underground." }
   ];
 
@@ -799,6 +871,7 @@
         "Harry survived with only a lightning-bolt shaped scar on his forehead",
         "This made him famous in the wizarding world as 'the boy who lived'"
       ],
+      marksAvailable:4,
       modelAnswer:"Harry Potter is a wizard who grew up believing he was an ordinary boy, raised by his unpleasant aunt and uncle, the Dursleys. When he was a baby, the dark wizard Voldemort tried to kill him with a curse, but the curse rebounded and destroyed Voldemort's powers instead, leaving Harry alive with only a lightning-bolt scar on his forehead. Because he was the only person ever known to survive Voldemort's killing curse, he became famous throughout the wizarding world as 'the boy who lived'." },
     { kind:"long", subject:"harry-potter",
       prompt:"Describe the four houses of Hogwarts, and explain how a new student is sorted into one.",
@@ -807,6 +880,7 @@
         "Gives at least one correct trait associated with at least two houses (e.g. Gryffindor = brave, Slytherin = ambitious/cunning, Hufflepuff = loyal/hardworking, Ravenclaw = clever/wise)",
         "Explains that new students are sorted by the Sorting Hat, usually in their first year"
       ],
+      marksAvailable:3,
       modelAnswer:"The four houses of Hogwarts are Gryffindor, known for bravery; Slytherin, known for ambition and cunning; Hufflepuff, known for loyalty and hard work; and Ravenclaw, known for wisdom and cleverness. New students are sorted into one of these houses in their very first year, by placing the magical Sorting Hat on their head, which looks into their mind and decides where they belong." },
     { kind:"long", subject:"harry-potter",
       prompt:"Who are Harry's two best friends, and what is each of them like?",
@@ -815,6 +889,7 @@
         "Gives an accurate trait for Ron – e.g. comes from a big wizarding family, loyal, sometimes jealous/insecure, good at wizard chess",
         "Gives an accurate trait for Hermione – e.g. extremely clever/studious, Muggle-born, rule-following but brave, good at spells/research"
       ],
+      marksAvailable:3,
       modelAnswer:"Harry's two best friends are Ron Weasley and Hermione Granger. Ron comes from a large wizarding family and is loyal and funny, though he sometimes feels overshadowed or jealous. Hermione is exceptionally clever and hardworking, and although she usually likes following the rules, she's willing to break them and be very brave when it really matters." },
     { kind:"long", subject:"harry-potter",
       prompt:"What is the Mirror of Erised, and what does it show the person looking into it?",
@@ -824,6 +899,7 @@
         "Harry sees his dead parents when he looks into it",
         "Dumbledore warns that people can become obsessed staring at it, since it doesn't show truth, just a wish"
       ],
+      marksAvailable:4,
       modelAnswer:"The Mirror of Erised shows whoever looks into it their deepest, most desperate desire — 'Erised' is simply 'Desire' spelled backwards. When Harry looks into it, he sees his parents, who died when he was a baby. Dumbledore warns him that it can be dangerous, because people can waste away staring at something that isn't real or true, just a wish that will never come from the mirror itself." },
     { kind:"long", subject:"harry-potter",
       prompt:"Who is Voldemort, and why is he sometimes called 'He Who Must Not Be Named' or 'You-Know-Who'?",
@@ -833,6 +909,7 @@
         "So they use nicknames like 'He Who Must Not Be Named' or 'You-Know-Who' instead",
         "Notes that Harry (and Dumbledore) are unusual in that they say his actual name"
       ],
+      marksAvailable:4,
       modelAnswer:"Voldemort is the most powerful and feared dark wizard in the story, and the main villain trying to take over the wizarding world. He caused so much fear during his rise to power that most witches and wizards are too scared to even say his real name, calling him 'He Who Must Not Be Named' or 'You-Know-Who' instead. Harry and Dumbledore are unusual because they say his real name anyway, which other characters often find shocking." },
     { kind:"long", subject:"harry-potter",
       prompt:"What is a Patronus, and what is it used for? Explain what's needed to cast one successfully.",
@@ -842,6 +919,7 @@
         "To cast one, the caster needs to concentrate on a single, very happy memory",
         "A Patronus takes the shape of an animal specific to that witch or wizard (e.g. Harry's is a stag)"
       ],
+      marksAvailable:4,
       modelAnswer:"A Patronus is a magical guardian, usually shaped like an animal, summoned with the spell 'Expecto Patronum'. It's used to fight off Dementors, dark creatures that drain happiness and hope from anyone nearby. To cast a proper Patronus, the witch or wizard has to focus hard on one truly happy memory. Everyone's Patronus takes a different animal shape — Harry's, for example, is a stag." },
     { kind:"long", subject:"harry-potter",
       prompt:"In the second story, what is the Chamber of Secrets, what creature is hidden inside it, and who is behind opening it?",
@@ -851,6 +929,7 @@
         "It is opened that year by Ginny Weasley, who is being controlled via Tom Riddle's enchanted diary",
         "Tom Riddle is later revealed to be a young Voldemort"
       ],
+      marksAvailable:4,
       modelAnswer:"The Chamber of Secrets is a hidden chamber inside Hogwarts, built long ago by Salazar Slytherin, containing a giant Basilisk — a monstrous serpent whose stare can kill or turn people to stone. That year it's opened by Ginny Weasley, who has been secretly controlled through an enchanted diary belonging to Tom Riddle — who turns out to be a younger version of Voldemort himself." },
     { kind:"long", subject:"harry-potter",
       prompt:"Who is Sirius Black, and what is his relationship to Harry?",
@@ -860,6 +939,7 @@
         "He was a close friend of Harry's father, James, at school",
         "He can transform into a large black dog (he is an Animagus)"
       ],
+      marksAvailable:4,
       modelAnswer:"Sirius Black is Harry's godfather, and he was one of his father James's closest friends at school. He spends much of the story having just escaped from Azkaban prison, where he was wrongly locked up for years, blamed for a betrayal he didn't actually commit. He is also an Animagus, able to transform into a large black dog." },
     { kind:"long", subject:"harry-potter",
       prompt:"What are the three Deathly Hallows, and what does the legend say happens if someone possesses all three?",
@@ -867,6 +947,7 @@
         "Names the three Hallows: the Elder Wand, the Resurrection Stone, and the Invisibility Cloak",
         "Legend says whoever unites/possesses all three becomes 'master of death'"
       ],
+      marksAvailable:2,
       modelAnswer:"The three Deathly Hallows are the Elder Wand, the most powerful wand in existence; the Resurrection Stone, which can bring back an echo of the dead; and the Invisibility Cloak. According to legend, anyone who manages to unite all three objects becomes the 'master of death'." },
     { kind:"long", subject:"harry-potter",
       prompt:"Who is Albus Dumbledore, and what role does he play at Hogwarts and in the wider fight against Voldemort?",
@@ -876,6 +957,7 @@
         "He is a mentor figure who guides and protects Harry through the series",
         "He leads/is closely linked to the resistance against Voldemort (e.g. founder of the Order of the Phoenix)"
       ],
+      marksAvailable:4,
       modelAnswer:"Albus Dumbledore is the headmaster of Hogwarts and widely considered one of the greatest wizards of his time. Throughout the series he acts as a mentor to Harry, guiding and protecting him while carefully withholding information until Harry is ready for it. He is also a key leader in the fight against Voldemort, including founding a secret group called the Order of the Phoenix." },
     { kind:"long", subject:"harry-potter",
       prompt:"Describe the game of Quidditch — what are the main positions, and how does a team score points or win?",
@@ -885,6 +967,7 @@
         "Explains that catching the Golden Snitch is worth a lot of points (150) and usually ends the game",
         "General scoring – e.g. getting the Quaffle through a hoop is worth 10 points"
       ],
+      marksAvailable:4,
       modelAnswer:"Quidditch is played on broomsticks by two teams of seven players. Chasers try to score by throwing the Quaffle through one of the opposing team's three hoops, worth 10 points each, while the Keeper guards their own hoops. Beaters hit the Bludgers — heavy balls that try to knock players off their brooms — away from their teammates. The Seeker's job is to catch the tiny, fast Golden Snitch, which is worth 150 points and usually ends the match." },
     { kind:"long", subject:"harry-potter",
       prompt:"What is the Triwizard Tournament, and which schools take part in it?",
@@ -894,6 +977,7 @@
         "One champion is usually chosen from each school (via the Goblet of Fire)",
         "Notes it involves difficult and dangerous magical tasks/challenges"
       ],
+      marksAvailable:4,
       modelAnswer:"The Triwizard Tournament is a dangerous magical competition held between three wizarding schools: Hogwarts, Beauxbatons, and Durmstrang. One champion is normally chosen from each school by the magical Goblet of Fire, and the champions compete in a series of difficult and dangerous tasks to see who is the most skilled." },
     { kind:"long", subject:"harry-potter",
       prompt:"Who is Severus Snape, and why is his true loyalty a mystery for much of the series?",
@@ -903,6 +987,7 @@
         "He was once a Death Eater/follower of Voldemort, which makes his true side unclear",
         "In fact he is secretly working for Dumbledore, because of his love for Harry's mother, Lily"
       ],
+      marksAvailable:4,
       modelAnswer:"Severus Snape is the Potions professor at Hogwarts, who is consistently harsh and unfair towards Harry, which makes him seem like an enemy. His loyalty is a genuine mystery for most of the series because he used to be a Death Eater, a follower of Voldemort. It's eventually revealed that he has secretly been working for Dumbledore all along, out of his lifelong love for Harry's mother, Lily." },
     { kind:"long", subject:"harry-potter",
       prompt:"What is a Horcrux, and why does Voldemort create them?",
@@ -912,6 +997,7 @@
         "As long as at least one Horcrux survives, the person cannot fully die",
         "Voldemort creates several of them to try to become immortal/impossible to kill"
       ],
+      marksAvailable:4,
       modelAnswer:"A Horcrux is an object that a dark wizard has hidden a fragment of their own soul inside, usually created through committing murder. As long as even one Horcrux still exists somewhere, the wizard who made it cannot be fully killed. Voldemort deliberately splits his soul into several Horcruxes because he is terrified of dying and wants to make himself as close to immortal and impossible to destroy as possible." },
     { kind:"long", subject:"harry-potter",
       prompt:"Describe Hagrid — what is his job, and what is his personality like?",
@@ -921,6 +1007,7 @@
         "Personality – warm-hearted, kind, loyal, but not always careful, especially around dangerous creatures he loves",
         "He is the one who first tells Harry he is a wizard and takes him to buy his school things"
       ],
+      marksAvailable:4,
       modelAnswer:"Hagrid is the gamekeeper at Hogwarts and later also teaches Care of Magical Creatures. He is a half-giant, enormously tall and strong, but underneath that he is warm-hearted, kind and fiercely loyal, even if he isn't always careful — especially when it comes to the dangerous magical creatures he loves. He's also the one who first tells Harry that he's a wizard and takes him shopping for his school supplies." },
     { kind:"long", subject:"harry-potter",
       prompt:"What happens to Harry's parents, and how does this shape his life before he arrives at Hogwarts?",
@@ -930,6 +1017,7 @@
         "Harry is sent to live with his aunt and uncle, the Dursleys, who treat him badly",
         "He grows up not knowing he's famous or a wizard until he's eleven"
       ],
+      marksAvailable:4,
       modelAnswer:"Harry's parents, James and Lily Potter, are murdered by Voldemort when Harry is just a baby. Lily dies protecting her son, and her sacrifice leaves Harry with powerful protective magic. He is then sent to live with his unpleasant aunt and uncle, the Dursleys, who treat him poorly and never tell him anything about magic, so he grows up with no idea that he's a famous wizard until he turns eleven." },
     { kind:"long", subject:"harry-potter",
       prompt:"Who is Dobby, and how does he try to help (and sometimes accidentally hinder) Harry?",
@@ -939,6 +1027,7 @@
         "He tries to protect Harry from danger, sometimes by getting in his way or causing chaotic accidents to try to keep him away from Hogwarts",
         "Harry later helps free Dobby"
       ],
+      marksAvailable:4,
       modelAnswer:"Dobby is a house-elf who originally serves the Malfoy family. Desperate to protect Harry from danger he knows is coming, he tries to warn and help him, even though his methods (like causing chaotic accidents to keep Harry away from Hogwarts) often cause more trouble than they solve. Harry later manages to free Dobby from servitude by tricking Lucius Malfoy into accidentally giving him a piece of clothing." },
     { kind:"long", subject:"harry-potter",
       prompt:"What is the Sorting Hat, and how does it decide which house a new student belongs to?",
@@ -948,6 +1037,7 @@
         "It considers their qualities and sometimes their own preferences",
         "It then announces which of the four houses they belong to"
       ],
+      marksAvailable:4,
       modelAnswer:"The Sorting Hat is an old, magical hat that can talk and think. When a new student puts it on, it looks into their mind and personality, weighing up their qualities — and sometimes listening to what the student themselves wants — before deciding out loud which of the four houses suits them best." },
     { kind:"long", subject:"harry-potter",
       prompt:"Who is Draco Malfoy, and what is his relationship with Harry like?",
@@ -957,6 +1047,7 @@
         "He and Harry are rivals/enemies for most of the series, often clashing",
         "Notes some nuance – e.g. he is not simply evil, and his character becomes more complicated later in the series"
       ],
+      marksAvailable:4,
       modelAnswer:"Draco Malfoy is a Slytherin student in Harry's year, from a wealthy pure-blood family that looks down on Muggle-born witches and wizards. He and Harry are rivals for almost the entire series, constantly clashing and insulting each other. He isn't simply a straightforward villain though — later in the story his character becomes more complicated, showing fear and doubt rather than pure cruelty." },
     { kind:"long", subject:"harry-potter",
       prompt:"What is the Battle of Hogwarts, and who wins?",
@@ -966,6 +1057,7 @@
         "Harry ultimately defeats Voldemort during/at the end of this battle",
         "Notes the cost – several beloved characters die in the battle"
       ],
+      marksAvailable:4,
       modelAnswer:"The Battle of Hogwarts is the huge final battle of the series, fought at Hogwarts castle between Voldemort's Death Eaters and the combined defenders — students, teachers and the Order of the Phoenix. By the end of the battle, Harry finally defeats Voldemort for good, though the victory comes at a heavy cost, with several much-loved characters dying in the fighting." }
   ];
 
@@ -977,6 +1069,7 @@
         "Takes place in the 1980s",
         "Any supporting detail – e.g. period music, technology, or a Cold War backdrop"
       ],
+      marksAvailable:3,
       modelAnswer:"Stranger Things is set in the small fictional town of Hawkins, Indiana, in the 1980s. The show leans heavily into the look and feel of that decade, with period music, technology like walkie-talkies and arcade games, and a Cold War backdrop." },
     { kind:"long", subject:"stranger-things",
       prompt:"Who is Eleven, and what special abilities does she have?",
@@ -986,6 +1079,7 @@
         "Powers include telekinesis (moving objects with her mind) and the ability to spy on/enter other places or minds",
         "She has a shaved head and a tattoo of the number 011 on her arm when first found"
       ],
+      marksAvailable:4,
       modelAnswer:"Eleven, or El, is a girl with extraordinary psychic powers, including telekinesis — the ability to move objects and even people with her mind — and the ability to mentally travel to or spy on other places. She was experimented on as a young child at Hawkins Lab, which is where her powers were developed and tested. When the boys first find her, she has a shaved head and a tattoo reading '011' on her arm." },
     { kind:"long", subject:"stranger-things",
       prompt:"What is the Upside Down, and how is it connected to the town of Hawkins?",
@@ -995,6 +1089,7 @@
         "It is home to monsters (e.g. the Demogorgon, the Mind Flayer)",
         "People and creatures can cross between the two worlds through gates/rifts"
       ],
+      marksAvailable:4,
       modelAnswer:"The Upside Down is a dark, decaying alternate dimension that mirrors Hawkins but in a twisted, dangerous version, covered in strange vines and spores. It's home to terrifying creatures like the Demogorgon and the Mind Flayer. People and monsters can cross between the two worlds through gates or rifts that open up between them." },
     { kind:"long", subject:"stranger-things",
       prompt:"Who is Will Byers, and what happens to him at the very start of the show?",
@@ -1004,6 +1099,7 @@
         "He is actually pulled into the Upside Down (not simply lost/kidnapped by a person)",
         "His disappearance kicks off the search that drives much of the first season"
       ],
+      marksAvailable:4,
       modelAnswer:"Will Byers is one of a tight-knit group of four friends. At the very start of the show, he disappears while cycling home, having been chased and taken by a monster. In reality he has been pulled into the Upside Down, the dark alternate dimension, and his disappearance sets off the desperate search that drives the whole first season." },
     { kind:"long", subject:"stranger-things",
       prompt:"Name Will's three closest friends, who help search for him after he goes missing.",
@@ -1012,6 +1108,7 @@
         "Names Dustin Henderson",
         "Names Lucas Sinclair"
       ],
+      marksAvailable:3,
       modelAnswer:"Will's three closest friends, who lead the search for him, are Mike Wheeler, Dustin Henderson and Lucas Sinclair." },
     { kind:"long", subject:"stranger-things",
       prompt:"Who or what is the Demogorgon, and where does it come from?",
@@ -1021,6 +1118,7 @@
         "It hunts and kills people from the real world (Hawkins)",
         "Notes the name comes from the Dungeons & Dragons game the boys play"
       ],
+      marksAvailable:4,
       modelAnswer:"The Demogorgon is a tall, faceless monster from the Upside Down, with a strange flower-like opening instead of a face. It crosses over into Hawkins and hunts people there. The boys actually name it after a monster from the Dungeons & Dragons game they play, since it reminds them of it." },
     { kind:"long", subject:"stranger-things",
       prompt:"Describe Chief Jim Hopper — what is his job, and what is his personality like?",
@@ -1030,6 +1128,7 @@
         "He investigates Will's disappearance and the wider mystery",
         "Becomes a father figure to Eleven"
       ],
+      marksAvailable:4,
       modelAnswer:"Jim Hopper is the police chief of Hawkins. He starts out gruff and world-weary, carrying a lot of personal grief, but underneath that he is deeply caring and protective, especially once he takes Eleven in and becomes a father figure to her. He's the one who ends up investigating both Will's disappearance and the strange goings-on connected to it." },
     { kind:"long", subject:"stranger-things",
       prompt:"Who is Joyce Byers, and how does she try to communicate with Will while he's missing?",
@@ -1039,6 +1138,7 @@
         "She strings up Christmas/fairy lights and paints the alphabet on the wall to communicate with Will",
         "The lights flicker to spell out letters/messages"
       ],
+      marksAvailable:4,
       modelAnswer:"Joyce Byers is Will's mother, and she refuses to believe he is dead even when almost everyone else does. Convinced he is trying to reach her from somewhere strange, she strings up Christmas lights around her house and paints letters of the alphabet on the wall, using the flickering lights to spell out messages from Will." },
     { kind:"long", subject:"stranger-things",
       prompt:"What is Hawkins Lab, and what kind of work goes on there?",
@@ -1048,6 +1148,7 @@
         "Its experiments are connected to the opening of the gate to the Upside Down",
         "It is generally shown as sinister/covering up what it's really doing"
       ],
+      marksAvailable:4,
       modelAnswer:"Hawkins Lab is a secretive government research facility just outside the town. Behind its official cover story, it runs secret experiments, including on children with psychic abilities like Eleven, and its work turns out to be directly responsible for opening a gate to the Upside Down. Throughout the show it behaves in a sinister way, covering up what's really going on inside." },
     { kind:"long", subject:"stranger-things",
       prompt:"Who is Steve Harrington, and how does his role in the group change over the course of the show?",
@@ -1057,6 +1158,7 @@
         "He becomes something of a big-brother/babysitter figure to the younger kids (e.g. Dustin)",
         "He is shown fighting monsters to protect the group despite having no powers"
       ],
+      marksAvailable:4,
       modelAnswer:"Steve Harrington starts off as a popular, slightly arrogant older student and Nancy's boyfriend. Over the course of the show he grows into a genuinely brave and selfless character, becoming a protective, almost big-brother figure to the younger kids, especially Dustin. Despite having no powers of his own, he repeatedly puts himself in danger, fighting monsters to keep the group safe." },
     { kind:"long", subject:"stranger-things",
       prompt:"What is the Mind Flayer, and what does it want?",
@@ -1066,6 +1168,7 @@
         "It can possess/control people and creatures",
         "It is connected to Will after he spends time trapped in the Upside Down"
       ],
+      marksAvailable:4,
       modelAnswer:"The Mind Flayer is a massive, shadowy creature that rules over the Upside Down like a hive mind. It wants to invade and take over Hawkins, and eventually spread beyond it. It's able to possess and control people, and it forms a disturbing psychic connection to Will after his time trapped in the Upside Down, using him almost like a spy." },
     { kind:"long", subject:"stranger-things",
       prompt:"Who is Max Mayfield, and how does she join the main group of friends?",
@@ -1075,6 +1178,7 @@
         "She becomes friends with the group after they notice her skills / she gets drawn into their mystery",
         "She is the stepsister of Billy"
       ],
+      marksAvailable:4,
       modelAnswer:"Max Mayfield is a new girl who moves to Hawkins with her family. She's confident, independent, and impressively good at arcade games and skateboarding, which is how she first catches the boys' attention. She gradually becomes part of the main group as she gets drawn into the strange events happening in the town, and she's also Billy's stepsister." },
     { kind:"long", subject:"stranger-things",
       prompt:"How does Joyce use Christmas lights to try to talk to Will, and how does the method work?",
@@ -1084,6 +1188,7 @@
         "Will (from the Upside Down) makes individual lights flicker to spell out words/messages letter by letter",
         "This gives Joyce a way to know he's still alive"
       ],
+      marksAvailable:4,
       modelAnswer:"Joyce paints the letters of the alphabet onto her living room wall and strings Christmas lights along them. Will, trapped in the Upside Down, is able to make individual lights flicker on to spell out words one letter at a time, giving Joyce a way to know he's still alive and to receive short messages from him." },
     { kind:"long", subject:"stranger-things",
       prompt:"Who is Dr. Brenner (sometimes called 'Papa'), and what is his relationship to Eleven?",
@@ -1093,6 +1198,7 @@
         "He is controlling and manipulative, treating her more as a subject/tool than a daughter",
         "He is responsible for the experiment that opens the gate to the Upside Down"
       ],
+      marksAvailable:4,
       modelAnswer:"Dr. Brenner runs the secret experiments at Hawkins Lab, and he raised Eleven from a young age, which is why she calls him 'Papa'. Despite that name, he treats her more like a research subject than a real daughter, controlling and manipulating her to push her powers further. It's his experiments that end up opening the gate to the Upside Down in the first place." },
     { kind:"long", subject:"stranger-things",
       prompt:"Describe Dustin Henderson's personality — what is he known for?",
@@ -1102,6 +1208,7 @@
         "He has a distinctive gap in his teeth, referenced in the show",
         "He often comes up with clever/scientific explanations for strange happenings"
       ],
+      marksAvailable:4,
       modelAnswer:"Dustin Henderson is enthusiastic, endlessly curious, and knows a huge amount about science and Dungeons & Dragons, which he often puts to good use working out what's really going on. He's fiercely loyal to his friends, and he's known for the gap in his teeth after losing a baby tooth, which the show even jokes about directly." },
     { kind:"long", subject:"stranger-things",
       prompt:"In Season 3, what is going on at the new Starcourt Mall, broadly speaking?",
@@ -1111,6 +1218,7 @@
         "The Russians are trying to reopen the gate to the Upside Down",
         "The mall is used as a cover for their secret machine/operation"
       ],
+      marksAvailable:4,
       modelAnswer:"In Season 3, a huge new shopping mall called Starcourt opens in Hawkins, drawing in the whole town. Underneath it, hidden from view, a secret Russian operation is running a massive machine, using the mall as a cover story while they try to force open the gate to the Upside Down again." },
     { kind:"long", subject:"stranger-things",
       prompt:"Who is Robin Buckley, and how does she become part of the main group?",
@@ -1120,6 +1228,7 @@
         "She gets pulled into the group's investigation when she overhears something suspicious",
         "She becomes close friends with Steve"
       ],
+      marksAvailable:4,
       modelAnswer:"Robin Buckley works alongside Steve at the Scoops Ahoy ice cream shop in Starcourt Mall. She's quick-witted and skilled with codes and languages, and she gets pulled into the group's investigation after overhearing a strange coded message at work. She and Steve become close friends through the adventure that follows." },
     { kind:"long", subject:"stranger-things",
       prompt:"In Season 4, what is Vecna, and where does he come from?",
@@ -1129,6 +1238,7 @@
         "He hunts and curses victims, often linked to their trauma/memories, before killing them",
         "He is later revealed to have a human origin/backstory connected to earlier events at the Lab"
       ],
+      marksAvailable:4,
       modelAnswer:"In Season 4, Vecna is a powerful and terrifying new villain who hunts victims by preying on their trauma and painful memories before killing them. He turns out to be deeply connected to the Upside Down and to Hawkins Lab's earlier experiments, with a shocking human origin that ties him back to events from long before the main story began." },
     { kind:"long", subject:"stranger-things",
       prompt:"Describe Nancy Wheeler and Jonathan Byers, and the role each of them plays in the story.",
@@ -1138,6 +1248,7 @@
         "Jonathan is Will's older brother, and is thoughtful, artistic (photography) and a bit of an outsider",
         "They team up together to investigate/fight the threats to Hawkins, and grow close"
       ],
+      marksAvailable:4,
       modelAnswer:"Nancy Wheeler is Mike's older sister — determined and brave, and increasingly drawn to journalism and investigating the truth behind Hawkins' strange events. Jonathan Byers is Will's older brother, a thoughtful, artistic outsider who loves photography. The two of them team up to investigate the dangers threatening the town, and grow steadily closer as they do." },
     { kind:"long", subject:"stranger-things",
       prompt:"The main group of boys love playing Dungeons & Dragons. Give an example of how the game influences how they understand or name the strange things happening around them.",
@@ -1146,13 +1257,1627 @@
         "Gives at least one concrete example – e.g. naming the monster 'Demogorgon' after a D&D creature, or using D&D logic/strategy to solve real problems",
         "Shows understanding that their game knowledge genuinely helps them make sense of real danger"
       ],
+      marksAvailable:3,
       modelAnswer:"The boys are dedicated Dungeons & Dragons players, and their knowledge of the game keeps helping them make sense of the real danger around them. For example, they name the monster from the alternate dimension the 'Demogorgon', because it reminds them of a creature from the game, giving them a shared way to describe and reason about the impossible things they're facing." }
   ];
 
+  
+  // ---------- Quick-answer question banks ----------
+  // Multiple-choice and single-word questions, always worth 1 mark,
+  // marked instantly on-device with no AI call - these sit alongside the
+  // long-answer AI-marked bank above so a session isn't all free-text.
+  
+  var MYTHOLOGY_QUICK_ITEMS = [
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who is the king of the Greek gods and ruler of the sky?",
+      options:["Poseidon","Zeus","Hades","Apollo"],
+      correctIndex:1 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who is the king of the Underworld?",
+      accepted:["hades"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who is the Greek god of the sea, earthquakes, and horses?",
+      options:["Hermes","Ares","Hephaestus","Poseidon"],
+      correctIndex:3 },
+    { kind:"short", subject:"mythology",
+      prompt:"Which goddess is Zeus's wife and queen of the gods?",
+      accepted:["hera"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which goddess sprang fully grown from Zeus's head?",
+      options:["Athena","Aphrodite","Artemis","Demeter"],
+      correctIndex:0 },
+    { kind:"short", subject:"mythology",
+      prompt:"What is the name of the home of the gods, a mountain in northern Greece?",
+      accepted:["mount olympus","olympus"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which god is known as the messenger of the gods and wears winged sandals?",
+      options:["Apollo","Dionysus","Hermes","Hephaestus"],
+      correctIndex:2 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who is the Greek god of the sun, music, and prophecy?",
+      accepted:["apollo"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which goddess is the twin sister of Apollo and goddess of the hunt?",
+      options:["Hestia","Artemis","Persephone","Demeter"],
+      correctIndex:1 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who is the Greek goddess of love and beauty?",
+      accepted:["aphrodite"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who is the blacksmith god who forges weapons and armour for the other gods?",
+      options:["Ares","Poseidon","Hermes","Hephaestus"],
+      correctIndex:3 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who is the Greek god of war?",
+      accepted:["ares"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which goddess is in charge of the harvest and growing crops?",
+      options:["Demeter","Hestia","Hera","Artemis"],
+      correctIndex:0 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who is the god of wine, celebration, and theatre?",
+      accepted:["dionysus"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who is the goddess of the hearth and home, and one of the calmest of the Olympians?",
+      options:["Hera","Athena","Hestia","Persephone"],
+      correctIndex:2 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who is the father of Zeus, Poseidon, and Hades?",
+      accepted:["cronus","kronos"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which Titan did Cronus overthrow to become ruler of the universe?",
+      options:["Oceanus","Uranus","Atlas","Prometheus"],
+      correctIndex:1 },
+    { kind:"short", subject:"mythology",
+      prompt:"What did Cronus do to his children to stop a prophecy that one of them would overthrow him?",
+      accepted:["swallowed them","ate them"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who tricked Cronus into giving up his swallowed children, later becoming king of the gods?",
+      options:["Hades","Poseidon","Apollo","Zeus"],
+      correctIndex:3 },
+    { kind:"short", subject:"mythology",
+      prompt:"What is the name of the Titan who holds up the sky on his shoulders as punishment?",
+      accepted:["atlas"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Zeus, Poseidon, and Hades drew lots to divide the world between them. Which realm did Zeus receive?",
+      options:["The sky","The sea","The Underworld","The earth"],
+      correctIndex:0 },
+    { kind:"short", subject:"mythology",
+      prompt:"Which of the three brothers received rule of the sea?",
+      accepted:["poseidon"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who is Hephaestus's mother, said to have thrown him from Olympus because of his appearance?",
+      options:["Aphrodite","Demeter","Hera","Athena"],
+      correctIndex:2 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who is Persephone's mother, the goddess of the harvest?",
+      accepted:["demeter"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Persephone became queen of which realm after being taken by Hades?",
+      options:["Mount Olympus","The Underworld","The sea","Mount Ida"],
+      correctIndex:1 },
+    { kind:"short", subject:"mythology",
+      prompt:"Which fruit did Persephone eat in the Underworld, binding her to return there each year?",
+      accepted:["pomegranate"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Persephone's time in the Underworld each year is used to explain which season?",
+      options:["Spring","Summer","Autumn","Winter"],
+      correctIndex:3 },
+    { kind:"short", subject:"mythology",
+      prompt:"What is the name of the three-headed dog that guards the Underworld?",
+      accepted:["cerberus"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which river must souls cross to enter the Underworld, ferried by Charon?",
+      options:["The Styx","The Nile","The Thames","The Danube"],
+      correctIndex:0 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who is the ferryman who carries souls across the river to the Underworld?",
+      accepted:["charon"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who is the hero famous for his incredible strength who completed twelve seemingly impossible labours?",
+      options:["Perseus","Theseus","Heracles","Jason"],
+      correctIndex:2 },
+    { kind:"short", subject:"mythology",
+      prompt:"What is the Roman name for Heracles?",
+      accepted:["hercules"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which multi-headed water monster grew two new heads for every one cut off, until Heracles defeated it?",
+      options:["The Chimera","The Hydra","The Sphinx","Cerberus"],
+      correctIndex:1 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who was Heracles's nephew who helped him defeat the Hydra by burning the neck stumps?",
+      accepted:["iolaus"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which golden-horned deer did Heracles have to capture alive as one of his Twelve Labours?",
+      options:["The Nemean Lion","The Erymanthian Boar","The Cretan Bull","The Ceryneian Hind"],
+      correctIndex:3 },
+    { kind:"short", subject:"mythology",
+      prompt:"What animal did Heracles have to defeat as his very first labour, whose skin he then wore as armour?",
+      accepted:["nemean lion","lion"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which famously filthy stables did Heracles clean in a single day by redirecting a river?",
+      options:["The Augean stables","The Trojan stables","The Cretan stables","The Spartan stables"],
+      correctIndex:0 },
+    { kind:"short", subject:"mythology",
+      prompt:"How many labours did Heracles have to complete for King Eurystheus?",
+      accepted:["twelve","12"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which hero killed the Gorgon Medusa by looking at her reflection in a shield?",
+      options:["Theseus","Bellerophon","Perseus","Jason"],
+      correctIndex:2 },
+    { kind:"short", subject:"mythology",
+      prompt:"What happened to anyone who looked directly at Medusa's face?",
+      accepted:["turned to stone"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which winged horse sprang from Medusa's blood when she was killed?",
+      options:["Chiron","Pegasus","Arion","Bucephalus"],
+      correctIndex:1 },
+    { kind:"short", subject:"mythology",
+      prompt:"Which goddess gave Perseus a reflective shield to help him defeat Medusa?",
+      accepted:["athena"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which hero killed the Minotaur inside the Labyrinth on Crete?",
+      options:["Jason","Heracles","Odysseus","Theseus"],
+      correctIndex:3 },
+    { kind:"short", subject:"mythology",
+      prompt:"What creature was the Minotaur, half man and half what?",
+      accepted:["bull"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who gave Theseus a ball of thread to help him find his way out of the Labyrinth?",
+      options:["Ariadne","Medea","Helen","Athena"],
+      correctIndex:0 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who built the Labyrinth that imprisoned the Minotaur?",
+      accepted:["daedalus"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which father and son pair escaped Crete using wings made of feathers and wax?",
+      options:["Theseus and Hippolytus","Jason and Achilles","Daedalus and Icarus","Perseus and Perses"],
+      correctIndex:2 },
+    { kind:"short", subject:"mythology",
+      prompt:"What happened to Icarus when he flew too close to the sun?",
+      accepted:["wings melted","he fell","he drowned"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which hero led the Argonauts on a quest to find the Golden Fleece?",
+      options:["Perseus","Jason","Theseus","Odysseus"],
+      correctIndex:1 },
+    { kind:"short", subject:"mythology",
+      prompt:"What was the name of Jason's ship?",
+      accepted:["argo"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which sorceress helped Jason obtain the Golden Fleece and later became his wife?",
+      options:["Circe","Medusa","Athena","Medea"],
+      correctIndex:3 },
+    { kind:"short", subject:"mythology",
+      prompt:"Which Greek hero was famously invulnerable everywhere except his heel?",
+      accepted:["achilles"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which hero devised the Trojan Horse strategy to help the Greeks win the Trojan War?",
+      options:["Odysseus","Achilles","Ajax","Menelaus"],
+      correctIndex:0 },
+    { kind:"short", subject:"mythology",
+      prompt:"What is the epic poem by Homer about the Trojan War called?",
+      accepted:["the iliad","iliad"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who was said to have run away with Helen, sparking the Trojan War?",
+      options:["Hector","Priam","Paris","Aeneas"],
+      correctIndex:2 },
+    { kind:"short", subject:"mythology",
+      prompt:"What is the epic poem by Homer about Odysseus's long journey home called?",
+      accepted:["the odyssey","odyssey"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which one-eyed giant did Odysseus and his men blind to escape his cave?",
+      options:["Cerberus","Polyphemus","Atlas","Argus"],
+      correctIndex:1 },
+    { kind:"short", subject:"mythology",
+      prompt:"What is the name for the one-eyed giants in Greek mythology?",
+      accepted:["cyclops","cyclopes"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which enchantress turned Odysseus's men into pigs?",
+      options:["Medea","Calypso","Athena","Circe"],
+      correctIndex:3 },
+    { kind:"short", subject:"mythology",
+      prompt:"What creatures lured sailors to their doom with beautiful singing, which Odysseus avoided by having his crew plug their ears with wax?",
+      accepted:["sirens"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who was Odysseus's faithful wife who waited many years for his return?",
+      options:["Penelope","Nausicaa","Calypso","Helen"],
+      correctIndex:0 },
+    { kind:"short", subject:"mythology",
+      prompt:"Which Titan was punished by having his liver eaten by an eagle every day for giving fire to humans?",
+      accepted:["prometheus"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who was punished by the gods to push a boulder up a hill forever, only for it to roll back down each time?",
+      options:["Tantalus","Ixion","Sisyphus","Prometheus"],
+      correctIndex:2 },
+    { kind:"short", subject:"mythology",
+      prompt:"What was left inside the jar after Pandora accidentally released all the world's troubles?",
+      accepted:["hope"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who was the first woman on Earth according to Greek myth, sent by the gods with a jar she was told never to open?",
+      options:["Athena","Pandora","Aphrodite","Hera"],
+      correctIndex:1 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who did King Midas accidentally turn to gold, causing him to regret his wish?",
+      accepted:["his daughter","daughter"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which king was granted a wish that everything he touched would turn to gold?",
+      options:["Croesus","Priam","Minos","Midas"],
+      correctIndex:3 },
+    { kind:"short", subject:"mythology",
+      prompt:"Which musician journeyed to the Underworld to try to bring his wife back from the dead?",
+      accepted:["orpheus"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which skilled weaver was turned into a spider by Athena after boasting she was a better weaver than the goddess?",
+      options:["Arachne","Ariadne","Penelope","Circe"],
+      correctIndex:0 },
+    { kind:"short", subject:"mythology",
+      prompt:"Which young man fell in love with his own reflection in a pool of water?",
+      accepted:["narcissus"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"What was the name of Orpheus's wife, who he tried to rescue from the Underworld?",
+      options:["Persephone","Daphne","Eurydice","Thetis"],
+      correctIndex:2 },
+    { kind:"short", subject:"mythology",
+      prompt:"Which nymph could only repeat the last words others said to her, after Hera cursed her?",
+      accepted:["echo"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which nymph was chased by Apollo and turned into a laurel tree to escape him?",
+      options:["Echo","Daphne","Callisto","Io"],
+      correctIndex:1 },
+    { kind:"short", subject:"mythology",
+      prompt:"What creature had the body of a lion, the wings of an eagle, and the head of a woman, and guarded the road to Thebes?",
+      accepted:["sphinx"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which hero-king solved the Sphinx's riddle to save the city of Thebes?",
+      options:["Theseus","Cadmus","Perseus","Oedipus"],
+      correctIndex:3 },
+    { kind:"short", subject:"mythology",
+      prompt:"Which hero rode the winged horse Pegasus to defeat the Chimera?",
+      accepted:["bellerophon"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which fire-breathing monster had the body of a lion, a goat's head on its back, and a serpent for a tail?",
+      options:["Chimera","Hydra","Cerberus","Sphinx"],
+      correctIndex:0 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who is the winged goddess of victory?",
+      accepted:["nike"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which goddess is the messenger goddess associated with the rainbow?",
+      options:["Nike","Hebe","Iris","Eos"],
+      correctIndex:2 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who is the god of death in Greek mythology, often paired with his twin brother Hypnos?",
+      accepted:["thanatos"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who is the god of sleep?",
+      options:["Morpheus","Hypnos","Thanatos","Somnus"],
+      correctIndex:1 },
+    { kind:"short", subject:"mythology",
+      prompt:"How many Muses are there in Greek mythology, each overseeing an art or science?",
+      accepted:["nine","9"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which three goddesses were said to control the thread of every person's life, from birth to death?",
+      options:["The Muses","The Graces","The Furies","The Fates"],
+      correctIndex:3 },
+    { kind:"short", subject:"mythology",
+      prompt:"What object does Hermes carry, a winged staff entwined with two snakes?",
+      accepted:["caduceus"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"What is the name of Zeus's shield, said to strike fear into enemies?",
+      options:["The aegis","The caduceus","The gorgoneion","The trident"],
+      correctIndex:0 },
+    { kind:"short", subject:"mythology",
+      prompt:"What material did Daedalus use to attach feathers to make wings for Icarus?",
+      accepted:["wax"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"What is the three-pronged weapon carried by Poseidon called?",
+      options:["A spear","A scythe","A trident","A bow"],
+      correctIndex:2 },
+    { kind:"short", subject:"mythology",
+      prompt:"What is the Roman name for Zeus?",
+      accepted:["jupiter"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"What is the Roman name for Ares, god of war?",
+      options:["Mercury","Mars","Neptune","Vulcan"],
+      correctIndex:1 },
+    { kind:"short", subject:"mythology",
+      prompt:"What is the Roman name for Poseidon, god of the sea?",
+      accepted:["neptune"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"What is the Roman name for Aphrodite, goddess of love?",
+      options:["Juno","Minerva","Diana","Venus"],
+      correctIndex:3 },
+    { kind:"short", subject:"mythology",
+      prompt:"What is a centaur, a creature that is half human and half what?",
+      accepted:["horse"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which hero was raised by a wise centaur named Chiron, known for teaching many Greek heroes?",
+      options:["Achilles","Perseus","Theseus","Jason"],
+      correctIndex:0 },
+    { kind:"short", subject:"mythology",
+      prompt:"What gift did Athena give the city of Athens to win it as her own, beating Poseidon's gift of a spring of water?",
+      accepted:["olive tree","an olive tree"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which competition between Athena and Poseidon decided who would be patron of a great Greek city?",
+      options:["A race","A wrestling match","A contest to give the best gift","A riddle contest"],
+      correctIndex:2 },
+    { kind:"short", subject:"mythology",
+      prompt:"Who was the king of Troy during the Trojan War?",
+      accepted:["priam"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Who was the Trojan prince and greatest warrior of Troy, killed by Achilles?",
+      options:["Paris","Hector","Priam","Aeneas"],
+      correctIndex:1 },
+    { kind:"short", subject:"mythology",
+      prompt:"What is the name for a person's one weak spot, a phrase that comes from a story about Achilles?",
+      accepted:["achilles heel","heel"] },
+    { kind:"mcq", subject:"mythology",
+      prompt:"Which sea nymph was Achilles's mother, who tried to make him immortal by dipping him in the River Styx?",
+      options:["Amphitrite","Calypso","Doris","Thetis"],
+      correctIndex:3 },
+    { kind:"short", subject:"mythology",
+      prompt:"What is the name of the golden apples that Heracles had to retrieve as one of his labours, guarded by a dragon in a garden?",
+      accepted:["golden apples","apples of the hesperides"] }
+  ];
+  
+  var HARRY_POTTER_QUICK_ITEMS = [
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Which Hogwarts house is known for valuing loyalty and hard work?",
+      options:["Gryffindor","Hufflepuff","Ravenclaw","Slytherin"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What position does Harry Potter play in Quidditch?",
+      options:["Chaser","Keeper","Beater","Seeker"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who is the Half-Blood Prince, whose old Potions book Harry uses?",
+      options:["Horace Slughorn","Tom Riddle","Sirius Black","Severus Snape"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What creature does Harry, Ron and Hermione ride to escape from deep inside Gringotts?",
+      options:["A hippogriff","A thestral","A dragon","A phoenix"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Which spell is used to disarm an opponent?",
+      options:["Stupefy","Protego","Petrificus Totalus","Expelliarmus"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who teaches Potions for most of the series before becoming Defence Against the Dark Arts teacher?",
+      options:["Horace Slughorn","Remus Lupin","Severus Snape","Filius Flitwick"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What is the name of the Weasley family's home?",
+      options:["The Burrow","Grimmauld Place","Shell Cottage","The Nest"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Which magical creature can only be seen by someone who has witnessed death?",
+      options:["Boggart","Dementor","Thestral","Niffler"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What position does Oliver Wood play for the Gryffindor Quidditch team?",
+      options:["Seeker","Chaser","Beater","Keeper"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who is the Minister for Magic at the start of the series?",
+      options:["Rufus Scrimgeour","Kingsley Shacklebolt","Cornelius Fudge","Pius Thicknesse"],
+      correctIndex:2 },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of Harry's pet owl?",
+      accepted:["hedwig"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What magic word makes an object fly into your hand?",
+      accepted:["accio"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of Ron Weasley's rat, who turns out to be an Animagus?",
+      accepted:["scabbers"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of Hagrid's giant three-headed dog?",
+      accepted:["fluffy"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What potion allows the drinker to temporarily transform into someone else?",
+      accepted:["polyjuice potion","polyjuice"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of Hermione's ginger cat?",
+      accepted:["crookshanks"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What creature lives in the Chamber of Secrets and can kill with a single look?",
+      accepted:["basilisk"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What magical map shows every person's location inside Hogwarts?",
+      accepted:["the marauder's map","marauder's map","the marauders map"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the term for a wizard who can transform into an animal at will?",
+      accepted:["animagus"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the Weasley twins' joke shop?",
+      accepted:["weasleys' wizard wheezes","weasleys wizard wheezes"] },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What does the Sorting Hat use to decide which house a student belongs in?",
+      options:["A student's blood status","The student's own qualities and choices","The headteacher's decision","A written exam"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who is the caretaker of Hogwarts, often accompanied by his cat Mrs Norris?",
+      options:["Argus Filch","Rubeus Hagrid","Horace Slughorn","Mundungus Fletcher"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Which Hogwarts founder gave his name to the house symbolised by a serpent?",
+      options:["Godric Gryffindor","Rowena Ravenclaw","Helga Hufflepuff","Salazar Slytherin"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What is the name of the Hogwarts Express platform at King's Cross station?",
+      options:["Platform 9","Platform 10","Platform 9¾","Platform 13"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who becomes Care of Magical Creatures teacher and gamekeeper at Hogwarts?",
+      options:["Rubeus Hagrid","Argus Filch","Remus Lupin","Kingsley Shacklebolt"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What is the maximum number of points the Golden Snitch is worth when caught?",
+      options:["50","100","150","200"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Which Weasley works for Gringotts as a curse-breaker in Egypt?",
+      options:["Charlie","Percy","Bill","George"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What does the spell 'Riddikulus' do?",
+      options:["Turns an object invisible","Heals minor injuries","Unlocks a door","Makes a Boggart take a comical shape"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who is Harry and Ron's Herbology teacher and Head of Hufflepuff house?",
+      options:["Pomona Sprout","Sybill Trelawney","Minerva McGonagall","Poppy Pomfrey"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Which of these is one of the three Deathly Hallows?",
+      options:["The Sword of Gryffindor","The Marauder's Map","The Sorting Hat","The Elder Wand"],
+      correctIndex:3 },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the Hogwarts ghost who haunts the girls' bathroom?",
+      accepted:["moaning myrtle"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is Voldemort's real full name?",
+      accepted:["tom riddle","tom marvolo riddle"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What Unforgivable Curse causes instant death?",
+      accepted:["avada kedavra","the killing curse","killing curse"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of Dumbledore's phoenix?",
+      accepted:["fawkes"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What Hogwarts house is symbolised by an eagle?",
+      accepted:["ravenclaw"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the pub in Hogsmeade often visited by Hogwarts students?",
+      accepted:["the three broomsticks","three broomsticks"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What plant does Harry use to breathe underwater during the Triwizard Tournament's second task?",
+      accepted:["gillyweed"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of Hagrid's giant spider friend in the Forbidden Forest?",
+      accepted:["aragog"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What do wizards call non-magical people?",
+      accepted:["muggles"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the magazine Luna Lovegood's father edits?",
+      accepted:["the quibbler","quibbler"] },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who kills Albus Dumbledore at the end of Half-Blood Prince?",
+      options:["Draco Malfoy","Bellatrix Lestrange","Severus Snape","Lucius Malfoy"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What is Sirius Black's Animagus form?",
+      options:["A stag","A rat","A cat","A dog"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Which professor teaches Transfiguration and later becomes Headmistress of Hogwarts?",
+      options:["Pomona Sprout","Sybill Trelawney","Minerva McGonagall","Charity Burbage"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What is the core of Harry Potter's wand?",
+      options:["Unicorn hair","Dragon heartstring","Phoenix feather","Veela hair"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who is the Divination teacher who makes the prophecy about Harry and Voldemort?",
+      options:["Sybill Trelawney","Minerva McGonagall","Pomona Sprout","Cho Chang"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What is the name of the wizarding prison guarded by Dementors?",
+      options:["Gringotts","Nurmengard","St Mungo's","Azkaban"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Which magical sport uses a Quaffle, two Bludgers, and a Golden Snitch?",
+      options:["Wizard's Chess","Gobstones","Quidditch","Exploding Snap"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who becomes the youngest Hogwarts Quidditch Seeker in a century?",
+      options:["Ron Weasley","Harry Potter","Draco Malfoy","Cedric Diggory"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What does the Patronus Charm produce to repel Dementors?",
+      options:["A shield of fire","A silvery guardian animal","A cloud of smoke","A burst of light only"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who is Draco Malfoy's father?",
+      options:["Lucius Malfoy","Vincent Crabbe Sr.","Cornelius Fudge","Barty Crouch Sr."],
+      correctIndex:0 },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of Neville Longbottom's toad?",
+      accepted:["trevor"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the house-elf who serves the Black family and later Harry?",
+      accepted:["kreacher"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What magical device lets Hermione take extra classes at the same time in her third year?",
+      accepted:["time-turner","time turner"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of Hagrid's half-giant brother who lives in the Forbidden Forest?",
+      accepted:["grawp"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the retired Potions teacher who rejoins the Hogwarts staff in Harry's sixth year?",
+      accepted:["horace slughorn","slughorn"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What position on a Quidditch team is responsible for guarding the goal hoops?",
+      accepted:["keeper"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the goblin who helps Harry, Ron and Hermione break into Gringotts?",
+      accepted:["griphook"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What enormous creature lives in the lake at Hogwarts?",
+      accepted:["the giant squid","giant squid"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the surname of the non-magical family Harry Potter grew up with?",
+      accepted:["dursley","dursleys","the dursleys"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the house-elf who tries to protect Harry from danger in his second year, and later dies saving him?",
+      accepted:["dobby"] },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What is the name of Hagrid's dog?",
+      options:["Fang","Fluffy","Norbert","Aragog"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Which dragon does Harry face in the first task of the Triwizard Tournament?",
+      options:["Common Welsh Green","Chinese Fireball","Hungarian Horntail","Swedish Short-Snout"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who is the Ravenclaw ghost known as the Grey Lady?",
+      options:["Helena Ravenclaw","Rowena Ravenclaw","Moaning Myrtle","The Fat Lady"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What does the Mirror of Erised show the person looking into it?",
+      options:["Their future","Their deepest desire","Their true reflection","Their past mistakes"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who is appointed Hogwarts High Inquisitor by the Ministry in Order of the Phoenix?",
+      options:["Dolores Umbridge","Rita Skeeter","Bellatrix Lestrange","Narcissa Malfoy"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Which Quidditch team does Ron Weasley support?",
+      options:["Holyhead Harpies","Chudley Cannons","Falmouth Falcons","Wimbourne Wasps"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What is the name of the potion that grants the drinker extraordinary luck for a limited time?",
+      options:["Amortentia","Veritaserum","Felix Felicis","Draught of Living Death"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who is the author of the Hogwarts textbook series that Gilderoy Lockhart assigns, mostly about himself?",
+      options:["Gilderoy Lockhart","Newt Scamander","Bathilda Bagshot","Miranda Goshawk"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What creature usually pulls the carriages that carry Hogwarts students, though most students cannot see them?",
+      options:["Hippogriffs","Thestrals","Unicorns","Nifflers"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who is the Weasley family's Ministry of Magic-employed father, fascinated by Muggle items?",
+      options:["Percy Weasley","Arthur Weasley","Bill Weasley","Charlie Weasley"],
+      correctIndex:1 },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the wizarding term for a person born to non-magical parents who has magical abilities?",
+      accepted:["muggle-born","muggleborn"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What object does Harry find that once belonged to the young Voldemort and later turns out to be a Horcrux?",
+      accepted:["the diary","tom riddle's diary","riddle's diary","diary"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the dragon Hagrid illegally hatches from an egg in his hut in the first book?",
+      accepted:["norbert"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the Hogwarts caretaker's cat?",
+      accepted:["mrs norris"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the Diagon Alley shop where students buy their wands?",
+      accepted:["ollivanders","ollivander's"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the werewolf who bites young Remus Lupin as a child?",
+      accepted:["fenrir greyback","greyback"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the Hogwarts subject that teaches students to brew magical mixtures?",
+      accepted:["potions"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the incantation for the spell that stuns an opponent unconscious?",
+      accepted:["stupefy"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the wizarding gold coin, worth 17 Sickles?",
+      accepted:["galleon"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What magical creature is known for collecting shiny objects and is treated as a garden pest in the wizarding world?",
+      accepted:["niffler"] },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What is the name of the magical bank run by goblins in Diagon Alley?",
+      options:["Gringotts","Flourish and Blotts","Ollivanders","Madam Malkin's"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who is Harry's godfather?",
+      options:["Remus Lupin","Sirius Black","Severus Snape","Arthur Weasley"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Which Horcrux does Harry destroy with a Basilisk fang in the Chamber of Secrets?",
+      options:["The locket","The diary","The ring","The cup"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Which of these is NOT one of the three Unforgivable Curses?",
+      options:["Avada Kedavra","Imperio","Crucio","Expelliarmus"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Hermione tries to free house-elves by tricking their owners into accidentally giving them what?",
+      options:["A wand","A cloak","An item of clothing","A book"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who becomes the new Minister for Magic after the war ends?",
+      options:["Kingsley Shacklebolt","Percy Weasley","Arthur Weasley","Rufus Scrimgeour"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What subject does Professor Flitwick teach at Hogwarts?",
+      options:["Transfiguration","Charms","Potions","Herbology"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What is the name of the object that reveals a person's memories when poured into a stone basin?",
+      options:["Remembrall","Pensieve","Deluminator","Foe-Glass"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"What creature must Harry answer a riddle from inside the Triwizard maze?",
+      options:["A Sphinx","A Basilisk","A Dementor","A Hippogriff"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"harry-potter",
+      prompt:"Who is revealed to have secretly worked against Voldemort out of love for Harry's mother?",
+      options:["Peter Pettigrew","Severus Snape","Igor Karkaroff","Barty Crouch Jr."],
+      correctIndex:1 },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What magical item lets its wearer become completely unseen?",
+      accepted:["invisibility cloak"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of Harry and Ginny's eldest son, named after two former Hogwarts headmasters?",
+      accepted:["albus severus potter","albus severus","albus"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What does casting the spell 'Lumos' do?",
+      accepted:["lights the wand tip","lights up the wand","creates light","lights the wand"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the Hogwarts subject that studies the movement of stars and planets?",
+      accepted:["astronomy"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of the newspaper read across the wizarding community?",
+      accepted:["the daily prophet","daily prophet"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the name of Voldemort's snake and final Horcrux?",
+      accepted:["nagini"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the incantation for the spell that repairs broken objects?",
+      accepted:["reparo"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What Hogwarts house did Voldemort belong to as a student?",
+      accepted:["slytherin"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What is the first name of Professor Dumbledore, headmaster of Hogwarts for most of the series?",
+      accepted:["albus"] },
+    { kind:"short", subject:"harry-potter",
+      prompt:"What Quidditch position does Cho Chang play for Ravenclaw, the same one Harry plays for Gryffindor?",
+      accepted:["seeker"] }
+  ];
+  
+  var STRANGER_THINGS_QUICK_ITEMS = [
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Which small town in Indiana is the main setting of the show?",
+      options:["Hawkins","Roane","Millbrook","Fairview"],
+      correctIndex:0 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What name do Mike, Dustin, Lucas and Will use for their group of friends?",
+      accepted:["the party","party"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who is the first character to go missing in Season 1?",
+      options:["Barb Holland","Will Byers","Nancy Wheeler","Eleven"],
+      correctIndex:1 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name given to the psychic girl with a shaved head who escapes Hawkins Lab?",
+      accepted:["eleven","el"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Which creature from the Upside Down first terrorises Hawkins in Season 1?",
+      options:["Vecna","The Mind Flayer","The Demogorgon","A Demodog"],
+      correctIndex:2 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What waffle brand is Eleven's favourite food?",
+      accepted:["eggo","eggos"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who is the chief of the Hawkins Police Department?",
+      options:["Sam Owens","Murray Bauman","Wayne Munson","Jim Hopper"],
+      correctIndex:3 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the surname of Will, Jonathan and Joyce's family?",
+      accepted:["byers"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who is Will Byers' older brother, a keen photographer?",
+      options:["Jonathan Byers","Steve Harrington","Bob Newby","Argyle"],
+      correctIndex:0 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name of Will's mother, who spells out messages using lights?",
+      accepted:["joyce","joyce byers"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What tabletop role-playing game do the boys play in Mike's basement?",
+      options:["Risk","Dungeons & Dragons","Monopoly","Warhammer"],
+      correctIndex:1 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What number is tattooed on Eleven's wrist from her time at the lab?",
+      accepted:["011","11","eleven"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Which member of the group is known for his skill with a slingshot?",
+      options:["Dustin Henderson","Will Byers","Lucas Sinclair","Mike Wheeler"],
+      correctIndex:2 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What term does the group use for the dark, twisted parallel version of Hawkins?",
+      accepted:["the upside down","upside down"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who is Nancy Wheeler's best friend, who goes missing in Season 1?",
+      options:["Robin Buckley","Max Mayfield","Heather Holloway","Barb Holland"],
+      correctIndex:3 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name of Nancy Wheeler's boyfriend at the start of Season 1?",
+      accepted:["steve","steve harrington"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What weapon does Steve Harrington wrap in nails to fight monsters?",
+      options:["A baseball bat","A shovel","A crowbar","A hockey stick"],
+      correctIndex:0 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What shop does Joyce Byers work at in Hawkins?",
+      accepted:["melvald's","melvald's general store"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What do the boys use to try to speak to Will after he disappears?",
+      options:["A telephone","Walkie-talkies","A telegraph","A CB radio"],
+      correctIndex:1 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What does Joyce string along her living room wall to spell out messages from Will?",
+      accepted:["christmas lights","fairy lights"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"In which season does the school 'Snow Ball' dance take place?",
+      options:["Season 1","Season 4","Season 2","Season 3"],
+      correctIndex:2 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What do the small creatures Dustin collects in Season 2 eventually grow into?",
+      accepted:["demodogs","demodog"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What does Dustin name the small creature he keeps as a pet in Season 2?",
+      options:["Max","Mews","Steve","Dart"],
+      correctIndex:3 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What entity possesses Will Byers for much of Season 2?",
+      accepted:["the mind flayer","mind flayer"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who is Joyce's kind-hearted boyfriend who sacrifices himself in Season 2?",
+      options:["Bob Newby","Murray Bauman","Sam Owens","Neil Hargrove"],
+      correctIndex:0 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"In which US state is the town of Hawkins located?",
+      accepted:["indiana"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who is revealed to be Eleven's biological mother?",
+      options:["Karen Wheeler","Terry Ives","Kali","Becky Ives"],
+      correctIndex:1 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name of Eleven's aunt, who cares for her sister Terry?",
+      accepted:["becky","becky ives"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What number was the psychic girl 'Eight' known by, whom Eleven meets in Chicago?",
+      options:["Max","Robin","Kali","Erica"],
+      correctIndex:2 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What do Mike, Will, Dustin and Lucas dress up as for Halloween in Season 2?",
+      accepted:["ghostbusters"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who is Max Mayfield's abusive stepbrother?",
+      options:["Steve Harrington","Jonathan Byers","Eddie Munson","Billy Hargrove"],
+      correctIndex:3 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name of Billy and Max's father?",
+      accepted:["neil","neil hargrove"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What new mall opens in Hawkins in Season 3?",
+      options:["Starcourt Mall","Palace Mall","Roane Mall","Hawkins Plaza"],
+      correctIndex:0 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What ice cream parlour do Steve and Robin work at in Season 3?",
+      accepted:["scoops ahoy"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who is Steve Harrington's witty new co-worker at the ice cream shop?",
+      options:["Erica Sinclair","Robin Buckley","Max Mayfield","Heather Holloway"],
+      correctIndex:1 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What nationality are the secret agents digging beneath Starcourt Mall?",
+      accepted:["russian","russians"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who is Lucas Sinclair's sharp-tongued younger sister who helps spy on the Russians?",
+      options:["Max Mayfield","Robin Buckley","Erica Sinclair","Holly Wheeler"],
+      correctIndex:2 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name of the conspiracy-loving investigator who helps the group in Seasons 2 and 3?",
+      accepted:["murray","murray bauman"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What does the Mind Flayer build its enormous new body out of, in Season 3?",
+      options:["Metal and wire","Sand and stone","Wood and vines","Rats and people"],
+      correctIndex:3 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"Which Hargrove sibling sacrifices himself to save everyone at the end of Season 3?",
+      accepted:["billy","billy hargrove"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What new monster is introduced in Season 4?",
+      options:["Vecna","The Mind Flayer","The Demogorgon","A Demodog"],
+      correctIndex:0 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What club, based on Dungeons & Dragons, does Eddie Munson run at Hawkins High?",
+      accepted:["hellfire club"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What is the name of Eddie Munson's heavy metal band?",
+      options:["Iron Maiden","Corroded Coffin","Black Sabbath","Metallica"],
+      correctIndex:1 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name of the secret US facility where Eleven regains her memories in Season 4?",
+      accepted:["nina project","the nina project","nina"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"In which US state is the secret facility where Eleven undergoes memory therapy in Season 4?",
+      options:["Indiana","California","Nevada","Illinois"],
+      correctIndex:2 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"Which classic song helps break Max Mayfield free from Vecna's curse?",
+      accepted:["running up that hill"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who originally sings 'Running Up That Hill', made famous again by Season 4?",
+      options:["Cyndi Lauper","Stevie Nicks","Blondie","Kate Bush"],
+      correctIndex:3 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is Vecna's human name, before he became a monster?",
+      accepted:["henry creel","henry","one"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What number was Henry Creel known as during his time at Hawkins Lab?",
+      options:["One","Three","Eight","Eleven"],
+      correctIndex:0 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name of the abandoned house in Hawkins where Vecna is found living?",
+      accepted:["creel house","the creel house"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Which Metallica song does Eddie Munson famously play to distract bats in the Upside Down?",
+      options:["Enter Sandman","Master of Puppets","One","Fade to Black"],
+      correctIndex:1 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"To which US state does the Byers family move at the start of Season 4?",
+      accepted:["california"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What is the name of Argyle's pizza delivery job in California?",
+      options:["Big Buy Pizza","Hawkins Pizza","Surfer Boy Pizza","Palace Pizza"],
+      correctIndex:2 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is Argyle's relationship to Jonathan Byers in Season 4?",
+      accepted:["best friend","friend"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who leads a witch-hunt against Eddie Munson after Chrissy's death?",
+      options:["Patrick McKinney","Fred Benson","Tom Holloway","Jason Carver"],
+      correctIndex:3 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name of the cheerleader whose death is blamed on Eddie Munson at the start of Season 4?",
+      accepted:["chrissy","chrissy cunningham"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What roller rink does Eddie Munson meet Chrissy Cunningham at, in Season 4?",
+      options:["Rink-O-Mania","Roll-A-Rama","Skate World","The Palace"],
+      correctIndex:0 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name of Dustin's girlfriend, whom he meets over ham radio?",
+      accepted:["suzie","suzie bingham"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What song do Dustin and Suzie sing together over the radio?",
+      options:["Take On Me","The NeverEnding Story theme","Never Gonna Give You Up","Africa"],
+      correctIndex:1 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name of Hopper's Russian prison-guard ally who helps him escape?",
+      accepted:["dmitri","enzo"] },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What was the name of Hopper's daughter, who died before the events of the show?",
+      accepted:["sara","sara hopper"] },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What name do the boys give to the fort Will built in the woods?",
+      accepted:["castle byers"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What subject does Mr Clarke teach the boys at Hawkins Middle School?",
+      options:["Maths","History","Science","Art"],
+      correctIndex:2 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What chocolate bars does Dustin use to lure his pet creature?",
+      accepted:["three musketeers"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Which classic arcade game is Dustin especially skilled at?",
+      options:["Pac-Man","Galaga","Centipede","Dig Dug"],
+      correctIndex:3 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What Dungeons & Dragons monster do the boys name the Upside Down creature after?",
+      accepted:["demogorgon"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Where do Jonathan and Robin work part-time in Season 4?",
+      options:["Family Video","Scoops Ahoy","Melvald's","Surfer Boy Pizza"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who takes photographs throughout the series, often capturing strange evidence?",
+      options:["Steve Harrington","Jonathan Byers","Nancy Wheeler","Murray Bauman"],
+      correctIndex:1 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What newspaper do Nancy and Jonathan intern at during Season 3?",
+      accepted:["hawkins post","the hawkins post"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who is Mike Wheeler's father?",
+      options:["Neil Hargrove","Lonnie Byers","Ted Wheeler","Sam Owens"],
+      correctIndex:2 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name of Will and Jonathan's largely absent father?",
+      accepted:["lonnie","lonnie byers"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What nickname does Eleven use for Dr Brenner, the scientist who raised her?",
+      options:["Doctor","Chief","Uncle","Papa"],
+      correctIndex:3 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"Who takes over from Dr Brenner, working closely with Hopper and Eleven from Season 2 onwards?",
+      accepted:["dr owens","sam owens","owens"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What is Dr Owens' first name?",
+      options:["Sam","Martin","Robert","Peter"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Which Hawkins location is flooded to make an isolation tank for Eleven in Season 1?",
+      options:["The lab basement","The high school pool","Lovers Lake","The quarry"],
+      correctIndex:1 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What object appears as a recurring, chiming symbol before Vecna's curse kills its victim?",
+      accepted:["clock","grandfather clock"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What sport does Lucas Sinclair play for Hawkins High in Season 4?",
+      options:["Football","Baseball","Basketball","Swimming"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who is the ruthless Russian assassin who pursues Hopper's group in Season 3?",
+      options:["Alexei","Yuri","Antonov","Grigori"],
+      correctIndex:3 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name of the friendly Russian scientist who helps Joyce and Hopper's group in Season 3?",
+      accepted:["alexei"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who is the black-market pilot who helps smuggle the group out of danger in Season 3?",
+      options:["Yuri","Murray Bauman","Argyle","Alexei"],
+      correctIndex:0 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What term does the group use for the salt-water tank used to help Eleven search the Void?",
+      accepted:["isolation tank","sensory deprivation tank"] },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is the name of the quarry the boys claim Will fell into, as a cover story in Season 1?",
+      accepted:["the quarry","quarry","sattler quarry"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Which lake is central to events involving Barb, and later the Creel family's past?",
+      options:["Hawkins Lake","Lovers Lake","Mirror Lake","Shadow Lake"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What is the name of the Hawkins video game arcade the kids frequent?",
+      options:["Fun World","Player One","The Palace Arcade","Quarter Bin"],
+      correctIndex:2 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"How do Mike and Eleven mostly stay in touch while living far apart in Season 4?",
+      accepted:["letters","writing letters","write letters"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What do Dustin and Erica use to fend off the monster at Hawkins Lab in Season 3?",
+      options:["A flamethrower","A shotgun","A flare gun","Fireworks"],
+      correctIndex:3 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What US holiday do the major events of Season 3 take place around?",
+      accepted:["fourth of july","independence day","july 4th"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who plays the psychokinetic Eleven in the show?",
+      options:["Millie Bobby Brown","Sadie Sink","Natalia Dyer","Maya Hawke"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Which actor plays Police Chief Jim Hopper?",
+      options:["Finn Wolfhard","David Harbour","Gaten Matarazzo","Joe Keery"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Which actor plays Steve Harrington?",
+      options:["Charlie Heaton","Finn Wolfhard","Joe Keery","Noah Schnapp"],
+      correctIndex:2 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What is Murray Bauman's profession, tracking down conspiracies throughout the show?",
+      accepted:["investigator","private investigator","reporter"] },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What phrase do Mike and Eleven use to express their trust in one another?",
+      accepted:["friends don't lie"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Which young sibling of Mike's is often seen getting into mischief around the house?",
+      options:["Erica Sinclair","Suzie Bingham","Robin Buckley","Holly Wheeler"],
+      correctIndex:3 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What language does Robin Buckley speak, helping the group decode a Russian cipher in Season 3?",
+      accepted:["russian"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"Who is the Hawkins High School counsellor targeted by Vecna in Season 4?",
+      options:["Ms Kelley","Mr Clarke","Principal Higgins","Ted Wheeler"],
+      correctIndex:0 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"Who does Nancy Wheeler date after breaking up with Steve Harrington?",
+      accepted:["jonathan","jonathan byers"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What does Will help create as a heartfelt gift for Eleven in Season 4?",
+      options:["A mixtape","A painting","A photo album","A letter"],
+      correctIndex:1 },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What artistic hobby is Will Byers especially talented at throughout the show?",
+      accepted:["drawing","art","painting"] },
+    { kind:"short", subject:"stranger-things",
+      prompt:"What nickname does Dustin give the baby version of his pet creature, comparing it to a tadpole?",
+      accepted:["pollywog","polliwog"] },
+    { kind:"mcq", subject:"stranger-things",
+      prompt:"What name do the boys give a powerful villain in their D&D game, later reused for the Season 4 monster?",
+      options:["Strahd","Demogorgon","Vecna","Mind Flayer"],
+      correctIndex:2 }
+  ];
+  
+  // ---------- Red Dwarf ----------
+  // A fourth subject, same shape as the three above: a long-answer
+  // AI-marked bank plus a quick-answer bank. Kept to family-friendly
+  // plot/character facts rather than the show's more adult humour.
+  
+  var RED_DWARF_ITEMS = [
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Who is Dave Lister, and what makes him unique among the crew? Describe at least two things you know about him.",
+      rubric:[
+        "Lister is the last human being alive, having spent the disaster in stasis",
+        "He works (or worked) as a low-ranking technician on the mining ship Red Dwarf",
+        "Any other accurate fact — e.g. he is from Liverpool, he dreams of owning a farm, or he later discovers he is his own father via a time paradox"
+      ],
+      marksAvailable:2,
+      modelAnswer:"Dave Lister is the last human being alive, having survived a radiation leak that killed everyone else on board because he was in stasis at the time. He worked as a low-ranking technician on the mining ship Red Dwarf. He's originally from Liverpool, and dreams of one day owning his own farm." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Who is Arnold Rimmer, and what do you know about him? Describe at least two things you know about him.",
+      rubric:[
+        "Rimmer is a hologram — a computer-generated simulation of a crew member who died, projected as light",
+        "He died in the radiation leak that wiped out the crew, before Lister came out of stasis",
+        "Any other accurate fact — e.g. he was Lister's bunkmate and rival, he is obsessed with rules, rank and being promoted, or his rank was Second Technician"
+      ],
+      marksAvailable:2,
+      modelAnswer:"Arnold Rimmer is a hologram — a computer-generated projection of light that simulates the mind and appearance of a crew member who has died. He died in the same radiation leak that killed the rest of the crew, before Lister was released from stasis, and Holly brought him back as a hologram for company. He is obsessed with rules, rank and being seen as important, and constantly bickered with Lister when they were bunkmates." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Who is the Cat, and what do you know about him? Describe at least two things you know about him.",
+      rubric:[
+        "The Cat evolved from Lister's pregnant pet cat, whose descendants evolved into a humanoid cat species over three million years",
+        "He is extremely vain and obsessed with his appearance and clothes",
+        "Any other accurate fact — e.g. he has fast reflexes and heightened senses, he owns a large collection of stylish outfits, or he knows very little about human history or feelings"
+      ],
+      marksAvailable:2,
+      modelAnswer:"The Cat is the last surviving member of a humanoid species that evolved over three million years from the descendants of Lister's pregnant pet cat, who was sealed in the ship's hold. He is extremely vain, spending huge amounts of time on his appearance and wardrobe of stylish outfits. He also has cat-like fast reflexes and senses, though he knows almost nothing about human history or how to behave around feelings." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Who is Kryten, and what is his role on Red Dwarf? Describe at least two things you know about him.",
+      rubric:[
+        "Kryten is a mechanoid (service android) who joins the crew after being rescued from a crashed ship",
+        "He was originally programmed to serve and obey humans without question, though he later develops more independence",
+        "Any other accurate fact — e.g. he does the cooking, cleaning and repairs, he speaks with a formal, polite manner, or he becomes a loyal and valued friend to the crew"
+      ],
+      marksAvailable:2,
+      modelAnswer:"Kryten is a mechanoid, a service android, who joins the crew of Red Dwarf after they rescue him from a crashed ship. He was originally programmed to obey humans without question and handle jobs like cooking, cleaning and repairs, always speaking in a very formal, polite manner. Over time he becomes more independent and develops his own opinions, becoming a loyal and trusted member of the crew." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"What is Holly, and what does he do aboard Red Dwarf? Describe at least two things you know about him.",
+      rubric:[
+        "Holly is Red Dwarf's onboard computer, responsible for running and navigating the ship",
+        "Holly has an extremely high IQ, but after millions of years alone his mind starts to degrade, making him a bit scatterbrained",
+        "Any other accurate fact — e.g. Holly appears on screens as a face, he keeps Lister's stasis pod and Rimmer's hologram running, or Holly's appearance can change during the show"
+      ],
+      marksAvailable:2,
+      modelAnswer:"Holly is the computer that runs and navigates the ship Red Dwarf, appearing to the crew as a face on their screens. He is supposed to be brilliantly intelligent, with an IQ of 6000, but after being alone in deep space for three million years his mind starts to degrade, making him rather scatterbrained and forgetful. It was Holly who kept Lister safely in stasis all that time and who later brought Rimmer back as a hologram." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Describe three things about the mining ship Red Dwarf itself — its size, purpose or setting.",
+      rubric:[
+        "Red Dwarf is a huge Jupiter Mining Corporation vessel, several miles long, originally crewed by thousands of miners and officers",
+        "It is set roughly three million years in the future, drifting through deep space after Lister wakes from stasis",
+        "Its original job was mining minerals from asteroids and other bodies in space",
+        "Any other accurate fact — e.g. it has many decks and departments, or by the time of the show it is the last human-crewed ship in existence"
+      ],
+      marksAvailable:3,
+      modelAnswer:"Red Dwarf is an enormous mining ship, several miles long, that originally belonged to the Jupiter Mining Corporation and was crewed by thousands of miners and officers. Its job was to mine valuable minerals from asteroids and planets out in deep space. By the time most of the story takes place, roughly three million years have passed and the ship is drifting alone, with Lister as the last living human still aboard." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"What is a hologram in Red Dwarf, and how did Rimmer become one? Describe at least two things.",
+      rubric:[
+        "A hologram in Red Dwarf is a light-based computer simulation of a dead crew member's mind and personality, projected so the last surviving crew member has company",
+        "Rimmer became a hologram after he died in the radiation leak, and Holly brought him back this way because regulations required a crew member not be left completely alone",
+        "Any other accurate fact — e.g. holograms usually cannot touch physical objects, or Rimmer is projected with an 'H' on his forehead"
+      ],
+      marksAvailable:2,
+      modelAnswer:"A hologram in Red Dwarf is a computer-generated simulation, made of light, that recreates the mind and personality of a crew member who has died. Rimmer became one after dying in the radiation leak that killed the rest of the crew; ship regulations meant Holly had to bring back a hologram so Lister wouldn't be completely alone. As a hologram, Rimmer normally cannot physically touch objects, and he is shown wearing a light-projected 'H' on his forehead." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Describe how Dave Lister survived the radiation leak that killed the rest of the crew of Red Dwarf. Give at least two details.",
+      rubric:[
+        "Lister was in suspended animation (stasis) at the time of the radiation leak, as a punishment for smuggling his pet cat aboard",
+        "Stasis stopped time completely for him, so he was unaffected while everyone else on board died",
+        "Any other accurate fact — e.g. Holly kept him in stasis for three million years until radiation levels were safe, or he had no idea how much time had passed when he woke up"
+      ],
+      marksAvailable:2,
+      modelAnswer:"Lister survived because he was in stasis — a form of suspended animation — at the exact moment the radiation leak killed everyone else aboard. He had been put there as a punishment for smuggling his pregnant pet cat onto the ship, breaking quarantine rules. Because stasis stopped time completely for him, he was left completely unharmed, and Holly kept him there for three million years until it was safe to let him out." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"What is Starbug, and what is it used for? Describe at least two things.",
+      rubric:[
+        "Starbug is a small shuttle craft carried aboard Red Dwarf, used to explore planets and other ships that Red Dwarf itself is too big to land on",
+        "It's used by the crew for away missions, exploring, rescues, and sometimes escape or combat situations",
+        "Any other accurate fact — e.g. it has a small crew compartment, or it is a separate craft from Blue Midget"
+      ],
+      marksAvailable:2,
+      modelAnswer:"Starbug is a small shuttle craft kept aboard Red Dwarf, used whenever the crew needs to land somewhere or explore a place that the enormous main ship can't reach or fit into. The crew fly it on away missions, rescues, and sometimes to escape danger. It has room for the crew inside and is one of a few shuttles kept on Red Dwarf for this purpose." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Compare Starbug and Blue Midget. Give at least two similarities or differences.",
+      rubric:[
+        "Both are small shuttle craft kept aboard Red Dwarf, used for away missions to places the main ship can't go",
+        "They are separate, individual vehicles rather than the same craft, even though they serve a similar exploring and transport purpose",
+        "Any other accurate fact — e.g. Blue Midget is coloured blue, or the crew uses whichever shuttle happens to be available or undamaged at the time"
+      ],
+      marksAvailable:2,
+      modelAnswer:"Starbug and Blue Midget are both small shuttle craft carried aboard Red Dwarf and used by the crew for away missions to planets or ships the main vessel is too big to land on. However, they are two separate vehicles rather than the same one — Blue Midget is its own distinct shuttle, recognisable by its blue colouring, and the crew tend to use whichever of the shuttles is available and in working order." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Compare Dave Lister and Arnold Rimmer. Describe at least two ways they are different.",
+      rubric:[
+        "Lister is scruffy, easy-going and relaxed about rules, while Rimmer is uptight, obsessed with rank, regulations and being seen as important",
+        "Lister is a living human being, while Rimmer is a hologram — a computer-simulated projection — after his death",
+        "Any other accurate fact — e.g. they were bunkmates who often argue, or Lister comes from a poor background in Liverpool while Rimmer constantly tries to make himself sound more impressive than he really was"
+      ],
+      marksAvailable:2,
+      modelAnswer:"Lister is scruffy, laid-back and doesn't much care about rules, while Rimmer is uptight, obsessed with rank and regulations, and desperate to be seen as important. A bigger difference is that Lister is a real, living human being, whereas Rimmer is a hologram — a computer-generated projection of a crew member who died in the radiation leak. The two were bunkmates before Rimmer's death and constantly argue and wind each other up." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Describe what happened to Lister's pet cat over the three million years Lister was in stasis. Give at least two details.",
+      rubric:[
+        "Lister's pregnant cat was sealed in the ship's hold when he went into stasis, and her descendants bred and evolved over three million years",
+        "They evolved into an intelligent, upright, humanoid species, of which the character called the Cat is the last surviving member",
+        "Any other accurate fact — e.g. the Cat species developed their own culture based around Lister as a god-like figure, or they kept some cat-like traits such as vanity, grooming habits and fast reflexes"
+      ],
+      marksAvailable:2,
+      modelAnswer:"Lister's pregnant pet cat was sealed inside the ship's hold when he went into stasis, and over the following three million years her descendants bred and gradually evolved. They developed into an intelligent, upright, humanoid cat species with their own culture, eventually dying out until only one was left — the character known as the Cat. He still keeps some cat-like traits, such as being extremely vain about his appearance and having fast reflexes." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Time travel is a recurring idea in Red Dwarf. Describe two examples of time travel that happen in the show.",
+      rubric:[
+        "The crew travel back or forward in time and encounter earlier or later versions of themselves, the ship, or events",
+        "Lister discovers a time paradox in which he turns out to be his own father, having been sent back in time as a baby",
+        "Any other accurate example — e.g. the crew visit different eras during their adventures, or they encounter future or past versions of Red Dwarf"
+      ],
+      marksAvailable:2,
+      modelAnswer:"In Red Dwarf, the crew travel through time on several occasions, sometimes ending up in completely different eras or meeting earlier or later versions of the ship and its events. One famous example is Lister discovering a strange time paradox in which he turns out to be his own father, having been sent back in time as a baby and grown up to become the man who later sends himself back — with no real beginning to the loop." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"What is a parallel universe, and give an example of one the crew encounters in Red Dwarf? Describe at least two things.",
+      rubric:[
+        "A parallel universe is an alternate reality where events happened differently from the crew's own universe",
+        "The crew encounter a parallel universe where they meet alternate versions of people they know, who have lived very different lives",
+        "Any other accurate fact — e.g. in one parallel universe some characters' genders are reversed, or the crew have to be careful about the effects of meeting their counterparts"
+      ],
+      marksAvailable:2,
+      modelAnswer:"A parallel universe is an alternate version of reality, existing alongside the crew's own, where history and events have unfolded differently. At one point the crew of Red Dwarf cross into a parallel universe and meet alternate counterparts of people they know, who have led very different lives — including a universe where some of the familiar characters' genders are swapped compared with the crew's own reality." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Describe three things about Kryten's personality and character.",
+      rubric:[
+        "Kryten is extremely polite, eager to please and often apologises even when it isn't his fault",
+        "He was originally very obedient and servile, having been programmed to always obey humans, though he gradually becomes more independent and develops his own opinions",
+        "He is loyal and caring towards the crew, often looking after their wellbeing",
+        "Any other accurate fact — e.g. he enjoys cleaning and keeping things organised, or he sometimes struggles to tell lies because of his programming"
+      ],
+      marksAvailable:3,
+      modelAnswer:"Kryten is extremely polite and eager to please, constantly apologising even when something isn't his fault. He was originally programmed to be completely obedient and servile towards humans, though over time he grows more independent and starts forming his own opinions. He is also deeply loyal and caring towards the crew, often fussing over their wellbeing, and he loves cleaning and keeping everything neatly organised." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Several members of the Red Dwarf crew are not ordinary living humans. Name and describe at least three examples of non-human or artificial crew members.",
+      rubric:[
+        "Holly is the ship's artificial intelligence computer, who runs and navigates Red Dwarf",
+        "Rimmer is a hologram — a computer-generated simulation of a dead crew member, made of light",
+        "Kryten is a mechanoid, a robotic android originally built to serve humans",
+        "The Cat is not artificial but is non-human, having evolved from Lister's pet cat over three million years",
+        "Any other accurate example — e.g. Lister is the only original living human left aboard"
+      ],
+      marksAvailable:3,
+      modelAnswer:"Holly is Red Dwarf's onboard computer, an artificial intelligence that runs and navigates the ship. Rimmer is a hologram, a computer-generated simulation of light representing a crew member who died. Kryten is a mechanoid, a robotic android originally built to serve and obey humans. Between them, Lister is the only original living human still aboard, while the Cat is non-human too, having evolved from Lister's pet cat over millions of years." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"What is the game Better Than Life in Red Dwarf, and why is it dangerous? Describe at least two things.",
+      rubric:[
+        "Better Than Life is a total-immersion virtual reality game that gives the player a perfect fantasy life based on their deepest wishes",
+        "It's dangerous because it feels completely real and enjoyable, so players can become trapped inside it and refuse to unplug, even though none of it is real",
+        "Any other accurate fact — e.g. the game can be affected by a player's hidden guilt or worries, causing it to turn into a nightmare, or the rest of the crew have to work to free anyone caught inside it"
+      ],
+      marksAvailable:2,
+      modelAnswer:"Better Than Life is a total-immersion virtual reality game that gives the person playing it a perfect fantasy life, built around their own deepest wishes and dreams. It's dangerous because the fantasy feels completely real and pleasurable, so players can become trapped inside it and refuse to leave, even though it isn't real. It can also be affected by the player's hidden guilt or worries, which can turn the perfect dream into a nightmare." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Who is Ace Rimmer, and how is he different from the Arnold Rimmer we usually see? Describe at least two things.",
+      rubric:[
+        "Ace Rimmer is a heroic, confident, alternate-dimension version of Arnold Rimmer",
+        "Unlike the usual Rimmer, Ace is brave, charming and capable, and always ready to help others even at risk to himself",
+        "Any other accurate fact — e.g. Ace Rimmer travels between dimensions helping people in trouble, or the regular Rimmer admires him as the person he wishes he could be"
+      ],
+      marksAvailable:2,
+      modelAnswer:"Ace Rimmer is a heroic, alternate-dimension version of Arnold Rimmer, encountered at various points in the show. Unlike the cowardly, rule-obsessed Rimmer the crew usually know, Ace is brave, charming, capable, and always willing to help people in trouble, even when it's risky for him. He travels between different dimensions righting wrongs, and the regular Rimmer admires him as the confident, heroic person he secretly wishes he could be." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"Describe three ways that life aboard Red Dwarf, three million years in the future, is different from ordinary life on Earth today.",
+      rubric:[
+        "The crew are isolated in deep space with no other living humans anywhere nearby",
+        "The ship's computer, Holly, runs many day-to-day systems and can talk with the crew directly",
+        "Some of the 'crew' are not living humans at all, like the hologram Rimmer or the robot Kryten",
+        "Any other accurate fact — e.g. the crew occasionally travel through time or to parallel universes, or they rely on shuttles like Starbug to explore other places since Red Dwarf itself is too big to land"
+      ],
+      marksAvailable:3,
+      modelAnswer:"Life aboard Red Dwarf is very different from life on Earth today: the crew are completely isolated in deep space, with no other living humans anywhere nearby. The ship's computer, Holly, runs many of the day-to-day systems and can talk directly with the crew, unlike anything most people deal with on Earth. On top of that, some of the 'crew' aren't even living humans at all — Rimmer is a hologram and Kryten is a robot — and the crew sometimes have to deal with strange events like time travel or parallel universes that simply don't happen in ordinary life." },
+    { kind:"long", subject:"red-dwarf",
+      prompt:"What is a Polymorph, and why is it dangerous to the crew? Describe at least two things.",
+      rubric:[
+        "A Polymorph is a shape-shifting alien creature that can transform its appearance",
+        "It feeds on emotions, draining a chosen emotion completely from a crew member it attacks, which can leave that person acting strangely",
+        "Any other accurate fact — e.g. it can disguise itself as other objects or creatures to sneak up on the crew, or the crew have to work together to track it down and stop it"
+      ],
+      marksAvailable:2,
+      modelAnswer:"A Polymorph is a shape-shifting alien creature able to transform its appearance into other objects or creatures, letting it sneak around the ship unnoticed. It's dangerous because it feeds on emotions, draining one particular emotion completely from a crew member it attacks, which leaves that person acting strangely — for example, becoming totally fearless or feeling nothing at all. The crew have to work together to track it down and stop it before it drains them all." }
+  ];
+  
+  var RED_DWARF_QUICK_ITEMS = [
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What is the name of the mining ship the show is set on?",
+      options:["Red Dwarf","Nova Five","Blue Midget","Red Giant"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Which company originally operated the ship Red Dwarf?",
+      options:["Red Dwarf Holdings","Jupiter Mining Corporation","Saturn Space Agency","Galactic Trade Federation"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Roughly how far into the future is Red Dwarf when Lister wakes from stasis?",
+      options:["300 years","3,000 years","3 million years","30,000 years"],
+      correctIndex:2 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the first name of the character Lister?",
+      accepted:["dave","david"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the first name of the character Rimmer?",
+      accepted:["arnold"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Which English city is Dave Lister originally from?",
+      options:["Manchester","London","Glasgow","Liverpool"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What was the name of Lister's pregnant pet cat, sealed in the hold, from whom the character Cat later evolved?",
+      options:["Frankenstein","Smudge","Tom","Whiskers"],
+      correctIndex:0 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What type of creature has the character 'Cat' evolved from?",
+      accepted:["cat","cats"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What kind of being is Kryten?",
+      options:["A human clone","A mechanoid (android)","An alien","A hologram"],
+      correctIndex:1 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is Arnold Rimmer's physical form aboard Red Dwarf, since he died before the story begins?",
+      accepted:["hologram"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Rimmer grew up on Io, which is a moon of which planet?",
+      options:["Saturn","Mars","Jupiter","Neptune"],
+      correctIndex:2 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the small device Holly uses to project Rimmer as a hologram called?",
+      accepted:["light bee","light-bee"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What is the name of the small shuttlecraft used by the crew for away missions from Series 4 onward?",
+      options:["Blue Midget","Nova 5","Red Alert","Starbug"],
+      correctIndex:3 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What was the name of the shuttlecraft the crew used in the earlier series, before Starbug?",
+      accepted:["blue midget"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Why was Dave Lister placed in suspended animation (stasis) in the first place?",
+      options:["He broke the rules by keeping a pet cat aboard ship","He volunteered for a science experiment","He was badly injured in an accident","He was serving a prison sentence"],
+      correctIndex:0 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What kind of disaster wiped out the rest of the crew while Lister was in stasis?",
+      accepted:["radiation leak","radiation"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What does the term 'GELF', used in the show, stand for?",
+      options:["Generated Extra-terrestrial Life Form","Genetically Engineered Life Form","Galactic Emergency Life Form","General Electronic Life Form"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"In the episode 'Polymorph', what does the shape-shifting creature feed on?",
+      options:["Sunlight","Electricity","Emotions","Oxygen"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"In the episode 'Timeslides', what special substance lets the crew travel back in time through old photographs?",
+      options:["A time drive","A wormhole generator","A holo-disc","A photographic developing fluid"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"In the episode 'Backwards', what strange thing has happened to time on Earth?",
+      options:["It runs backwards","It runs twice as fast","It loops every hour","It has stopped completely"],
+      correctIndex:0 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What model series of mechanoid is Kryten, as stated in the show?",
+      accepted:["4000","series 4000"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Who created Red Dwarf and wrote most of its early episodes?",
+      options:["John Sullivan and David Croft","Rob Grant and Doug Naylor","Douglas Adams and Terry Jones","Richard Curtis and Ben Elton"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"In 'The Inquisitor', what does the Inquisitor do to people he judges as having wasted their lives?",
+      options:["Sends them back in time","Freezes them in stasis forever","Erases them from existence entirely","Turns them into holograms"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What does Holly's invention, the 'Holly Hop Drive', let the ship do?",
+      options:["Repair the ship's hull automatically","Brew unlimited curry sauce","Clean the whole ship in seconds","Jump instantly through time and space"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What does becoming 'hard-light' let a hologram like Rimmer do, that he normally can't?",
+      options:["Touch and pick up solid objects","Travel faster than light","Read other people's minds","Turn invisible"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"In the episode 'Holoship', what kind of ship does Rimmer briefly consider joining?",
+      options:["A prison ship","A ship crewed entirely by holograms","A ship crewed by robots","A pirate ship"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"In the episode 'Parallel Universe', what is unusual about the alternate crew the team meets?",
+      options:["They are evil twins","They are all much younger","Their genders are reversed","They are all robots"],
+      correctIndex:2 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"How many characters make up the core regular cast (Lister, Rimmer, Cat, Kryten and Holly)?",
+      accepted:["5","five"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Which of these is NOT one of the five core regular characters?",
+      options:["Lister","Cat","Kryten","Captain Hollister"],
+      correctIndex:3 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What type of ship is Red Dwarf, according to the show?",
+      accepted:["mining ship","mining vessel","mining"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What happens to Holly's intelligence over the three million years he is alone before finding Lister?",
+      options:["He becomes forgetful, or 'computer senile'","He shuts down completely","He develops a completely different personality overnight","He becomes super-intelligent"],
+      correctIndex:0 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the name for the small, mute robotic drones that do maintenance and repair work aboard Red Dwarf?",
+      accepted:["skutters","skutter"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What caused the accident that killed the rest of the Red Dwarf crew before the story begins?",
+      options:["A creature called a Polymorph attacked everyone","Rimmer failed to fix a fault, causing a radiation leak","A Simulant attack destroyed the engines","The ship flew into a black hole"],
+      correctIndex:1 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the name of the pub in Liverpool where baby Dave Lister was found abandoned under a pool table?",
+      accepted:["aigburth arms","the aigburth arms"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Because of a time-travel paradox in the show, Lister eventually turns out to be his own what?",
+      options:["Clone","Grandfather","Father","Brother"],
+      correctIndex:2 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the surname of Kristine, Lister's on-off girlfriend and Red Dwarf's former navigation officer?",
+      accepted:["kochanski"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the name for the siren-like aliens who trap victims using illusions of their deepest desires?",
+      accepted:["psirens","psiren"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What is Talkie Toaster constantly obsessed with offering the crew?",
+      options:["Curry","Cake","Waffles","Toast"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Who, or what, is Ace Rimmer?",
+      options:["A heroic, dimension-jumping alternate version of Rimmer","Rimmer's evil twin brother","A malfunctioning copy of Rimmer's hologram","Rimmer's son from a parallel universe"],
+      correctIndex:0 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the name of the company that manufactured Kryten, mentioned in the show?",
+      accepted:["diva-droid","divadroid","diva-droid international"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"Which actor plays Dave Lister?",
+      accepted:["craig charles"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"Which actor plays Arnold Rimmer?",
+      accepted:["chris barrie"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"Which actor plays the Cat?",
+      accepted:["danny john-jules","danny john jules"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"Which actor plays Kryten from Series 3 onward?",
+      accepted:["robert llewellyn"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"Which actor played Holly in Series 1 and 2?",
+      accepted:["norman lovett"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Which actress played the female version of Holly in later series?",
+      options:["Chris Barrie","Hattie Hayridge","Craig Charles","Danny John-Jules"],
+      correctIndex:1 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"Which UK TV channel did Red Dwarf originally air on?",
+      accepted:["bbc two","bbc2","bbc 2"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What does Lister dream of owning one day, a recurring ambition throughout the show?",
+      accepted:["a farm","farm"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What is Lister's favourite type of food, which he craves constantly?",
+      options:["Pizza","Steak","Curry","Sushi"],
+      correctIndex:2 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What musical instrument does Lister often play?",
+      accepted:["guitar"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What holiday destination does Lister often dream of visiting?",
+      accepted:["fiji"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the name of the powerful composite being, made up of stolen minds and skills, in the episode 'Legion'?",
+      accepted:["legion"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What rank did Rimmer hold aboard Red Dwarf before his death?",
+      accepted:["technician second class","technician 2nd class","technician"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What rank did Lister hold aboard Red Dwarf?",
+      options:["Chief Engineer","Science Officer","Ship's Cook","Technician Third Class"],
+      correctIndex:3 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What exam subject did Rimmer repeatedly fail, despite attempting it many times?",
+      accepted:["astronavigation"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What are the names of Rimmer's three more successful brothers?",
+      options:["John, Howard and Frank","Peter, Paul and Mary","Tom, Dick and Harry","Mark, Luke and Simon"],
+      correctIndex:0 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What name do the Cat people give to their promised land, or paradise?",
+      accepted:["fuchal"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"In the episode 'Bodyswap', which two characters end up swapping bodies?",
+      options:["Lister and Kryten","Lister and Rimmer","Cat and Kryten","Holly and Rimmer"],
+      correctIndex:1 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the name of the creature that hatches as an offspring of a Polymorph, seen in a later series?",
+      accepted:["emohawk"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"In which decade did Red Dwarf first air on television?",
+      accepted:["1980s","80s","eighties"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the surname of the captain of Red Dwarf before the accident that killed the crew?",
+      accepted:["hollister"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Which physical trait has Cat kept from his feline ancestors?",
+      options:["Gills","A talking tail","Sharp, retractable claws and teeth","Wings"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What does Cat spend much of his time doing, reflecting his extreme vanity?",
+      options:["Reading science books","Fixing the ship's engines","Studying astronavigation","Choosing outfits and grooming himself"],
+      correctIndex:3 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"Dave Lister is famously described as the last of his kind in the universe. The last what?",
+      accepted:["human","human being","the last human being"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the title of the very first episode of Red Dwarf?",
+      accepted:["the end"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the title of the early episode in which the crew see flashes of events before they happen?",
+      accepted:["future echoes"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"In the episode 'Better Than Life', what is the game 'Better Than Life'?",
+      options:["A virtual reality game that fulfils your fantasies","A board game about space mining","A televised cooking contest","A racing simulator"],
+      correctIndex:0 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What tabletop game, played with cues and balls, is often seen being played aboard Red Dwarf?",
+      accepted:["pool"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What is the name for the hostile, heavily-armed war robots the crew occasionally encounter in deep space?",
+      options:["Polymorphs","Simulants","GELFs","Psirens"],
+      correctIndex:1 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"In the episode 'Back to Reality', which alien squid's ink causes the crew to hallucinate that their lives are a TV show?",
+      accepted:["despair squid","the despair squid"] },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"Lister and Rimmer dislike each other intensely, yet aboard Red Dwarf they must share what?",
+      accepted:["a room","quarters","a bunk room","bunk"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What happened to the rest of the Cat people, long before Lister wakes up?",
+      options:["They turned out to be robots all along","They still secretly live in the ship's hold","They evolved from house cats and left the ship generations earlier","They were destroyed by Simulants"],
+      correctIndex:2 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"Io, Rimmer's birthplace, is a moon of which planet?",
+      accepted:["jupiter"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Which of these is NOT a real vehicle or ship from Red Dwarf?",
+      options:["Starbug","Blue Midget","Nova 5","Millennium Falcon"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"How would you best describe Red Dwarf as a type of television programme?",
+      options:["A science fiction comedy (sitcom)","A medical drama","A historical epic","A nature documentary"],
+      correctIndex:0 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Which of these best describes one of Rimmer's defining personality traits?",
+      options:["Obsessed with fashion and clothes","Obsessed with rules, rank and self-improvement","Fearless and completely relaxed","Extremely messy and laid-back"],
+      correctIndex:1 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Which of these best describes one of Lister's defining personality traits?",
+      options:["Vain and obsessed with fashion","Cold and purely logical","Laid-back, messy and easy-going","Strict and obsessed with rules"],
+      correctIndex:2 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Which of these best describes one of Kryten's defining personality traits?",
+      options:["Vain and lazy","Rebellious and untidy","Obsessed with getting promoted","Eager to serve and clean, and quick to feel guilty"],
+      correctIndex:3 },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Which classic line is associated with Ace Rimmer's heroic departures?",
+      options:["\"Smoke me a kipper, I'll be back for breakfast\"","\"May the Force be with you\"","\"To infinity and beyond\"","\"I'll be back\""],
+      correctIndex:0 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What letter appears on Arnold Rimmer's forehead to show that he is a hologram?",
+      accepted:["h"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Besides the TV series, Red Dwarf was also adapted into what other form of media?",
+      options:["An opera","Novels","A West End stage musical","A theme park ride"],
+      correctIndex:1 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What nationality is Dave Lister?",
+      accepted:["british","english"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Which of these characters is entirely artificial (man-made), unlike the others listed?",
+      options:["Lister","A GELF","Kryten","Cat"],
+      correctIndex:2 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What polite word does Kryten typically use when addressing Lister or Rimmer, reflecting his programming to serve?",
+      accepted:["sir","sirs"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What was Kryten doing for years before the crew found him, even though the officers he served had long since died?",
+      options:["Repairing the ship's engines","Growing food in a greenhouse","Guarding a weapons store","Cleaning and housework"],
+      correctIndex:3 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the name of the wrecked ship on which Kryten was originally found, still serving officers who had long since died?",
+      accepted:["nova 5","nova5"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What is Holly's job or role aboard Red Dwarf?",
+      options:["Ship's computer","Chief engineer","Security officer","Captain"],
+      correctIndex:0 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What number is often given as Holly's IQ?",
+      accepted:["6000","6,000"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What best describes a 'GELF' as used in the show?",
+      options:["A hologram malfunction","A genetically engineered alien life form","A type of spaceship engine","A robotic maintenance drone"],
+      correctIndex:1 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What specific curry dish is often mentioned as Lister's favourite?",
+      accepted:["vindaloo","chicken vindaloo"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Which vehicle did the crew mainly rely on for away missions in the earliest series, before it was replaced?",
+      options:["Nova 5","The Dwarf Star","Blue Midget","Starbug"],
+      correctIndex:2 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What does Rimmer become, immediately after his death, that allows him to keep appearing in the show?",
+      accepted:["a hologram","hologram"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"How did the character Cat physically change compared to an ordinary house cat?",
+      options:["He stayed exactly the same size as a house cat","He grew extra legs","He lost the ability to speak","He evolved into a tall, humanoid form"],
+      correctIndex:3 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What abbreviation is commonly used for the Jupiter Mining Corporation, the company that built Red Dwarf?",
+      accepted:["jmc"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What is unusual about how Kryten first meets the Red Dwarf crew, compared with how Holly, Cat and Rimmer are already there?",
+      options:["He is found later, aboard a different, wrecked ship","He is built by Lister from spare parts","He arrives from a parallel universe","He was already part of the original crew"],
+      correctIndex:0 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What is the name most often used for the hologram simulation of Rimmer that keeps Lister company after the disaster?",
+      accepted:["rimmer","arnold rimmer"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"Which of these sci-fi concepts features heavily across the series?",
+      options:["Superhero secret identities","Time travel and parallel universes","Underwater cities","Dragons and magic"],
+      correctIndex:1 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"What term describes technology that allows a hologram to physically touch objects, as Rimmer eventually gains?",
+      accepted:["hard light","hard-light"] },
+    { kind:"mcq", subject:"red-dwarf",
+      prompt:"What best describes the character Holly's typical appearance on screen?",
+      options:["A full-sized robot body","An invisible voice only","A face displayed on a monitor","A floating glowing orb"],
+      correctIndex:2 },
+    { kind:"short", subject:"red-dwarf",
+      prompt:"Which football club is Dave Lister a devoted supporter of?",
+      accepted:["liverpool","liverpool fc"] }
+  ];
   var ITEMS_BY_SUBJECT = {
-    "mythology": MYTHOLOGY_ITEMS,
-    "harry-potter": HARRY_POTTER_ITEMS,
-    "stranger-things": STRANGER_THINGS_ITEMS
+    "mythology": MYTHOLOGY_ITEMS.concat(MYTHOLOGY_QUICK_ITEMS),
+    "harry-potter": HARRY_POTTER_ITEMS.concat(HARRY_POTTER_QUICK_ITEMS),
+    "stranger-things": STRANGER_THINGS_ITEMS.concat(STRANGER_THINGS_QUICK_ITEMS),
+    "red-dwarf": RED_DWARF_ITEMS.concat(RED_DWARF_QUICK_ITEMS)
   };
 
   function shuffle(arr){
@@ -1164,6 +2889,43 @@
     return a;
   }
 
+  // Builds one session's queue: a fully random mix of a subject's
+  // long-answer, multiple-choice and short-answer questions, with two
+  // guarantees — at least one of each kind that the subject actually has,
+  // and never more than MAX_LONG_PER_SESSION long-answer (AI-marked)
+  // questions, since those are the slow, effortful ones. Everything else
+  // is drawn at random with no further weighting, then shuffled again so
+  // the guaranteed picks aren't always first.
+  function buildSessionQueue(subjectKey){
+    var pool = ITEMS_BY_SUBJECT[subjectKey] || [];
+    var byKind = { long: [], mcq: [], short: [] };
+    shuffle(pool).forEach(function(item){
+      if (byKind[item.kind]) byKind[item.kind].push(item);
+    });
+
+    var picked = [];
+    var longCount = 0;
+    ["long", "mcq", "short"].forEach(function(kind){
+      if (byKind[kind].length){
+        var item = byKind[kind].shift();
+        picked.push(item);
+        if (kind === "long") longCount++;
+      }
+    });
+
+    var remaining = shuffle(byKind.long.concat(byKind.mcq, byKind.short));
+    for (var i = 0; i < remaining.length && picked.length < QUESTIONS_PER_SESSION; i++){
+      var candidate = remaining[i];
+      if (candidate.kind === "long"){
+        if (longCount >= MAX_LONG_PER_SESSION) continue;
+        longCount++;
+      }
+      picked.push(candidate);
+    }
+
+    return shuffle(picked).slice(0, QUESTIONS_PER_SESSION);
+  }
+
   function hashText(s){
     var hash = 5381;
     for (var i = 0; i < s.length; i++){
@@ -1172,6 +2934,15 @@
     return (hash >>> 0).toString(36);
   }
   function itemId(item){ return hashText(item.prompt); }
+
+  // How many marks a question is worth. Long-answer questions carry their
+  // own explicit marksAvailable (set to match what the question's wording
+  // actually asks for, not just however many rubric bullets happen to
+  // exist); multiple-choice and quick single-word questions are always a
+  // flat 1 mark, since there's nothing to give partial credit for.
+  function getMarksAvailable(item){
+    return item.kind === "long" ? item.marksAvailable : 1;
+  }
 
   // ---------- AI marking ----------
   // Shared with any other AI-marked question page this app might grow —
@@ -1213,8 +2984,11 @@
   // Sends one question/rubric/answer to Claude and resolves to
   // { marksAwarded: <integer 0..marksAvailable>, marksAvailable: <integer>,
   // feedback: "..." }. A GCSE-style scheme rather than a flat right/wrong —
-  // marksAvailable is simply how many things the rubric says a good answer
-  // should cover (item.rubric.length), one mark per point clearly made.
+  // marksAvailable is an explicit field on the item, set to match what the
+  // question's own wording asks for (e.g. "describe at least two things"
+  // means 2), which isn't always the same as how many rubric bullets exist
+  // — the rubric can carry extra guidance/alternatives for the marker
+  // without inflating the marks on offer.
   // Rejects (with a readable message) on a missing key, a network problem,
   // an API error, or a response that doesn't parse as expected — the
   // caller puts the question back into an answerable state if this rejects.
@@ -1224,20 +2998,27 @@
       return Promise.reject(new Error("no API key configured"));
     }
     var subjectName = SUBJECT_NAME[item.subject] || "the question";
-    var marksAvailable = item.rubric.length;
+    var marksAvailable = getMarksAvailable(item);
     var marksWord = marksAvailable === 1 ? "mark" : "marks";
     var rubricText = item.rubric.map(function(r, i){ return (i + 1) + ". " + r; }).join("\n");
     var systemPrompt = "You are marking a UK Year 6 pupil's written answer to a trivia question about " + subjectName +
-      ", using a GCSE-style marking scheme worth " + marksAvailable + " " + marksWord + " in total - one mark for " +
-      "each point below that the answer clearly covers. Judge each point on meaning, not exact wording - " +
-      "synonyms, different phrasing and minor spelling mistakes are all fine as long as the fact is right, and " +
-      "a point can be mixed in with other information and still earn its mark. Don't award a mark for something " +
-      "vague, guessed or missing entirely. Reply with ONLY a JSON object of exactly this shape and nothing else " +
-      "(no markdown, no extra text): {\"marksAwarded\":<integer 0 to " + marksAvailable + ">,\"feedback\":\"...\"}. " +
+      ", using a GCSE-style marking scheme worth " + marksAvailable + " " + marksWord + " in total. Below is a " +
+      "list of points a good answer could cover - award one mark for each point clearly covered, up to the " +
+      marksAvailable + " " + marksWord + " available in total (if the list has more points than marks available, " +
+      "they're extra acceptable options rather than extra marks, so cap the total at " + marksAvailable + " even " +
+      "if more points than that are covered). If an answer is a joke, nonsense or clearly not a genuine attempt " +
+      "rather than a real try, award 0 and keep the feedback brief and factual - for example just note it doesn't " +
+      "answer the question - rather than commenting on the joke itself, since something similar may repeat across " +
+      "other questions in the same session. Otherwise, judge each point on meaning, not exact wording - synonyms, " +
+      "different phrasing and minor spelling mistakes are all fine as long as the fact is right, and a point can " +
+      "be mixed in with other information and still earn its mark. Don't award a mark for something vague, " +
+      "guessed or missing entirely. Reply with ONLY a JSON object of exactly this shape and nothing else (no " +
+      "markdown, no extra text): {\"marksAwarded\":<integer 0 to " + marksAvailable + ">,\"feedback\":\"...\"}. " +
       "\"feedback\" should be one short, encouraging sentence written directly to a ten or eleven year old, " +
       "naming what would have earned any dropped mark(s).";
-    var userContent = "Question (worth " + marksAvailable + " " + marksWord + "): " + item.prompt +
-      "\n\nOne mark is available for each of the following:\n" + rubricText +
+    var userContent = "Question (worth " + marksAvailable + " " + marksWord + " in total): " + item.prompt +
+      "\n\nPoints a good answer could cover (one mark each, capped at " + marksAvailable + " " + marksWord +
+      " overall):\n" + rubricText +
       "\n\nPupil's answer:\n" + (answerText || "(no answer given)");
 
     return fetch("https://api.anthropic.com/v1/messages", {
@@ -1296,9 +3077,12 @@
 
   // One extra AI call once a session finishes (only when it's not a clean
   // sweep - see finishSession), looking back across every answer together
-  // rather than one question at a time, to spot a single recurring pattern
-  // worth fixing next time - leaving out names/dates, answering too
-  // briefly, not fully addressing what's actually being asked, and so on.
+  // rather than one question at a time. Usually this spots a single
+  // recurring pattern worth fixing next time - leaving out names/dates,
+  // answering too briefly, not fully addressing what's actually being
+  // asked, and so on - but it also has a first check for a repeated joke
+  // or non-genuine answer (e.g. the same silly answer typed for every
+  // question), which gets a playful callback instead of generic advice.
   // Same key and model as marking itself. Resolves to a short plain-text
   // tip (not JSON - there's nothing to route on here); rejects the same
   // way markLongAnswerWithAi does, and the caller just hides the tip box
@@ -1310,19 +3094,26 @@
     }
     var subjectName = SUBJECT_NAME[subjectKey] || "trivia";
     var transcript = answers.map(function(a, i){
-      return (i + 1) + ". Question: " + a.prompt +
+      var kindLabel = a.kind === "long" ? "long-answer" : a.kind === "short" ? "quick-answer" : "multiple-choice";
+      return (i + 1) + ". [" + kindLabel + "] Question: " + a.prompt +
         "\n   Her answer: " + (a.answerText || "(no answer given)") +
         "\n   Marked: " + a.marksAwarded + "/" + a.marksAvailable + " marks - " + (a.feedback || "");
     }).join("\n\n");
-    var systemPrompt = "You are looking back over a UK Year 6 pupil's just-finished practice session of " +
-      answers.length + " long-answer trivia questions about " + subjectName + ", each already marked out of " +
-      "its own number of GCSE-style marks, with feedback. Read all of them together and look for ONE " +
-      "clear, recurring pattern in how she could do better next time - for example leaving out specific " +
-      "names, dates or numbers, answering too briefly, not fully addressing what the question actually " +
-      "asks, or mixing up similar people or events. Reply with ONLY that one tip: a single short, " +
-      "encouraging, second-person sentence or two, written directly to her, with no preamble, no markdown " +
-      "and no bullet points. If she did well across the board with no clear pattern to fix, just encourage " +
-      "her to keep it up in one sentence instead.";
+    var systemPrompt = "You are looking back over a UK Year 6 pupil's just-finished practice quiz of " +
+      answers.length + " trivia questions about " + subjectName + " - a mix of long written answers, quick " +
+      "single-word answers and multiple-choice picks - each already marked, with feedback. First, check " +
+      "whether several of her typed answers (the long-answer or quick-answer ones) look like the same joke, " +
+      "meme or clearly non-genuine answer repeated on purpose - for example writing something like \"I am a " +
+      "fish\" for every question - rather than a real attempt. If so, work out what it's likely referencing " +
+      "and reply with ONE short, playful sentence or two in the same spirit, referencing what she actually " +
+      "wrote, followed by a gentle nudge to give it a proper go next time - and nothing else. Otherwise, " +
+      "read all her answers together - especially the longer written ones, where there's the most to go on " +
+      "- and look for ONE clear, recurring pattern in how she could do better, such as leaving out specific " +
+      "names, dates or numbers, answering too briefly, not fully addressing what's actually asked, or " +
+      "mixing up similar people or events. Reply with ONLY that one tip: a single short, encouraging, " +
+      "second-person sentence or two, written directly to her, with no preamble, no markdown and no bullet " +
+      "points. If she did well across the board with no clear pattern to fix, just encourage her to keep it " +
+      "up in one sentence instead.";
 
     return fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -1501,6 +3292,12 @@
   window.__mythologyMarkAnswer = markLongAnswerWithAi;
   window.__mythologyCurrentQueue = function(){ return queue; };
   window.__mythologyCurrentSubject = function(){ return currentSubject; };
+  // Starts a session with a specific, caller-supplied list of items rather
+  // than a random draw from the subject's pool — lets the test suite set
+  // up a deterministic single-question (or otherwise controlled) session
+  // without needing to click through the subject picker and hope for a
+  // particular kind to come up.
+  window.__mythologyBeginTestSession = function(subjectKey, items){ startSessionWithQueue(subjectKey, items); };
 
   // ---------- Element refs ----------
   var notSetUpCard = document.getElementById("notSetUpCard");
@@ -1517,6 +3314,7 @@
   var questionCard = document.getElementById("questionCard");
   var qTagEl = document.getElementById("qTag");
   var marksBadgeEl = document.getElementById("marksBadge");
+  var aiBadgeEl = document.getElementById("aiBadge");
   var qPromptEl = document.getElementById("qPrompt");
   var qBody = document.getElementById("qBody");
   var qFeedbackEl = document.getElementById("qFeedback");
@@ -1628,11 +3426,13 @@
     aiDisclosureView.hidden = false;
   }
 
-  function beginSession(subjectKey){
+  // Shared by beginSession below and the test-only hook further down —
+  // resets all session state and shows the quiz UI for a given queue of
+  // items, whichever way that queue was put together.
+  function startSessionWithQueue(subjectKey, items){
     sessionToken++;
     currentSubject = subjectKey;
-    var pool = ITEMS_BY_SUBJECT[subjectKey] || [];
-    queue = shuffle(pool).slice(0, QUESTIONS_PER_SESSION);
+    queue = items;
     qIndex = 0;
     correctCount = 0;
     attemptedCount = 0;
@@ -1651,6 +3451,10 @@
     quitRow.hidden = false;
     updateProgress();
     loadQuestion();
+  }
+
+  function beginSession(subjectKey){
+    startSessionWithQueue(subjectKey, buildSessionQueue(subjectKey));
   }
 
   subjectButtons.forEach(function(btn){
@@ -1687,7 +3491,9 @@
     qFeedbackEl.textContent = "";
     qFeedbackEl.className = "q-feedback";
     qTagEl.textContent = SUBJECT_NAME[item.subject] || "Trivia";
-    marksBadgeEl.textContent = item.rubric.length + (item.rubric.length === 1 ? " mark" : " marks");
+    var marksAvailable = getMarksAvailable(item);
+    marksBadgeEl.textContent = marksAvailable + (marksAvailable === 1 ? " mark" : " marks");
+    aiBadgeEl.hidden = item.kind !== "long";
     qPromptEl.textContent = item.prompt;
     qBody.innerHTML = "";
     checkBtn.hidden = true;
@@ -1698,23 +3504,32 @@
     updateProgress();
   }
 
+  // What to show as "the correct answer" in the end-of-session review —
+  // the full model answer for a long-answer question, or the single
+  // correct option/word for a multiple-choice or quick-answer one.
+  function getCorrectText(item){
+    if (item.kind === "mcq") return item.options[item.correctIndex];
+    if (item.kind === "short") return item.accepted[0];
+    return item.modelAnswer;
+  }
+
+  // Loose match for quick-answer text input: case-insensitive, trimmed,
+  // and with surrounding punctuation stripped, so "Cerberus." or "  the
+  // burrow" still matches — but not so loose that it accepts nonsense.
+  function normaliseShortAnswer(s){
+    return String(s || "").toLowerCase().trim()
+      .replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, "")
+      .replace(/\s+/g, " ");
+  }
+
   // "partial" sits between right and wrong: recorded as a miss in the
   // end-of-session review (so the model answer shows), but shown and
-  // coloured distinctly from a straightforward "incorrect".
+  // coloured distinctly from a straightforward "incorrect". Shared across
+  // all three question kinds below — a long-answer result can be partial
+  // (some rubric points missed), while multiple-choice and quick-answer
+  // are always full marks or zero, since there's nothing in between.
   function renderQuestion(item){
     var myToken = sessionToken;
-    var wrap = document.createElement("div");
-    wrap.className = "q-answer-long";
-    var textarea = document.createElement("textarea");
-    textarea.className = "long-answer-box";
-    textarea.rows = 6;
-    textarea.setAttribute("aria-label", "Your answer");
-    textarea.placeholder = "Write your answer here…";
-    wrap.appendChild(textarea);
-    qBody.appendChild(wrap);
-
-    checkBtn.hidden = false;
-    checkBtn.textContent = "Mark my answer";
 
     function applyResult(result, answerText){
       // The session may have moved on (quit, or a new one started) while
@@ -1734,19 +3549,20 @@
         questionCard.classList.add("is-partial");
         qFeedbackEl.className = "q-feedback is-partial";
         missed.push({
-          prompt: item.prompt, correctText: item.modelAnswer,
+          prompt: item.prompt, correctText: getCorrectText(item),
           marksAwarded: result.marksAwarded, marksAvailable: result.marksAvailable
         });
       } else {
         questionCard.classList.add("is-incorrect");
         qFeedbackEl.className = "q-feedback is-incorrect";
         missed.push({
-          prompt: item.prompt, correctText: item.modelAnswer,
+          prompt: item.prompt, correctText: getCorrectText(item),
           marksAwarded: result.marksAwarded, marksAvailable: result.marksAvailable
         });
       }
       sessionAnswers.push({
         prompt: item.prompt,
+        kind: item.kind,
         answerText: answerText,
         marksAwarded: result.marksAwarded,
         marksAvailable: result.marksAvailable,
@@ -1756,6 +3572,26 @@
       nextBtn.hidden = false;
       nextBtn.focus();
     }
+
+    if (item.kind === "mcq") return renderMcq(item, applyResult);
+    if (item.kind === "short") return renderShort(item, applyResult);
+    return renderLongAnswer(item, applyResult);
+  }
+
+  function renderLongAnswer(item, applyResult){
+    var myToken = sessionToken;
+    var wrap = document.createElement("div");
+    wrap.className = "q-answer-long";
+    var textarea = document.createElement("textarea");
+    textarea.className = "long-answer-box";
+    textarea.rows = 6;
+    textarea.setAttribute("aria-label", "Your answer");
+    textarea.placeholder = "Write your answer here…";
+    wrap.appendChild(textarea);
+    qBody.appendChild(wrap);
+
+    checkBtn.hidden = false;
+    checkBtn.textContent = "Mark my answer";
 
     function doCheck(){
       if (checked) return;
@@ -1787,6 +3623,98 @@
 
     checkBtn.onclick = doCheck;
     textarea.focus();
+  }
+
+  // Multiple choice: pick one of four options, marked instantly and
+  // locally against correctIndex — no AI call, so nothing to await.
+  function renderMcq(item, applyResult){
+    var wrap = document.createElement("div");
+    wrap.className = "q-answer-mcq";
+    var selectedIndex = null;
+    var buttons = item.options.map(function(optionText, i){
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "mcq-option";
+      btn.textContent = optionText;
+      btn.addEventListener("click", function(){
+        if (checked) return;
+        selectedIndex = i;
+        buttons.forEach(function(b){ b.classList.remove("is-selected"); });
+        btn.classList.add("is-selected");
+        checkBtn.disabled = false;
+      });
+      wrap.appendChild(btn);
+      return btn;
+    });
+    qBody.appendChild(wrap);
+
+    checkBtn.hidden = false;
+    checkBtn.textContent = "Mark my answer";
+    checkBtn.disabled = true;
+
+    function doCheck(){
+      if (checked || selectedIndex === null) return;
+      checked = true;
+      attemptedCount++;
+      checkBtn.disabled = true;
+      buttons.forEach(function(b, i){
+        b.disabled = true;
+        if (i === item.correctIndex) b.classList.add("reveal-correct");
+        else if (i === selectedIndex) b.classList.add("reveal-incorrect");
+      });
+      var isCorrect = selectedIndex === item.correctIndex;
+      var result = {
+        marksAwarded: isCorrect ? 1 : 0,
+        marksAvailable: 1,
+        feedback: isCorrect ? "Correct!" : "Not quite — it's \"" + item.options[item.correctIndex] + "\"."
+      };
+      applyResult(result, item.options[selectedIndex]);
+    }
+
+    checkBtn.onclick = doCheck;
+  }
+
+  // Quick single-word/short-phrase answer: typed, but still marked
+  // instantly and locally — matched loosely (case, whitespace and
+  // surrounding punctuation ignored) against a short list of accepted
+  // answers, no AI call.
+  function renderShort(item, applyResult){
+    var wrap = document.createElement("div");
+    wrap.className = "q-answer-short";
+    var input = document.createElement("input");
+    input.type = "text";
+    input.className = "short-answer-box";
+    input.setAttribute("aria-label", "Your answer");
+    input.placeholder = "Type your answer…";
+    wrap.appendChild(input);
+    qBody.appendChild(wrap);
+
+    checkBtn.hidden = false;
+    checkBtn.textContent = "Mark my answer";
+
+    function doCheck(){
+      if (checked) return;
+      var answerText = input.value.trim();
+      if (!answerText){ input.focus(); return; }
+      checked = true;
+      attemptedCount++;
+      input.disabled = true;
+      checkBtn.disabled = true;
+      var normalised = normaliseShortAnswer(answerText);
+      var isCorrect = item.accepted.some(function(a){ return normaliseShortAnswer(a) === normalised; });
+      var result = {
+        marksAwarded: isCorrect ? 1 : 0,
+        marksAvailable: 1,
+        feedback: isCorrect ? "Correct!" : "Not quite — it's \"" + item.accepted[0] + "\"."
+      };
+      applyResult(result, answerText);
+    }
+
+    input.addEventListener("keydown", function(e){
+      if (e.key === "Enter"){ e.preventDefault(); doCheck(); }
+    });
+    checkBtn.onclick = doCheck;
+    input.focus();
   }
 
   nextBtn.addEventListener("click", function(){

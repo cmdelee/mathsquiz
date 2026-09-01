@@ -13,9 +13,10 @@ Three practice tools for the same pupil, sharing one repo, one look and one hub 
   by several grammar and independent schools (the Adventure and Beacon papers), for 11+
   preparation. See its own section below.
 - **`mythology.html`** — a standalone "Trivia" page, just for fun and not linked to the 11+
-  practice: long-answer questions across three subjects (Greek Mythology, Harry Potter, Stranger
-  Things), marked by AI rather than matched against a fixed list of accepted answers. See its own
-  section below.
+  practice: 25-question sessions across four subjects (Greek Mythology, Harry Potter, Stranger
+  Things, Red Dwarf), mixing quick multiple-choice/single-word questions (marked instantly, no AI)
+  with a handful of long-answer questions marked by AI rather than matched against a fixed list of
+  accepted answers. See its own section below.
 - **`stats.html`** — the read-only Progress page: scores, streaks and history for all three
   practice apps. Behind the parent PIN by default, but a parent can turn that off so the child can
   check her own progress without asking.
@@ -101,7 +102,7 @@ It's split into six sections:
   or to clear the page's memory of missed questions (used to weight future sessions — see below).
 - **AI marking**: the provider and API key Trivia's long-answer questions need to be marked (see
   below) — currently only Claude (Anthropic) is offered, saved, tested and cleared here — plus a
-  button to clear Trivia's own history and progress across all three of its subjects.
+  button to clear Trivia's own history and progress across all four of its subjects.
 - **Progress page access**: a single toggle — "Let her open the Progress page without entering
   the PIN". Off by default, so the Progress page needs the PIN too, same as this one.
 - **Backup and reset**: download everything above (plus the stats shown on the Progress page) as
@@ -121,7 +122,7 @@ or assembled from fragments.
 | `index.html` | The hub/menu page — links to the five pages below. |
 | `maths-quiz.html` | The maths practice app — markup, styles and logic in one file. |
 | `entry-test.html` | The 11+ entry test practice page — same one-file approach. |
-| `mythology.html` | The Trivia page — three AI-marked subjects (Greek Mythology, Harry Potter, Stranger Things), same one-file approach. Kept this filename even though it now covers more than mythology, to avoid breaking any existing bookmark or home-screen install. |
+| `mythology.html` | The Trivia page — four subjects (Greek Mythology, Harry Potter, Stranger Things, Red Dwarf), each a mix of AI-marked long-answer and instantly-marked quick-answer questions, same one-file approach. Kept this filename even though it now covers more than mythology, to avoid breaking any existing bookmark or home-screen install. |
 | `stats.html` | The read-only Progress page — history and stats for the maths and entry-test apps, PIN-locked unless a parent's turned that off. |
 | `admin.html` | The PIN-locked settings/reset page for all three apps, plus the shared AI marking key. |
 | `manifest.json` | PWA manifest for the whole hub, so it can be installed to a phone/tablet home screen. |
@@ -277,49 +278,64 @@ All six pages link to each other from their footers.
 ## Trivia (`mythology.html`)
 
 A standalone page, just for fun and not linked to the 11+ entry test practice or the Progress
-page. It offers long-answer trivia questions across three subjects — **Greek Mythology**,
-**Harry Potter** and **Stranger Things** — pitched at a strong Year 6 reader who already knows
-them well, with 20 written-from-scratch questions per subject. Picking a subject draws 5 random
-questions from that subject's own 20-question bank (see `MYTHOLOGY_ITEMS`, `HARRY_POTTER_ITEMS`
-and `STRANGER_THINGS_ITEMS` in `mythology.html`), so sessions rarely repeat, but no two sessions
-cover the whole bank either.
+page. It offers 25-question trivia sessions across four subjects — **Greek Mythology**,
+**Harry Potter**, **Stranger Things** and **Red Dwarf** — pitched at a strong Year 6 reader who
+already knows them well. Each subject has its own pool of 20 long-answer questions (AI-marked)
+plus around 100 quick multiple-choice/single-word questions (marked instantly on-device, no AI
+involved) — see `MYTHOLOGY_ITEMS`/`MYTHOLOGY_QUICK_ITEMS`, `HARRY_POTTER_ITEMS`/
+`HARRY_POTTER_QUICK_ITEMS`, `STRANGER_THINGS_ITEMS`/`STRANGER_THINGS_QUICK_ITEMS` and
+`RED_DWARF_ITEMS`/`RED_DWARF_QUICK_ITEMS` in `mythology.html`. Picking a subject draws 25 questions
+at random from that combined pool (`buildSessionQueue()`), with two guarantees: at least one
+question of each kind (long-answer, multiple-choice, quick-answer) every time, and never more than
+5 long-answer questions in one session, so a session is quick to get through rather than mostly
+slow, effortful free-text marking.
 
 Kept at the `mythology.html` filename/URL even though it's grown beyond just mythology, so any
 existing bookmark or home-screen install still opens it.
 
-### Why it's marked differently to the other two apps
+### Why the long-answer questions are marked differently
 
-Long, free-text answers here don't have one single "correct" wording, so they can't be checked by
-matching against a list of accepted answers the way the maths and entry-test apps are. Instead,
-each question is marked on a small GCSE-style scheme — one mark for each point a good answer
-should cover, so a 4-mark question has a 4-point rubric written for it (not a real exam mark
-scheme). Marks-available varies question to question (2–5 in the current bank) and shows as a
-badge on the question card itself. To mark an answer, the question, its rubric and whatever's been
-typed are sent straight from the browser to Claude (Anthropic's AI), which comes back with a marks
-score out of that question's own total and a line of feedback explaining what earned or missed a
-mark — full marks colours the question card green, zero marks red, anything in between amber.
-Nothing is sent anywhere unless an API key's been set up on the admin page first (see "AI marking"
-above), and the page makes that clear with a one-off disclosure the first time it's used, before
-anything's ever sent.
+Long, free-text answers don't have one single "correct" wording, so they can't be checked by
+matching against a list of accepted answers the way multiple-choice/quick-answer questions (and
+the maths and entry-test apps) are. Instead, each long-answer question is marked on a small
+GCSE-style scheme — one mark for each point a good answer should cover, up to that question's own
+`marksAvailable`, which is set to match what the question's own wording asks for (e.g. "describe
+at least two things" is worth 2 marks) rather than just however many points its rubric happens to
+list — a rubric can, and often does, list more points than the question is worth, as extra
+acceptable options for the last mark or two. Marks-available varies question to question (2–5 in
+the current banks) and shows as a badge on the question card itself, alongside a badge marking it
+"AI-marked" specifically (multiple-choice and quick-answer questions are always worth a flat 1
+mark and never carry that badge, since there's nothing to send anywhere for those). To mark a
+long-answer question, the question, its rubric and whatever's been typed are sent straight from
+the browser to Claude (Anthropic's AI), which comes back with a marks score out of that question's
+own total and a line of feedback explaining what earned or missed a mark — full marks colours the
+question card green, zero marks red, anything in between amber. Nothing is sent anywhere unless an
+API key's been set up on the admin page first (see "AI marking" above), and the page makes that
+clear with a one-off disclosure the first time it's used, before anything's ever sent.
 
 This needs a Claude API key of your own (get one at
 [console.anthropic.com](https://console.anthropic.com)) — it isn't bundled with the app, and each
-answer marked costs a small fraction of a cent against that key's own balance. The key itself is
-stored only in that browser's `localStorage`, the same as everything else, and is deliberately
-left out of the downloadable backup (see below), so it needs re-entering after a restore. Only
-Claude is offered as a provider: it can be called directly from the browser with no server needed
-in between, and Anthropic's terms don't rule out use by children the way Google's Gemini terms do;
-ChatGPT/OpenAI's API blocks being called directly from a browser (it would need a small backend
-server, not built here), and Microsoft Copilot doesn't offer an individual API key at all.
+long-answer question marked costs a small fraction of a cent against that key's own balance
+(multiple-choice/quick-answer questions cost nothing, since they're matched locally). The key
+itself is stored only in that browser's `localStorage`, the same as everything else, and is
+deliberately left out of the downloadable backup (see below), so it needs re-entering after a
+restore. Only Claude is offered as a provider: it can be called directly from the browser with no
+server needed in between, and Anthropic's terms don't rule out use by children the way Google's
+Gemini terms do; ChatGPT/OpenAI's API blocks being called directly from a browser (it would need a
+small backend server, not built here), and Microsoft Copilot doesn't offer an individual API key
+at all.
 
 ### Tip for next time
 
-Once a session finishes, the completion screen doesn't just show the marks total — if at least one
-question dropped a mark, one more request goes to Claude with all five questions, answers and
-marks from that session together (not one at a time, the way marking itself works), asking it to
-spot a single recurring pattern worth fixing next time — leaving out specific names/dates,
-answering too briefly, not quite addressing what the question actually asked, that sort of thing —
-and hand back one short, encouraging sentence written directly to her. A session where every
+Once a session finishes, the completion screen doesn't just show the marks total — if the session
+wasn't a clean sweep, one more request goes to Claude with every question, answer and mark from
+that session together (not one at a time, the way marking itself works), asking it to spot a
+single recurring pattern worth fixing next time — leaving out specific names/dates, answering too
+briefly, not quite addressing what the question actually asked, that sort of thing — and hand back
+one short, encouraging sentence written directly to her. It also has a first check for a repeated
+joke or clearly non-genuine answer (the same silly thing typed for every question, say) — if it
+spots that pattern, it plays along with a short, playful line referencing what she actually wrote
+instead of generic advice, then nudges her to give it a proper go next time. A session where every
 question scored full marks skips this extra request entirely (there's nothing to point out) in
 favour of a plain well-done note, so it only ever costs the small amount of extra API credit when
 there's actually something to learn from. See `generateSessionTip()` in `mythology.html`, right
@@ -331,12 +347,12 @@ Trivia keeps its own history and progress, separate from `stats.html` and the ma
 apps, shown directly on `mythology.html` itself once at least one session's been completed. Each
 subject is tracked separately — its own last-session score and its own all-time accuracy, both in
 marks earned out of marks available rather than a question count — under three `localStorage` keys
-that each hold one object keyed by subject (`mythology`, `harry-potter`, `stranger-things`):
-`triviaHistory_v1` (session-by-session), `triviaItemStats_v1` (per-question marks and feedback, so
-any admin backup carries the same "what's been asked before, and how it went" picture forward) and
-`triviaTotals_v1` (running all-time marksEarned/marksAvailable per subject). Anyone who used the
-page back when it only covered Greek Mythology has their existing progress carried over
-automatically the first time the updated page loads, from the old `mythologyHistory_v1` /
+that each hold one object keyed by subject (`mythology`, `harry-potter`, `stranger-things`,
+`red-dwarf`): `triviaHistory_v1` (session-by-session), `triviaItemStats_v1` (per-question marks and
+feedback, so any admin backup carries the same "what's been asked before, and how it went" picture
+forward) and `triviaTotals_v1` (running all-time marksEarned/marksAvailable per subject). Anyone
+who used the page back when it only covered Greek Mythology has their existing progress carried
+over automatically the first time the updated page loads, from the old `mythologyHistory_v1` /
 `mythologyItemStats_v1` / `mythologyTotals_v1` keys into the new per-subject ones, filed under
 `mythology`; a session recorded before marks-based scoring existed just displays in its original
 question-count shape rather than being force-converted, since there's no way to know retroactively
@@ -379,13 +395,15 @@ commit and push from a local clone with Git/GitHub Desktop.
 
 ## Testing
 
-`tests/` holds a Playwright suite (280 checks as of the last update) covering the things most
+`tests/` holds a Playwright suite (350+ checks as of the last update) covering the things most
 likely to break silently: the PIN gate on `admin.html` and `stats.html`, the streak maths,
 backup/restore round-tripping every setting, the mock exam configuration, the Progress-page
-visibility toggle, and Trivia's subject picker, GCSE-style marks-based scoring and per-subject progress
-tracking (every call to Anthropic's API is intercepted with a mocked route, so the suite never
-makes a real network request or spends real API credit). It's plain Node with no bundler — see
-`tests/README.md` for how to install Playwright and run it locally, and
+visibility toggle, and Trivia's subject picker, 25-question mixed-kind session builder (at least
+one of each kind, never more than 5 long-answer), GCSE-style marks-based scoring for long-answer
+questions, instant local marking for multiple-choice/quick-answer questions, and per-subject
+progress tracking (every call to Anthropic's API is intercepted with a mocked route, so the suite
+never makes a real network request or spends real API credit). It's plain Node with no bundler —
+see `tests/README.md` for how to install Playwright and run it locally, and
 `.github/workflows/test.yml` runs the same suite on every push and pull request.
 
 ## Known limitations
@@ -404,9 +422,9 @@ makes a real network request or spends real API credit). It's plain Node with no
   and sample from it, but the questions themselves don't change or grow on their own. Adding
   more is a matter of appending further objects to `ADVENTURE_ITEMS` / `BEACON_ITEMS` in
   `entry-test.html`, following the existing shape.
-- Trivia's three subject banks are likewise fixed at 20 written questions each — adding more
-  follows the same pattern, appending to `MYTHOLOGY_ITEMS` / `HARRY_POTTER_ITEMS` /
-  `STRANGER_THINGS_ITEMS` in `mythology.html`.
+- Trivia's four subject banks are likewise fixed — 20 written long-answer questions plus around
+  100 quick multiple-choice/single-word questions each — adding more follows the same pattern,
+  appending to the relevant `*_ITEMS`/`*_QUICK_ITEMS` array in `mythology.html`.
 - Trivia needs its own Claude API key and a live connection to mark answers — without one it just
   shows a "not set up" message rather than falling back to anything else, and each answer marked
   spends a small amount of that key's own balance (a fraction of a cent per answer on the model

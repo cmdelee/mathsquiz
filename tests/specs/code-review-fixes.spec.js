@@ -31,9 +31,9 @@ const AI_DISCLOSURE_KEY = "aiDisclosureSeen_v1";
 const TRIVIA_ITEM_STATS_KEY = "triviaItemStats_v1";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
-// marksAwarded is clamped client-side to the real item's marksAvailable
-// (item.rubric.length), so a huge number reliably means "full marks"
-// regardless of which item was randomly drawn — see ai-marking.spec.js.
+// marksAwarded is clamped client-side to the real item's own marksAvailable,
+// so a huge number reliably means "full marks" regardless of which item is
+// used — see ai-marking.spec.js.
 const FULL_MARKS = 999;
 function claudeResponse(marksAwarded, feedback){
   return {
@@ -43,6 +43,26 @@ function claudeResponse(marksAwarded, feedback){
       content: [{ type: "text", text: JSON.stringify({ marksAwarded: marksAwarded, feedback: feedback || "Good effort." }) }]
     })
   };
+}
+
+// A real trivia session mixes long-answer, multiple-choice and quick-answer
+// questions at random (see ai-marking.spec.js for that), which makes tests
+// below about the long-answer AI marking flow itself (a stale request, the
+// progress bar) awkward to write against a random draw — they use this via
+// window.__mythologyBeginTestSession to get a small, deterministic,
+// long-answer-only session instead.
+function makeTestLongItems(subjectKey, count){
+  var items = [];
+  for (var i = 0; i < count; i++){
+    items.push({
+      kind: "long", subject: subjectKey,
+      prompt: "Test question " + (i + 1) + " for code-review-fixes.spec.js.",
+      rubric: ["Point one", "Point two"],
+      marksAvailable: 2,
+      modelAnswer: "A model answer covering point one and point two."
+    });
+  }
+  return items;
 }
 
 module.exports = async function run({ browser, baseUrl, check }){
@@ -117,7 +137,7 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.reload();
     await page.waitForTimeout(150);
 
-    await page.click('[data-subject="mythology"]');
+    await page.evaluate((items) => window.__mythologyBeginTestSession("mythology", items), makeTestLongItems("mythology", 1));
     await page.waitForTimeout(150);
     await page.fill(".long-answer-box", "An answer, currently being marked.");
     await page.click("#checkBtn");
@@ -125,7 +145,7 @@ module.exports = async function run({ browser, baseUrl, check }){
 
     // Quit before the (held) response comes back, then start a fresh session.
     await page.click("#quitBtn");
-    await page.click('[data-subject="mythology"]');
+    await page.evaluate((items) => window.__mythologyBeginTestSession("mythology", items), makeTestLongItems("mythology", 1));
     await page.waitForTimeout(150);
 
     // Now let the stale request resolve.
@@ -157,7 +177,7 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.reload();
     await page.waitForTimeout(150);
 
-    await page.click('[data-subject="mythology"]');
+    await page.evaluate((items) => window.__mythologyBeginTestSession("mythology", items), makeTestLongItems("mythology", 5));
     await page.waitForTimeout(150);
     for (let i = 0; i < 5; i++){
       await page.fill(".long-answer-box", "A full answer covering the key points.");
