@@ -151,6 +151,7 @@
     color:inherit;
     transition:border-color 0.12s ease, transform 0.12s ease;
   }
+  .nav-card[hidden]{ display:none; }
   .nav-card:hover{ border-color:var(--accent); transform:translateY(-1px); }
   .nav-card:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
   .nav-icon{
@@ -223,11 +224,11 @@
       <span class="nav-arrow">→</span>
     </a>
 
-    <a class="nav-card is-exam" href="entry-test.html">
+    <a class="nav-card is-exam" href="entry-test.html" id="examNavCard">
       <span class="nav-icon">✎</span>
       <span class="nav-body">
         <span class="nav-name">Practice exam</span>
-        <p class="nav-desc">Skipton Girls' High School 11+ entry test practice — Adventure and Beacon paper formats.</p>
+        <p class="nav-desc">11+ entry test practice — Adventure and Beacon paper formats.</p>
         <p class="nav-teaser" id="examTeaser" hidden></p>
       </span>
       <span class="nav-arrow">→</span>
@@ -298,6 +299,27 @@
       var xEl = document.getElementById("examTeaser");
       xEl.textContent = "Last time: " + x.correct + "/" + x.attempted + " (" + x.pct + "%)";
       xEl.hidden = false;
+    }
+  } catch (e){ /* ignore */ }
+
+  // Once a set exam date has passed, drop the "Practice exam" card from the
+  // menu — it's no longer useful for that test. Nothing is deleted: the
+  // page, its history and its settings are all still there, just not
+  // offered here any more. Setting a new (future) date from the admin page
+  // brings the card straight back, and entry-test.html itself still opens
+  // fine directly if anyone wants it regardless.
+  try {
+    var examDateRaw = window.localStorage.getItem("entryTestExamDateSettings_v1");
+    var examDateObj = examDateRaw ? JSON.parse(examDateRaw) : null;
+    if (examDateObj && examDateObj.date){
+      var dp = examDateObj.date.split("-");
+      var examDate = new Date(parseInt(dp[0], 10), parseInt(dp[1], 10) - 1, parseInt(dp[2], 10));
+      var today = new Date();
+      today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      if (examDate < today){
+        var examCard = document.getElementById("examNavCard");
+        if (examCard) examCard.hidden = true;
+      }
     }
   } catch (e){ /* ignore */ }
 

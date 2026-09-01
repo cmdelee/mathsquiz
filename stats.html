@@ -178,6 +178,11 @@
     font-size:1.05rem;
     color:var(--ink);
   }
+  .progress-highlight{
+    font-size:1.1rem;
+    font-weight:600;
+    color:var(--accent);
+  }
   .settings-body{
     padding:14px 16px;
     background:var(--surface-2);
@@ -344,23 +349,23 @@
     <section class="card parents-page">
       <div class="quiz-head">
         <h2>Maths practice</h2>
-        <p class="quiz-sub">Lifetime stats, streaks, levels and session history for the maths app.</p>
+        <p class="quiz-sub">How you're getting on with the maths app.</p>
       </div>
 
       <div class="parents-block">
-        <h3>Lifetime stats</h3>
-        <p class="quiz-sub" id="lifetimeStatsText">No sessions completed yet.</p>
+        <h3>Your totals</h3>
+        <p class="quiz-sub progress-highlight" id="lifetimeStatsText">No sessions completed yet.</p>
       </div>
 
       <div class="parents-block">
         <h3>Streak</h3>
         <p class="quiz-sub" id="streakGoalText"></p>
-        <p class="quiz-sub" id="streakStatusText" style="margin-top:6px; margin-bottom:0;"></p>
+        <p class="quiz-sub progress-highlight" id="streakStatusText" style="margin-top:6px; margin-bottom:0;"></p>
       </div>
 
       <div class="parents-block">
-        <h3>Difficulty levels</h3>
-        <p class="quiz-sub">The level column is what's driving today's questions; the accuracy alongside it is how the last few attempts of that type have gone, which can lag behind a level that's just changed.</p>
+        <h3>Your levels</h3>
+        <p class="quiz-sub">The level is what's picking today's questions; the accuracy next to it is how the last few of that type have gone, which can lag a bit behind a level that's just changed.</p>
         <ul class="history-list" id="levelList"></ul>
       </div>
 
@@ -380,7 +385,7 @@
     <section class="card parents-page">
       <div class="quiz-head">
         <h2>Entry test practice</h2>
-        <p class="quiz-sub">Session history, coverage and accuracy for the Skipton Girls' entry test practice page.</p>
+        <p class="quiz-sub">How you're getting on with the entry test practice.</p>
       </div>
 
       <div class="parents-block">
@@ -396,20 +401,20 @@
       </div>
 
       <div class="parents-block">
-        <h3>Coverage and accuracy</h3>
+        <h3>What you've covered</h3>
         <p class="quiz-sub" id="coverageText">No questions answered yet.</p>
         <ul class="history-list" id="accuracyList"></ul>
       </div>
 
       <div class="parents-block">
-        <h3>Questions currently being missed</h3>
+        <h3>Questions to practice again</h3>
         <p class="quiz-sub" id="weakSpotNote">None right now.</p>
         <ul class="history-list" id="weakSpotList"></ul>
       </div>
 
       <div class="parents-block">
-        <h3>Exam date</h3>
-        <p class="quiz-sub" id="examCountdownText">No exam date set yet.</p>
+        <h3>Countdown to the test</h3>
+        <p class="quiz-sub" id="examCountdownText">No test date set yet.</p>
       </div>
     </section>
 
@@ -801,7 +806,7 @@
     var pct = lifetimeStats.questionsAnswered ? Math.round((lifetimeStats.questionsCorrect / lifetimeStats.questionsAnswered) * 100) : 0;
     lifetimeStatsText.textContent = lifetimeStats.sessions + " session" + (lifetimeStats.sessions === 1 ? "" : "s") +
       " completed, " + lifetimeStats.questionsAnswered + " question" + (lifetimeStats.questionsAnswered === 1 ? "" : "s") +
-      " answered (" + pct + "% correct) since she started.";
+      " answered — " + pct + "% correct so far.";
   }
   function formatMathsHistoryDate(iso){
     return parseISO(iso).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
@@ -830,17 +835,17 @@
 
   function renderStreak(mathsHistory){
     var unit = streakSettings.period === "day" ? "day" : "week";
-    streakGoalText.textContent = "Goal: " + streakSettings.threshold + " session" + (streakSettings.threshold === 1 ? "" : "s") +
-      " per " + unit + " to keep the streak going.";
+    streakGoalText.textContent = "Keep it going: " + streakSettings.threshold + " session" + (streakSettings.threshold === 1 ? "" : "s") +
+      " a " + unit + ".";
     if (!mathsHistory.length){
-      streakStatusText.textContent = "No maths sessions yet.";
+      streakStatusText.textContent = "No maths sessions yet — get started to begin a streak!";
       return;
     }
     var result = computeStreak(mathsHistory, streakSettings, new Date());
     var longest = computeLongestStreak(mathsHistory, streakSettings);
     var text = result.streak > 0
-      ? "Current streak: " + result.streak + " " + (result.streak === 1 ? unit : unit + "s") + "."
-      : "No current streak.";
+      ? "You're on a " + result.streak + "-" + unit + " streak!"
+      : "No streak running right now — start one today!";
     if (longest > result.streak){
       text += " Best so far: " + longest + " " + (longest === 1 ? unit : unit + "s") + ".";
     }
@@ -883,10 +888,10 @@
     if (!seen){
       coverageText.textContent = "No questions answered yet.";
     } else if (bankSize){
-      coverageText.textContent = seen + " of " + bankSize + " questions seen at least once (" +
+      coverageText.textContent = "You've tried " + seen + " of " + bankSize + " questions so far (" +
         Math.round((seen / bankSize) * 100) + "%).";
     } else {
-      coverageText.textContent = seen + " question" + (seen === 1 ? "" : "s") + " seen at least once.";
+      coverageText.textContent = "You've tried " + seen + " question" + (seen === 1 ? "" : "s") + " so far.";
     }
 
     var subjectStats = loadSubjectStats();
@@ -921,7 +926,7 @@
     weakSpotList.innerHTML = "";
     if (!missed.length){
       weakSpotNote.hidden = false;
-      weakSpotNote.textContent = "None right now — nothing currently flagged as recently missed.";
+      weakSpotNote.textContent = "Nothing to practice again right now — nice work!";
       return;
     }
     weakSpotNote.hidden = true;
@@ -942,13 +947,13 @@
   }
   function renderExamCountdown(){
     if (!examDateSettings.date){
-      examCountdownText.textContent = "No exam date set yet.";
+      examCountdownText.textContent = "No test date set yet.";
       return;
     }
     var target = parseISO(examDateSettings.date);
     var days = daysBetween(new Date(), target);
     if (days < 0){
-      examCountdownText.textContent = "That date's in the past.";
+      examCountdownText.textContent = "That date's already passed.";
     } else if (days === 0){
       examCountdownText.textContent = "That's today!";
     } else {

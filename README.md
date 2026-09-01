@@ -9,8 +9,9 @@ Two small practice tools for the same pupil, sharing one repo, one look and one 
   falls in one of the school's own holidays and sets a practice target accordingly, then keeps
   generating questions until that many are answered correctly, adapting each operation's
   difficulty to how she's doing along the way.
-- **`entry-test.html`** — practice questions in the style of Skipton Girls' High School's Year 7
-  entry test (the Adventure and Beacon papers), for 11+ preparation. See its own section below.
+- **`entry-test.html`** — practice questions in the style of the FSCE-run Year 7 entry test used
+  by several grammar and independent schools (the Adventure and Beacon papers), for 11+
+  preparation. See its own section below.
 - **`stats.html`** — the read-only Progress page: scores, streaks and history for both practice
   apps. Behind the parent PIN by default, but a parent can turn that off so the child can check
   her own progress without asking.
@@ -105,13 +106,13 @@ It's split into six sections:
 
 All files sit together in the repo root — GitHub Pages serves them as-is, no build step. Each
 HTML file is a complete, self-contained document (styles and script inline) — nothing is built
-or assembled from fragments; `dist/` is just a plain copy of the same files.
+or assembled from fragments.
 
 | File | Purpose |
 |---|---|
 | `index.html` | The hub/menu page — links to the four pages below. |
 | `maths-quiz.html` | The maths practice app — markup, styles and logic in one file. |
-| `entry-test.html` | The Skipton Girls' entry test practice page — same one-file approach. |
+| `entry-test.html` | The 11+ entry test practice page — same one-file approach. |
 | `stats.html` | The read-only Progress page — history and stats for both apps, PIN-locked unless a parent's turned that off. |
 | `admin.html` | The PIN-locked settings/reset page for both apps. |
 | `manifest.json` | PWA manifest for the whole hub, so it can be installed to a phone/tablet home screen. |
@@ -209,9 +210,8 @@ should self-heal on its own the next time it's opened with a connection.
 
 ## Entry test practice (`entry-test.html`)
 
-A separate, standalone page practising the format of Skipton Girls' High School's Year 7 entry
-test, which is run by an external provider called FSCE and used by several grammar schools
-(Skipton Girls', Ermysted's, Reading School and others). Skipton Girls' sits two of FSCE's papers:
+A separate, standalone page practising the format of the Year 7 entry test run by an external
+provider called FSCE and used by several grammar and independent schools. It has two papers:
 
 - **Adventure** — multiple choice (pick one of four options), covering English (short reading
   passages with comprehension questions, plus vocabulary/synonym questions) and maths (reasoning
@@ -229,10 +229,9 @@ holds 999 items: 560 in `ADVENTURE_ITEMS` (30 reading passages with 4 comprehens
 each, 200 vocabulary questions, 240 maths reasoning questions) and 439 in `BEACON_ITEMS` (199
 spelling-scaffold questions, 240 maths word problems) — roughly ten times the original size, so a
 session very rarely repeats the same question across many sittings. **These are not the real
-FSCE questions** — those stay confidential to FSCE and are only ever seen in the school's own
-familiarisation guide (linked from the page, and from Skipton Girls'
-[admissions page](https://www.sghs.org.uk/our-school/admissions)) — this page just practises the
-same two formats and the same style/difficulty of question, written from scratch.
+FSCE questions** — those stay confidential to FSCE and are only ever seen in the relevant school's
+own familiarisation guide — this page just practises the same two formats and the same
+style/difficulty of question, written from scratch.
 
 Sessions aren't a plain random shuffle: each question the page has seen before is remembered as
 last answered right or wrong (a stable id hashed from its text, in `localStorage` under
@@ -288,14 +287,22 @@ on `admin.html` covers this:
 
 Edit `index.html`, `maths-quiz.html`, `entry-test.html`, `stats.html` or `admin.html` directly —
 each is a single, self-contained file (CSS and JS inline, nothing built from anything else), so
-there's no build step to run beyond copying the edited files into `dist/`. After editing, sanity-check it
-locally by opening the file straight in a browser (`file://` works fine for most of the page;
-the service worker registration needs a real HTTPS host to succeed, though the rest of each page
-still works over `file://`).
+there's no build step. After editing, sanity-check it locally by opening the file straight in a
+browser (`file://` works fine for most of the page; the service worker registration needs a real
+HTTPS host to succeed, though the rest of each page still works over `file://`), and see
+[Testing](#testing) below for the automated checks.
 
 To get changes onto GitHub: either edit the files directly in the GitHub web UI ("Edit" pencil
 icon on each file), use "Add file → Upload files" to replace them after editing locally, or
 commit and push from a local clone with Git/GitHub Desktop.
+
+## Testing
+
+`tests/` holds a small Playwright suite covering the things most likely to break silently: the
+PIN gate on `admin.html` and `stats.html`, the streak maths, backup/restore round-tripping every
+setting, the mock exam configuration, and the Progress-page visibility toggle. It's plain Node
+with no bundler — see `tests/README.md` for how to install Playwright and run it locally, and
+`.github/workflows/test.yml` runs the same suite on every push and pull request.
 
 ## Known limitations
 
