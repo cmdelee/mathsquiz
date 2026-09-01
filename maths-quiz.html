@@ -502,19 +502,6 @@
   }
   .foot a{ color:var(--ink-soft); }
   .foot a:hover{ color:var(--accent); }
-  .foot-refresh-btn{
-    background:none;
-    border:none;
-    padding:0;
-    margin:0;
-    font:inherit;
-    font-size:0.78rem;
-    color:var(--ink-faint);
-    text-decoration:underline;
-    cursor:pointer;
-  }
-  .foot-refresh-btn:hover{ color:var(--accent); }
-  .foot-refresh-btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
 
   @media (prefers-reduced-motion: reduce){
     *{ transition:none !important; }
@@ -653,7 +640,6 @@
     <p><a href="index.html">← Back to menu</a></p>
     <p><a href="stats.html">My progress →</a></p>
     <p><a href="admin.html">Parents / Admin →</a></p>
-    <p><button type="button" class="foot-refresh-btn" id="refreshAppBtn">↻ Refresh app / check for updates</button></p>
   </footer>
 
 </div>
@@ -1578,33 +1564,6 @@
         window.location.reload();
       });
     }
-  }
-
-  // ---------- Manual "refresh app" button ----------
-  // A deliberate, always-available way to force a fresh check for updates,
-  // rather than waiting for the browser to notice on its own (which can lag
-  // behind a new deployment). Behind a confirmation so a stray tap can't
-  // trigger it — and if a question's actually in progress, the warning
-  // says so, since refreshing restarts the session and that answer isn't
-  // saved until the session completes.
-  var refreshAppBtn = document.getElementById("refreshAppBtn");
-  if (refreshAppBtn){
-    refreshAppBtn.addEventListener("click", function(){
-      var quizInProgress = attemptedCount > 0 && completionPanel.hidden;
-      var msg = quizInProgress ?
-        "You're partway through today's questions right now. Refreshing will restart this session and today's progress so far will be lost.\n\nRefresh anyway?" :
-        "This will refresh the app and check for the latest updates. Continue?";
-      if (!window.confirm(msg)) return;
-      if ("serviceWorker" in navigator){
-        navigator.serviceWorker.getRegistration().then(function(reg){
-          return reg ? reg.update() : null;
-        }).catch(function(){}).then(function(){
-          window.location.reload();
-        });
-      } else {
-        window.location.reload();
-      }
-    });
   }
 
   // ---------- Install as an app (optional, safe to fail) ----------
