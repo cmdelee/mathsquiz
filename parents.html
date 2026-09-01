@@ -83,9 +83,14 @@
   }
 
   *{box-sizing:border-box;}
-  html{-webkit-text-size-adjust:100%;}
+  /* Stops Chrome/Samsung Internet's pull-down-to-refresh gesture from
+     firing when someone scrolls up past the top of the page (easy to
+     trigger by accident on a tablet mid-quiz, and it throws away
+     whatever question was on screen). Doesn't affect normal scrolling. */
+  html{-webkit-text-size-adjust:100%; overscroll-behavior-y:contain;}
   body{
     margin:0;
+    overscroll-behavior-y:contain;
     background-color:var(--bg);
     background-image:
       radial-gradient(circle at 1px 1px, var(--grain) 1px, transparent 1px);
