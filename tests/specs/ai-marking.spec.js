@@ -687,7 +687,7 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.route(ANTHROPIC_URL, async (route) => {
       const postData = route.request().postDataJSON();
       const userContent = postData && postData.messages && postData.messages[0] && postData.messages[0].content;
-      const isTipRequest = typeof userContent === "string" && userContent.indexOf("Her answer:") !== -1;
+      const isTipRequest = typeof userContent === "string" && userContent.indexOf("Their answer:") !== -1;
       if (isTipRequest){
         tipCallCount++;
         await tipGate;
@@ -735,7 +735,7 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.route(ANTHROPIC_URL, (route) => {
       const postData = route.request().postDataJSON();
       const userContent = postData && postData.messages && postData.messages[0] && postData.messages[0].content;
-      const isTipRequest = typeof userContent === "string" && userContent.indexOf("Her answer:") !== -1;
+      const isTipRequest = typeof userContent === "string" && userContent.indexOf("Their answer:") !== -1;
       if (isTipRequest){
         return route.fulfill({
           status: 500, contentType: "application/json", body: JSON.stringify({ error: { message: "Overloaded." } })

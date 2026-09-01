@@ -8,7 +8,7 @@ Three practice tools for the same pupil, sharing one repo, one look and one hub 
   pupil (age 11–12) at Skipton Parish Church of England Primary School. It checks whether today
   falls in one of the school's own holidays and sets a practice target accordingly, then keeps
   generating questions until that many are answered correctly, adapting each operation's
-  difficulty to how she's doing along the way.
+  difficulty to how they're doing along the way.
 - **`entry-test.html`** — practice questions in the style of the FSCE-run Year 7 entry test used
   by several grammar and independent schools (the Adventure and Beacon papers), for 11+
   preparation. See its own section below.
@@ -19,7 +19,7 @@ Three practice tools for the same pupil, sharing one repo, one look and one hub 
   accepted answers. See its own section below.
 - **`stats.html`** — the read-only Progress page: scores, streaks and history for all three
   practice apps. Behind the parent PIN by default, but a parent can turn that off so the child can
-  check her own progress without asking.
+  check their own progress without asking.
 - **`admin.html`** — the PIN-locked settings and reset controls for all three practice apps (and
   for the Progress page's own visibility, and the AI marking key Trivia needs).
 
@@ -46,14 +46,14 @@ Nothing here reads or writes any answers — it's just a menu.
   positive.
 - **Adaptive difficulty**: each of the four operation types has its own difficulty level that
   rises after a run of correct answers and drops straight back down after a wrong one, so it
-  settles near whatever she finds challenging-but-doable, and gradually climbs over weeks as
-  she improves.
+  settles near whatever they find challenging-but-doable, and gradually climbs over weeks as
+  they improve.
 - **Self-marking, continues until the target is reached**: not a fixed set of questions — it
-  keeps going, including retrying the type she got wrong, until the correct-answer target is
+  keeps going, including retrying the type they got wrong, until the correct-answer target is
   met.
 - **Reports**: at the end of a session, the score can be copied to the clipboard or shared via
   the device's native share sheet — no email, no accounts, no data leaves the device at all.
-- **Streak tracking**: a small badge shows how many days or weeks in a row she's kept up her
+- **Streak tracking**: a small badge shows how many days or weeks in a row they've kept up their
   practice, and the end-of-session message gets a bit more of a celebration once a streak reaches
   two or more. How often, and how many sessions in that time, count towards the streak is an
   admin-page setting (default: 1 session a week) — other families using this app may want a
@@ -74,7 +74,7 @@ Nothing here reads or writes any answers — it's just a menu.
 
 A read-only page showing scores, streaks and history for the maths and entry-test practice apps —
 nothing on it can be changed or reset. By default it's behind the same parent PIN as the admin
-page, but a parent can turn that off from the admin page so the child can check her own progress
+page, but a parent can turn that off from the admin page so the child can check their own progress
 without asking each time. Both practice apps link to it as "My progress". (Trivia keeps its own,
 separate progress summary on `mythology.html` itself — see below — rather than appearing here.)
 
@@ -107,7 +107,7 @@ It's split into seven sections:
   picker at all — unticking one hides it there without touching its saved history or progress, so
   it just picks back up if it's ever re-ticked. At least one subject always has to stay ticked; the
   page refuses to let the last one be unticked rather than leaving an empty picker.
-- **Progress page access**: a single toggle — "Let her open the Progress page without entering
+- **Progress page access**: a single toggle — "Let the Progress page open without entering
   the PIN". Off by default, so the Progress page needs the PIN too, same as this one.
 - **Backup and reset**: download everything above (plus the stats shown on the Progress page) as
   one JSON file, restore from a previously downloaded file (replacing whatever's currently on the
@@ -266,7 +266,7 @@ admin page — by default 20 minutes and 20 questions, but either can be changed
 (minutes 5–90, questions 5–60), e.g. 20 minutes for 15 questions. If time runs out mid-session, it
 finishes automatically with whatever's been answered so far, the same way a real exam would. The
 admin page also has an optional exam date setting (`entryTestExamDateSettings_v1`), shown on the
-Progress page as a "days/weeks to go" countdown to help judge when to lean more of her practice
+Progress page as a "days/weeks to go" countdown to help judge when to lean more of their practice
 towards it.
 
 Each session is self-marked with immediate feedback, and finishes with a score and a list of any
@@ -303,7 +303,7 @@ Each subject is written true to its own source material's actual tone rather tha
 sanitised version of it — Red Dwarf's questions and model answers reference the show's own running
 jokes and characterisation (its fictional "smeg"/"smeghead" expletive, Lister's curry-and-lager
 habits, Rimmer's romantic failures as a recurring joke) rather than sticking to plot/character
-facts alone, on the basis that a subject only gets added here because she's already watched it. A
+facts alone, on the basis that a subject only gets added here because it's already been watched. A
 parent can hide any subject entirely from the picker — see "Trivia subjects" under Parents/Admin
 above — for a subject that isn't wanted, rather than the content itself being watered down.
 
@@ -352,10 +352,10 @@ wasn't a clean sweep, one more request goes to Claude with every question, answe
 that session together (not one at a time, the way marking itself works), asking it to spot a
 single recurring pattern worth fixing next time — leaving out specific names/dates, answering too
 briefly, not quite addressing what the question actually asked, that sort of thing — and hand back
-one short, encouraging sentence written directly to her. It also has a first check for a repeated
+one short, encouraging sentence written directly to them. It also has a first check for a repeated
 joke or clearly non-genuine answer (the same silly thing typed for every question, say) — if it
-spots that pattern, it plays along with a short, playful line referencing what she actually wrote
-instead of generic advice, then nudges her to give it a proper go next time. A session where every
+spots that pattern, it plays along with a short, playful line referencing what they actually wrote
+instead of generic advice, then nudges them to give it a proper go next time. A session where every
 question scored full marks skips this extra request entirely (there's nothing to point out) in
 favour of a plain well-done note, so it only ever costs the small amount of extra API credit when
 there's actually something to learn from. See `generateSessionTip()` in `mythology.html`, right

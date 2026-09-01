@@ -3137,23 +3137,23 @@
     var transcript = answers.map(function(a, i){
       var kindLabel = a.kind === "long" ? "long-answer" : a.kind === "short" ? "quick-answer" : "multiple-choice";
       return (i + 1) + ". [" + kindLabel + "] Question: " + a.prompt +
-        "\n   Her answer: " + (a.answerText || "(no answer given)") +
+        "\n   Their answer: " + (a.answerText || "(no answer given)") +
         "\n   Marked: " + a.marksAwarded + "/" + a.marksAvailable + " marks - " + (a.feedback || "");
     }).join("\n\n");
     var systemPrompt = "You are looking back over a UK Year 6 pupil's just-finished practice quiz of " +
       answers.length + " trivia questions about " + subjectName + " - a mix of long written answers, quick " +
       "single-word answers and multiple-choice picks - each already marked, with feedback. First, check " +
-      "whether several of her typed answers (the long-answer or quick-answer ones) look like the same joke, " +
+      "whether several of their typed answers (the long-answer or quick-answer ones) look like the same joke, " +
       "meme or clearly non-genuine answer repeated on purpose - for example writing something like \"I am a " +
       "fish\" for every question - rather than a real attempt. If so, work out what it's likely referencing " +
-      "and reply with ONE short, playful sentence or two in the same spirit, referencing what she actually " +
+      "and reply with ONE short, playful sentence or two in the same spirit, referencing what they actually " +
       "wrote, followed by a gentle nudge to give it a proper go next time - and nothing else. Otherwise, " +
-      "read all her answers together - especially the longer written ones, where there's the most to go on " +
-      "- and look for ONE clear, recurring pattern in how she could do better, such as leaving out specific " +
+      "read all their answers together - especially the longer written ones, where there's the most to go on " +
+      "- and look for ONE clear, recurring pattern in how they could do better, such as leaving out specific " +
       "names, dates or numbers, answering too briefly, not fully addressing what's actually asked, or " +
       "mixing up similar people or events. Reply with ONLY that one tip: a single short, encouraging, " +
-      "second-person sentence or two, written directly to her, with no preamble, no markdown and no bullet " +
-      "points. If she did well across the board with no clear pattern to fix, just encourage her to keep it " +
+      "second-person sentence or two, written directly to them, with no preamble, no markdown and no bullet " +
+      "points. If they did well across the board with no clear pattern to fix, just encourage them to keep it " +
       "up in one sentence instead.";
 
     return fetch("https://api.anthropic.com/v1/messages", {
