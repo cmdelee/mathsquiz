@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Greek Mythology</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#35664F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quiz App">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --bg:#EEF1E6;
+    --grain:#E3E8D8;
+    --surface:#FFFFFF;
+    --surface-2:#F6F7F0;
+    --border:#D8DECB;
+    --ink:#232B22;
+    --ink-soft:#5B6656;
+    --ink-faint:#8A9483;
+    --accent:#35664F;
+    --accent-ink:#F5FBF6;
+    --accent-soft:#DCEAE1;
+    --gold:#8B6B36;
+    --gold-ink:#FBF6EC;
+    --gold-soft:#EFE3C9;
+    --success:#2E7D4F;
+    --success-bg:#E4F2E6;
+    --error:#B4432F;
+    --error-bg:#FBE7E1;
+    --focus:#35664F;
+    --shadow: 0 1px 2px rgba(35,43,34,0.06), 0 8px 24px -12px rgba(35,43,34,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#171C16;
+      --grain:#1D231B;
+      --surface:#1F251C;
+      --surface-2:#252C21;
+      --border:#333D2C;
+      --ink:#E9ECDF;
+      --ink-soft:#AAB79D;
+      --ink-faint:#748069;
+      --accent:#74B594;
+      --accent-ink:#0E1F16;
+      --accent-soft:#243A2D;
+      --gold:#D6AD6C;
+      --gold-ink:#241C0C;
+      --gold-soft:#3A2F1B;
+      --success:#79D19C;
+      --success-bg:#1E3327;
+      --error:#E8917E;
+      --error-bg:#3A211C;
+      --focus:#74B594;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#171C16;
+    --grain:#1D231B;
+    --surface:#1F251C;
+    --surface-2:#252C21;
+    --border:#333D2C;
+    --ink:#E9ECDF;
+    --ink-soft:#AAB79D;
+    --ink-faint:#748069;
+    --accent:#74B594;
+    --accent-ink:#0E1F16;
+    --accent-soft:#243A2D;
+    --gold:#D6AD6C;
+    --gold-ink:#241C0C;
+    --gold-soft:#3A2F1B;
+    --success:#79D19C;
+    --success-bg:#1E3327;
+    --error:#E8917E;
+    --error-bg:#3A211C;
+    --focus:#74B594;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%; overscroll-behavior-y:contain;}
+  body{
+    margin:0;
+    overscroll-behavior-y:contain;
+    background-color:var(--bg);
+    background-image:
+      radial-gradient(circle at 1px 1px, var(--grain) 1px, transparent 1px);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{
+    max-width:700px;
+    margin:0 auto;
+    padding:40px 20px 64px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+  }
+
+  .masthead{ text-align:left; }
+  .eyebrow{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:0.95rem;
+    color:var(--accent);
+    letter-spacing:0.02em;
+  }
+  h1{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:clamp(1.9rem, 5vw, 2.5rem);
+    line-height:1.08;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .date-line{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:1rem;
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:var(--shadow);
+  }
+
+  .intro-card{ padding:18px 20px; }
+  .intro-card p{
+    margin:0;
+    font-size:0.9rem;
+    color:var(--ink-soft);
+  }
+  .intro-card p + p{ margin-top:8px; }
+  .intro-card a{ color:var(--accent); }
+
+  .quiz{ padding:24px 22px 22px; }
+  .quiz-head h2{
+    margin:0 0 4px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.4rem;
+  }
+  .quiz-sub{
+    margin:0 0 18px;
+    color:var(--ink-soft);
+    font-size:0.9rem;
+    max-width:60ch;
+  }
+  .quiz-sub:last-child{ margin-bottom:0; }
+  .quiz-note{
+    margin:0;
+    font-size:0.9rem;
+    color:var(--ink-soft);
+  }
+  .quiz-note a{ color:var(--accent); }
+
+  .progress-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:20px;
+  }
+  .progress-track{
+    flex:1 1 auto;
+    height:10px;
+    border-radius:999px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background:var(--accent);
+    transition:width 0.25s ease;
+  }
+  .progress-text{
+    flex:0 0 auto;
+    font-size:0.82rem;
+    font-weight:600;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+
+  .question-card{
+    padding:22px 20px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--surface-2);
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    transition:border-color 0.15s ease;
+  }
+  .question-card.is-correct{ border-color:var(--success); }
+  .question-card.is-incorrect{ border-color:var(--error); }
+  .question-card.is-partial{ border-color:var(--gold); }
+  .question-card[hidden]{ display:none; }
+
+  .q-tag-row{ display:flex; align-items:center; gap:8px; }
+  .q-tag{
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-faint);
+    margin:0;
+  }
+  .ai-badge{
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:999px;
+    background:var(--gold-soft);
+    color:var(--gold);
+    font-size:0.68rem;
+    font-weight:600;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+  }
+  .q-prompt{
+    margin:0;
+    font-size:1.08rem;
+    font-weight:600;
+    line-height:1.4;
+    color:var(--ink);
+  }
+
+  .q-answer-long{ display:flex; flex-direction:column; gap:8px; }
+  .long-answer-box{
+    font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size:0.98rem;
+    line-height:1.5;
+    width:100%;
+    min-height:140px;
+    padding:12px 14px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink);
+    resize:vertical;
+  }
+  .long-answer-box:focus-visible{
+    outline:2px solid var(--focus);
+    outline-offset:1px;
+  }
+  .long-answer-box:disabled{ opacity:0.75; }
+
+  .ai-disclosure-card{ padding:22px 20px; }
+  .ai-disclosure-card h2{
+    margin:0 0 10px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.25rem;
+  }
+  .ai-disclosure-card p{
+    margin:0;
+    font-size:0.9rem;
+    line-height:1.55;
+    color:var(--ink-soft);
+  }
+  .ai-disclosure-card p + p{ margin-top:10px; }
+
+  .q-feedback{
+    margin:0;
+    min-height:1.3em;
+    font-size:0.92rem;
+    font-weight:500;
+    color:var(--ink-soft);
+  }
+  .q-feedback.is-correct{ color:var(--success); }
+  .q-feedback.is-incorrect{ color:var(--error); }
+  .q-feedback.is-partial{ color:var(--gold); }
+
+  .q-controls{ display:flex; gap:10px; }
+
+  .completion-panel{
+    padding:30px 24px;
+    text-align:center;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--accent-soft);
+  }
+  .completion-panel h3{
+    margin:0 0 8px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.5rem;
+    color:var(--ink);
+  }
+  .completion-panel p{
+    margin:0 0 18px;
+    color:var(--ink-soft);
+    font-size:0.95rem;
+  }
+  .review-list{
+    text-align:left;
+    list-style:none;
+    margin:0 0 18px;
+    padding:14px 16px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:0.85rem;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .review-list li{ color:var(--ink-soft); }
+  .review-list strong{ color:var(--ink); }
+
+  .quiz-actions{
+    margin-top:18px;
+    padding-top:16px;
+    border-top:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    font:inherit;
+    font-weight:600;
+    font-size:0.92rem;
+    padding:10px 18px;
+    border-radius:7px;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:filter 0.12s ease, background-color 0.12s ease;
+  }
+  .btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .btn-primary{
+    background:var(--accent);
+    color:var(--accent-ink);
+  }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink);
+    border-color:var(--border);
+  }
+  .btn-ghost:hover{ background:var(--surface-2); }
+  .btn:disabled{ cursor:not-allowed; opacity:0.6; }
+
+  .history{ padding:24px 22px 22px; }
+
+  .foot{
+    font-size:0.78rem;
+    color:var(--ink-faint);
+    line-height:1.7;
+    padding:4px 4px 0;
+  }
+  .foot a{ color:var(--ink-soft); }
+  .foot a:hover{ color:var(--accent); }
+
+  .update-banner{
+    position:fixed;
+    left:50%;
+    bottom:18px;
+    transform:translateX(-50%);
+    z-index:9999;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    max-width:min(92vw, 420px);
+    padding:12px 16px;
+    border-radius:10px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    box-shadow:var(--shadow);
+    font-size:0.88rem;
+    color:var(--ink);
+  }
+  .update-banner[hidden]{ display:none; }
+  .update-banner span{ flex:1; }
+  .update-banner button{
+    font:inherit;
+    font-weight:600;
+    font-size:0.85rem;
+    padding:8px 14px;
+    border-radius:7px;
+    border:1px solid transparent;
+    cursor:pointer;
+    background:var(--accent);
+    color:var(--accent-ink);
+    white-space:nowrap;
+  }
+  .update-banner button:hover{ filter:brightness(1.08); }
+  .update-banner button:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<div class="update-banner" id="updateBanner" hidden role="status">
+  <span>An update's ready.</span>
+  <button id="updateBannerBtn" type="button">Refresh</button>
+</div>
+
+<div class="page">
+
+  <header class="masthead">
+    <p class="eyebrow">Just for fun</p>
+    <h1>Greek Mythology</h1>
+    <p class="date-line">Long-answer questions, marked by AI.</p>
+  </header>
+
+  <section class="card intro-card">
+    <p>Five questions on Greek mythology, pitched at a strong Year 6 reader who already knows the subject well. They're free-text rather than multiple choice, since there's no single correct wording to match against — each answer is marked by sending it to an AI (Claude) instead of matching it against a fixed list of accepted answers.</p>
+    <p>This is a standalone page, separate from the 11+ entry test practice — it's here purely for fun, with its own progress tracking below rather than on the main Progress page.</p>
+  </section>
+
+  <section class="card quiz" id="notSetUpCard" hidden>
+    <div class="quiz-head">
+      <h2>Not set up yet</h2>
+      <p class="quiz-sub">Questions here are marked by AI, which needs an API key set up first — nothing is sent anywhere until that's done.</p>
+    </div>
+    <p class="quiz-note">Ask a parent to open the <a href="admin.html">Parents / Admin</a> page and set this up under "AI marking".</p>
+  </section>
+
+  <section class="card quiz" id="startCard" hidden>
+    <div class="quiz-head">
+      <h2>Ready when you are</h2>
+      <p class="quiz-sub" id="startSub">5 questions, one at a time — take your time and write as much as you know.</p>
+    </div>
+    <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none; justify-content:flex-start;">
+      <button id="startBtn" class="btn btn-primary" type="button">Start practice</button>
+    </div>
+  </section>
+
+  <section class="card ai-disclosure-card" id="aiDisclosureView" hidden>
+    <h2>Before you start: how this is marked</h2>
+    <p>These questions don't have one fixed correct wording, so instead of matching what's typed against a list of accepted answers, each answer is sent to an AI (Claude, using the API key entered on the Parents / Admin page) along with the question and a short rubric of what a good answer should cover. It reads the answer and marks it correct, partly there, or not quite — the same way a person marking it would, just automatically.</p>
+    <p>What's actually sent: the question text, the marking rubric, and whatever's typed into the answer box — nothing else about you or the device. It goes straight from this browser to Anthropic's API (the company that makes Claude), not through any server run by this app.</p>
+    <p>This explanation only appears once, on this device — every question here carries a small "AI-marked" badge afterwards as an ongoing reminder that it works this way.</p>
+    <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none;">
+      <button id="aiDisclosureContinueBtn" class="btn btn-primary" type="button">Continue</button>
+      <button id="aiDisclosureBackBtn" class="btn btn-ghost" type="button">Back</button>
+    </div>
+  </section>
+
+  <section class="card quiz" id="quizSection" hidden>
+    <div class="quiz-head">
+      <h2>Greek Mythology</h2>
+      <p class="quiz-sub">Write as much as you know — there's no single "correct" wording, so partial credit is fine.</p>
+    </div>
+
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <span class="progress-text" id="progressText">0 of 0</span>
+    </div>
+
+    <div class="question-card" id="questionCard">
+      <div class="q-tag-row">
+        <p class="q-tag">Greek Mythology</p>
+        <span class="ai-badge">AI-marked</span>
+      </div>
+      <p class="q-prompt" id="qPrompt"></p>
+      <div id="qBody"></div>
+      <p class="q-feedback" id="qFeedback"></p>
+      <div class="q-controls">
+        <button id="checkBtn" class="btn btn-primary" hidden>Mark my answer</button>
+        <button id="nextBtn" class="btn btn-primary" hidden>Next question</button>
+      </div>
+    </div>
+
+    <div class="completion-panel" id="completionPanel" hidden>
+      <h3 id="completionTitle">Session complete!</h3>
+      <p id="completionStats"></p>
+      <ul class="review-list" id="reviewList" hidden></ul>
+      <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none;">
+        <button id="retryBtn" class="btn btn-primary" type="button">Practice again</button>
+        <button id="backBtn" class="btn btn-ghost" type="button">Back</button>
+      </div>
+    </div>
+
+    <div class="quiz-actions" id="quitRow">
+      <button id="quitBtn" class="btn btn-ghost" type="button">Quit for now</button>
+    </div>
+  </section>
+
+  <section class="history card" id="progressSection" hidden>
+    <div class="quiz-head">
+      <h2>Your progress</h2>
+      <p class="quiz-sub" id="progressSummary" style="margin-bottom:0;">No sessions completed yet.</p>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p>Marked by sending each answer to Claude, using the API key set up on the Parents / Admin page — see that page for the full explanation of what's sent.</p>
+    <p><a href="index.html">← Back to menu</a></p>
+    <p><a href="admin.html">Parents / Admin →</a></p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- The question bank ----------
+  // A small trial section: free-text questions with no single right
+  // wording, so they're marked by sending the question, a rubric of what a
+  // good answer should cover, and the typed answer to an AI (configured on
+  // the Parents / Admin page) rather than matched against fixed text.
+  // Pitched at UK Year 6 level but with room to go further, since this is
+  // for a reader who already knows the subject well.
+  var MYTHOLOGY_ITEMS = [
+    { kind:"long", subject:"mythology",
+      prompt:"Who is Zeus, and what is he the god of? Describe at least two other things you know about him.",
+      rubric:[
+        "Zeus is the king of the gods and rules Mount Olympus",
+        "He is the god of the sky and thunder, and his weapon is a thunderbolt/lightning bolt",
+        "Any other accurate fact – e.g. he is the son of Cronus and Rhea, he overthrew his father, he is married to Hera, or he is the father of many other gods and heroes"
+      ],
+      modelAnswer:"Zeus is the king of the gods and rules over Mount Olympus. He is the god of the sky and thunder, and his weapon is a lightning bolt. He is the son of Cronus and Rhea, and he is married to the goddess Hera." },
+    { kind:"long", subject:"mythology",
+      prompt:"Tell the story of Pandora's Box (or Pandora's Jar) in your own words. What was inside it, and what happened when it was opened?",
+      rubric:[
+        "Pandora was the first woman, given a box or jar and told never to open it",
+        "Curiosity got the better of her and she opened it anyway",
+        "All the evils of the world (sickness, sadness, war, and so on) escaped into the world",
+        "Hope was the one thing left inside once she closed it again"
+      ],
+      modelAnswer:"Pandora was the first woman on earth. She was given a jar and told never to open it, but she was so curious that she opened it anyway. All the bad things in the world, like sickness and sadness, flew out. She managed to close the lid just in time to keep one thing inside: hope." },
+    { kind:"long", subject:"mythology",
+      prompt:"Heracles (Hercules) had to complete twelve very difficult tasks known as the Twelve Labours. Explain why he had to do them, and describe two of the labours.",
+      rubric:[
+        "Explains he had to do them as a punishment or penance, often linked to Hera driving him mad and him accidentally killing his own family",
+        "Names and describes at least one real labour accurately – e.g. slaying the Nemean Lion, capturing the Golden Hind, cleaning the Augean stables in a single day, capturing Cerberus, killing the Hydra, and so on",
+        "Names and describes a second real labour accurately"
+      ],
+      modelAnswer:"Heracles had to complete the Twelve Labours as a punishment, because Hera had driven him mad and he had accidentally killed his own family. One labour was killing the Nemean Lion, whose skin couldn't be pierced by weapons, so he had to strangle it. Another was cleaning the Augean stables, which hadn't been cleaned in years, by redirecting a river through them in a single day." },
+    { kind:"long", subject:"mythology",
+      prompt:"What is the Labyrinth, who built it, and what creature lived inside it? Then explain how Theseus managed to escape after defeating it.",
+      rubric:[
+        "The Labyrinth is a maze built by Daedalus, on the orders of King Minos of Crete",
+        "It held the Minotaur, a creature that was half man and half bull",
+        "Theseus volunteered to go in and kill the Minotaur",
+        "Ariadne gave him a ball of thread (or string) so he could find his way back out again"
+      ],
+      modelAnswer:"The Labyrinth was a huge maze built by Daedalus for King Minos of Crete, to hold the Minotaur, a monster that was half man and half bull. Theseus volunteered to go in and kill it. Before he went in, Princess Ariadne gave him a ball of thread to unravel as he walked, so that after he defeated the Minotaur he could follow the thread back out." },
+    { kind:"long", subject:"mythology",
+      prompt:"Choose two Greek gods or goddesses. Explain what each one is god or goddess of, and compare them – how are they similar, and how are they different?",
+      rubric:[
+        "Names two real Greek gods/goddesses correctly",
+        "Correctly states at least one domain or power for each of them",
+        "Makes a genuine comparison rather than just listing two separate facts – a real similarity or a real difference between them"
+      ],
+      modelAnswer:"Athena is the goddess of wisdom and war strategy, while Ares is the god of war too, but of violent, chaotic battle rather than clever strategy. They are similar because they are both connected to war, but different because Athena represents wisdom and careful planning, while Ares represents raw aggression and bloodshed." }
+  ];
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function hashText(s){
+    var hash = 5381;
+    for (var i = 0; i < s.length; i++){
+      hash = (((hash << 5) + hash) + s.charCodeAt(i)) & 0xFFFFFFFF;
+    }
+    return (hash >>> 0).toString(36);
+  }
+  function itemId(item){ return hashText(item.prompt); }
+
+  // ---------- AI marking ----------
+  // Shared with any other AI-marked question page this app might grow —
+  // the settings are written and read the same way, keyed generically
+  // rather than to "mythology", so a future subject can reuse them as-is.
+  var AI_MARKING_SETTINGS_KEY = "aiMarkingSettings_v1";
+  var AI_MARKING_MODEL = "claude-haiku-4-5-20251001";
+
+  function loadAiMarkingSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(AI_MARKING_SETTINGS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return {
+      provider: obj.provider === "claude" ? "claude" : "",
+      apiKey: typeof obj.apiKey === "string" ? obj.apiKey : ""
+    };
+  }
+  function hasAiMarkingKey(){
+    var s = loadAiMarkingSettings();
+    return !!(s.provider && s.apiKey);
+  }
+
+  // One-off disclosure, shown before the very first AI-marked session on a
+  // device, explaining what's sent to the AI and that it's AI marking
+  // rather than a person. Shared across any future AI-marked subject too —
+  // the small "AI-marked" badge on each question card is the ongoing
+  // reminder, so this doesn't show again once seen anywhere in the app.
+  var AI_DISCLOSURE_SEEN_KEY = "aiDisclosureSeen_v1";
+  function hasSeenAiDisclosure(){
+    try { return window.localStorage.getItem(AI_DISCLOSURE_SEEN_KEY) === "1"; } catch (e){ return false; }
+  }
+  function markAiDisclosureSeen(){
+    try { window.localStorage.setItem(AI_DISCLOSURE_SEEN_KEY, "1"); } catch (e){ /* ignore */ }
+  }
+
+  // Sends one question/rubric/answer to Claude and resolves to
+  // { verdict: "correct"|"partial"|"incorrect", feedback: "..." }. Rejects
+  // (with a readable message) on a missing key, a network problem, an API
+  // error, or a response that doesn't parse as expected — the caller puts
+  // the question back into an answerable state if this rejects.
+  function markLongAnswerWithAi(item, answerText){
+    var settings = loadAiMarkingSettings();
+    if (!settings.provider || !settings.apiKey){
+      return Promise.reject(new Error("no API key configured"));
+    }
+    var rubricText = item.rubric.map(function(r, i){ return (i + 1) + ". " + r; }).join("\n");
+    var systemPrompt = "You are marking a UK Year 6 pupil's written answer to a Greek mythology question. " +
+      "Judge it against the rubric below on meaning, not exact wording - synonyms, different phrasing and " +
+      "minor spelling mistakes are all fine as long as the facts are right. Reply with ONLY a JSON object of " +
+      "exactly this shape and nothing else (no markdown, no extra text): " +
+      "{\"verdict\":\"correct\"|\"partial\"|\"incorrect\",\"feedback\":\"...\"}. Use \"correct\" when the answer " +
+      "covers the rubric well, \"partial\" when it's on the right track but missing something notable, and " +
+      "\"incorrect\" when it's wrong, off-topic or barely attempted. \"feedback\" should be one short, " +
+      "encouraging sentence written directly to a ten or eleven year old.";
+    var userContent = "Question: " + item.prompt + "\n\nWhat a good answer should cover:\n" + rubricText +
+      "\n\nPupil's answer:\n" + (answerText || "(no answer given)");
+
+    return fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": settings.apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: AI_MARKING_MODEL,
+        max_tokens: 200,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userContent }]
+      })
+    }).then(function(res){
+      if (!res.ok){
+        return res.text().then(function(bodyText){
+          var msg = "API error (" + res.status + ")";
+          try {
+            var parsedErr = JSON.parse(bodyText);
+            if (parsedErr && parsedErr.error && parsedErr.error.message) msg = parsedErr.error.message;
+          } catch (e){ /* keep the default message */ }
+          throw new Error(msg);
+        });
+      }
+      return res.json();
+    }).then(function(data){
+      var raw = (data && data.content && data.content[0] && data.content[0].text) || "";
+      var cleaned = raw.trim().replace(/^```(json)?/i, "").replace(/```$/, "").trim();
+      var parsed;
+      try { parsed = JSON.parse(cleaned); } catch (e){ parsed = null; }
+      if (!parsed || ["correct", "partial", "incorrect"].indexOf(parsed.verdict) === -1){
+        throw new Error("unexpected response from the AI");
+      }
+      return { verdict: parsed.verdict, feedback: String(parsed.feedback || "").slice(0, 400) };
+    });
+  }
+
+  // ---------- This page's own history and progress ----------
+  // Entirely separate from the entry test app and its Progress page — a
+  // trial, just-for-fun section with its own small tracking here instead.
+  var HISTORY_KEY = "mythologyHistory_v1";
+  var HISTORY_MAX = 100;
+  function loadHistory(){
+    try {
+      var raw = window.localStorage.getItem(HISTORY_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (e){ return []; }
+  }
+  function saveHistory(list){
+    try { window.localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); } catch (e){ /* ignore */ }
+  }
+  function addHistoryRecord(rec){
+    var list = loadHistory();
+    list.unshift(rec);
+    if (list.length > HISTORY_MAX) list.length = HISTORY_MAX;
+    saveHistory(list);
+  }
+
+  var ITEM_STATS_KEY = "mythologyItemStats_v1";
+  function loadItemStats(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(ITEM_STATS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    return (obj && typeof obj === "object") ? obj : {};
+  }
+  function saveItemStats(){
+    try { window.localStorage.setItem(ITEM_STATS_KEY, JSON.stringify(itemStats)); } catch (e){ /* ignore */ }
+  }
+  var itemStats = loadItemStats();
+
+  var TOTALS_KEY = "mythologyTotals_v1";
+  function loadTotals(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(TOTALS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return {
+      correct: typeof obj.correct === "number" ? obj.correct : 0,
+      attempted: typeof obj.attempted === "number" ? obj.attempted : 0
+    };
+  }
+  function saveTotals(t){
+    try { window.localStorage.setItem(TOTALS_KEY, JSON.stringify(t)); } catch (e){ /* ignore */ }
+  }
+  var totals = loadTotals();
+
+  function recordOutcome(item, result){
+    var isCorrect = result.verdict === "correct";
+    itemStats[itemId(item)] = {
+      verdict: result.verdict,
+      feedback: result.feedback,
+      text: item.prompt,
+      lastSeen: new Date().toISOString()
+    };
+    saveItemStats();
+    totals.attempted++;
+    if (isCorrect) totals.correct++;
+    saveTotals(totals);
+    return isCorrect;
+  }
+
+  function formatDate(iso){
+    var d = new Date(iso);
+    return d.toLocaleDateString("en-GB", { weekday:"short", day:"numeric", month:"short" });
+  }
+
+  // Exposed only so the test suite can exercise this without needing to
+  // play through whole sessions, or make real network requests.
+  window.__mythologyAllItems = function(){ return MYTHOLOGY_ITEMS; };
+  window.__mythologyItemId = itemId;
+  window.__mythologyHasAiMarkingKey = hasAiMarkingKey;
+  window.__mythologyMarkAnswer = markLongAnswerWithAi;
+  window.__mythologyCurrentQueue = function(){ return queue; };
+
+  // ---------- Element refs ----------
+  var notSetUpCard = document.getElementById("notSetUpCard");
+  var startCard = document.getElementById("startCard");
+  var startSub = document.getElementById("startSub");
+  var startBtn = document.getElementById("startBtn");
+  var aiDisclosureView = document.getElementById("aiDisclosureView");
+  var aiDisclosureContinueBtn = document.getElementById("aiDisclosureContinueBtn");
+  var aiDisclosureBackBtn = document.getElementById("aiDisclosureBackBtn");
+  var quizSection = document.getElementById("quizSection");
+  var progressFill = document.getElementById("progressFill");
+  var progressText = document.getElementById("progressText");
+  var questionCard = document.getElementById("questionCard");
+  var qPromptEl = document.getElementById("qPrompt");
+  var qBody = document.getElementById("qBody");
+  var qFeedbackEl = document.getElementById("qFeedback");
+  var checkBtn = document.getElementById("checkBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var completionPanel = document.getElementById("completionPanel");
+  var completionTitle = document.getElementById("completionTitle");
+  var completionStats = document.getElementById("completionStats");
+  var reviewList = document.getElementById("reviewList");
+  var retryBtn = document.getElementById("retryBtn");
+  var backBtn = document.getElementById("backBtn");
+  var quitRow = document.getElementById("quitRow");
+  var quitBtn = document.getElementById("quitBtn");
+  var progressSection = document.getElementById("progressSection");
+  var progressSummary = document.getElementById("progressSummary");
+
+  // ---------- Session state ----------
+  var queue = [];
+  var qIndex = 0;
+  var correctCount = 0;
+  var attemptedCount = 0;
+  var checked = false;
+  var missed = [];
+
+  function renderProgressSummary(){
+    var hist = loadHistory();
+    var t = loadTotals();
+    if (!hist.length && !t.attempted){
+      progressSection.hidden = true;
+      return;
+    }
+    progressSection.hidden = false;
+    var parts = [];
+    if (hist.length){
+      var last = hist[0];
+      parts.push("Last time: " + formatDate(last.date) + " — " + last.correct + "/" + last.attempted + " (" + last.pct + "%)");
+    }
+    if (t.attempted){
+      parts.push("All-time: " + t.correct + "/" + t.attempted + " (" + Math.round((t.correct / t.attempted) * 100) + "%)");
+    }
+    progressSummary.textContent = parts.join(" · ");
+  }
+
+  // Shows whichever of "not set up" / "ready to start" applies right now —
+  // re-checked every time this is called, since a parent could set the key
+  // up on admin.html in another tab while this page is still open.
+  function showLanding(){
+    quizSection.hidden = true;
+    aiDisclosureView.hidden = true;
+    if (hasAiMarkingKey()){
+      notSetUpCard.hidden = true;
+      startCard.hidden = false;
+      startSub.textContent = MYTHOLOGY_ITEMS.length + " questions, one at a time — take your time and write as much as you know.";
+    } else {
+      notSetUpCard.hidden = false;
+      startCard.hidden = true;
+    }
+    renderProgressSummary();
+  }
+
+  function showAiDisclosure(){
+    startCard.hidden = true;
+    notSetUpCard.hidden = true;
+    aiDisclosureView.hidden = false;
+  }
+
+  function beginSession(){
+    queue = shuffle(MYTHOLOGY_ITEMS);
+    qIndex = 0;
+    correctCount = 0;
+    attemptedCount = 0;
+    missed = [];
+    notSetUpCard.hidden = true;
+    startCard.hidden = true;
+    aiDisclosureView.hidden = true;
+    quizSection.hidden = false;
+    completionPanel.hidden = true;
+    questionCard.hidden = false;
+    quitRow.hidden = false;
+    updateProgress();
+    loadQuestion();
+  }
+
+  startBtn.addEventListener("click", function(){
+    if (!hasSeenAiDisclosure()){
+      showAiDisclosure();
+      return;
+    }
+    beginSession();
+  });
+  aiDisclosureContinueBtn.addEventListener("click", function(){
+    markAiDisclosureSeen();
+    beginSession();
+  });
+  aiDisclosureBackBtn.addEventListener("click", showLanding);
+
+  function updateProgress(){
+    var total = queue.length;
+    var pct = total ? Math.round((qIndex / total) * 100) : 0;
+    progressFill.style.width = pct + "%";
+    progressText.textContent = "Question " + Math.min(qIndex + 1, total) + " of " + total;
+  }
+
+  function loadQuestion(){
+    if (qIndex >= queue.length){
+      finishSession();
+      return;
+    }
+    var item = queue[qIndex];
+    checked = false;
+    questionCard.classList.remove("is-correct", "is-incorrect", "is-partial");
+    qFeedbackEl.textContent = "";
+    qFeedbackEl.className = "q-feedback";
+    qPromptEl.textContent = item.prompt;
+    qBody.innerHTML = "";
+    checkBtn.hidden = true;
+    checkBtn.disabled = false;
+    checkBtn.textContent = "Mark my answer";
+    nextBtn.hidden = true;
+    renderQuestion(item);
+    updateProgress();
+  }
+
+  // "partial" sits between right and wrong: recorded as a miss in the
+  // end-of-session review (so the model answer shows), but shown and
+  // coloured distinctly from a straightforward "incorrect".
+  function renderQuestion(item){
+    var wrap = document.createElement("div");
+    wrap.className = "q-answer-long";
+    var textarea = document.createElement("textarea");
+    textarea.className = "long-answer-box";
+    textarea.rows = 6;
+    textarea.setAttribute("aria-label", "Your answer");
+    textarea.placeholder = "Write your answer here…";
+    wrap.appendChild(textarea);
+    qBody.appendChild(wrap);
+
+    checkBtn.hidden = false;
+    checkBtn.textContent = "Mark my answer";
+
+    function applyResult(result){
+      checkBtn.hidden = true;
+      var isCorrect = recordOutcome(item, result);
+      var isPartial = result.verdict === "partial";
+      if (isCorrect){
+        correctCount++;
+        questionCard.classList.add("is-correct");
+        qFeedbackEl.className = "q-feedback is-correct";
+      } else if (isPartial){
+        questionCard.classList.add("is-partial");
+        qFeedbackEl.className = "q-feedback is-partial";
+        missed.push({ prompt:item.prompt, correctText:item.modelAnswer });
+      } else {
+        questionCard.classList.add("is-incorrect");
+        qFeedbackEl.className = "q-feedback is-incorrect";
+        missed.push({ prompt:item.prompt, correctText:item.modelAnswer });
+      }
+      var lead = isCorrect ? "Correct! " : (isPartial ? "Partly there. " : "Not quite. ");
+      qFeedbackEl.textContent = lead + (result.feedback || "");
+      nextBtn.hidden = false;
+      nextBtn.focus();
+    }
+
+    function doCheck(){
+      if (checked) return;
+      var answerText = textarea.value.trim();
+      if (!answerText){ textarea.focus(); return; }
+      checked = true;
+      attemptedCount++;
+      textarea.disabled = true;
+      checkBtn.disabled = true;
+      checkBtn.textContent = "Marking…";
+      markLongAnswerWithAi(item, answerText).then(applyResult).catch(function(err){
+        // Roll back to an answerable state rather than leaving it stuck —
+        // most likely cause is a missing/invalid key or no connection.
+        checked = false;
+        attemptedCount--;
+        textarea.disabled = false;
+        checkBtn.disabled = false;
+        checkBtn.textContent = "Mark my answer";
+        qFeedbackEl.textContent = "Couldn't get this marked (" + (err && err.message ? err.message : "network problem") +
+          ") — check the API key on the Parents / Admin page, then try again.";
+        qFeedbackEl.className = "q-feedback is-incorrect";
+      });
+    }
+
+    checkBtn.onclick = doCheck;
+    textarea.focus();
+  }
+
+  nextBtn.addEventListener("click", function(){
+    qIndex++;
+    loadQuestion();
+  });
+
+  function finishSession(){
+    questionCard.hidden = true;
+    quitRow.hidden = true;
+    completionPanel.hidden = false;
+    var pct = attemptedCount ? Math.round((correctCount / attemptedCount) * 100) : 0;
+    completionTitle.textContent = "Session complete!";
+    completionStats.textContent = "You answered " + attemptedCount + " question" + (attemptedCount === 1 ? "" : "s") +
+      " and got " + correctCount + " right (" + pct + "%).";
+    if (missed.length){
+      reviewList.innerHTML = "";
+      reviewList.hidden = false;
+      missed.forEach(function(m){
+        var li = document.createElement("li");
+        var strong = document.createElement("strong");
+        strong.textContent = m.correctText;
+        li.appendChild(document.createTextNode(m.prompt + " — "));
+        li.appendChild(strong);
+        reviewList.appendChild(li);
+      });
+    } else {
+      reviewList.hidden = true;
+    }
+    addHistoryRecord({
+      date: new Date().toISOString(),
+      attempted: attemptedCount,
+      correct: correctCount,
+      pct: pct
+    });
+  }
+
+  retryBtn.addEventListener("click", beginSession);
+  backBtn.addEventListener("click", showLanding);
+  quitBtn.addEventListener("click", showLanding);
+
+  showLanding();
+
+  // ---------- Update available banner ----------
+  if ("serviceWorker" in navigator){
+    var hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener("controllerchange", function(){
+      if (!hadController){ hadController = true; return; } // first install, not an update
+      var banner = document.getElementById("updateBanner");
+      if (banner) banner.hidden = false;
+    });
+    var updateBannerBtn = document.getElementById("updateBannerBtn");
+    if (updateBannerBtn){
+      updateBannerBtn.addEventListener("click", function(){
+        window.location.reload();
+      });
+    }
+  }
+
+  // ---------- Install as an app (optional, safe to fail) ----------
+  if ("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){ /* no sw.js here – fine */ });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

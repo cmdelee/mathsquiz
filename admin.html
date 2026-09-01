@@ -529,12 +529,12 @@
     <section class="card parents-page">
       <div class="quiz-head">
         <h2>AI marking</h2>
-        <p class="quiz-sub">Some question types (currently the trial "Greek Mythology" section) are free-text, with no single right wording, so they can't be marked by matching against a list of accepted answers. Setting this up lets them be marked by AI instead — until it's set up, those questions simply stay hidden on the entry test practice page.</p>
+        <p class="quiz-sub">Some question types are free-text, with no single right wording, so they can't be marked by matching against a list of accepted answers. Setting this up lets them be marked by AI instead. It currently powers the standalone <strong>Greek Mythology</strong> page, and is written to cover any future AI-marked subject the same way — until a key's set up here, those questions simply stay unavailable.</p>
       </div>
 
       <div class="parents-block">
         <h3>How it works, and what's sent</h3>
-        <p class="quiz-sub">When she submits an answer to one of these questions, the question text, a short marking rubric (written for that question, not the real test) and whatever she's typed are sent straight from her browser to the AI provider chosen below — nothing else about her or the device. Nothing is sent anywhere, ever, unless a key is set up here. The API key is stored only in this browser's local storage, the same as everything else on this page — it is never sent anywhere except to that provider, and it's deliberately left out of the backup file below, so it needs re-entering after a restore.</p>
+        <p class="quiz-sub">When she submits an answer to one of these questions, the question text, a short marking rubric (written for that question, not a real exam) and whatever she's typed are sent straight from her browser to the AI provider chosen below — nothing else about her or the device. Nothing is sent anywhere, ever, unless a key is set up here. The API key is stored only in this browser's local storage, the same as everything else on this page — it is never sent anywhere except to that provider, and it's deliberately left out of the backup file below, so it needs re-entering after a restore.</p>
         <p class="quiz-sub">Only <strong>Claude</strong> (Anthropic) is offered right now, because it's the only option that's actually workable for a page like this: it can be called directly from the browser with no server in between, and Anthropic's terms don't rule out use by children the way some others do. Google's Gemini is excluded outright — its API terms say it must not be used in an app "directed towards or is likely to be accessed by individuals under the age of 18". Microsoft Copilot doesn't offer an individual API key to use here at all. ChatGPT/OpenAI could work in principle, but its API blocks being called directly from a browser and would need a small backend server built first — not done yet, so it isn't offered below.</p>
         <div class="settings-body">
           <div class="settings-field">
@@ -552,6 +552,14 @@
           <button id="testAiMarkingBtn" class="btn btn-ghost">Test key</button>
           <button id="clearAiMarkingBtn" class="btn btn-ghost">Clear</button>
           <p class="settings-note" id="aiMarkingNote" hidden></p>
+        </div>
+      </div>
+
+      <div class="parents-block">
+        <h3>Greek Mythology</h3>
+        <p class="quiz-sub">A standalone page of AI-marked long-answer questions — just for fun, not linked to the 11+ entry test practice. Its own history and progress live only on that page, separate from the Progress page.</p>
+        <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none; justify-content:flex-start;">
+          <button id="clearMythologyHistoryBtn" class="btn btn-ghost">Clear Greek Mythology history</button>
         </div>
       </div>
     </section>
@@ -875,9 +883,16 @@
     try { window.localStorage.setItem(SESSION_SIZE_SETTINGS_KEY, JSON.stringify(s)); } catch (e){ /* ignore */ }
   }
 
-  // ---------- AI marking settings (entry test long-answer questions) ----------
-  var AI_MARKING_SETTINGS_KEY = "entryTestAiMarkingSettings_v1";
-  var AI_DISCLOSURE_SEEN_KEY = "entryTestAiDisclosureSeen_v1";
+  // ---------- AI marking settings (shared by any AI-marked question page —
+  // currently just the standalone Greek Mythology page) ----------
+  var AI_MARKING_SETTINGS_KEY = "aiMarkingSettings_v1";
+  var AI_DISCLOSURE_SEEN_KEY = "aiDisclosureSeen_v1";
+  // Greek Mythology's own history/progress data — not part of the entry
+  // test app, so kept as its own keys, but still covered by the backup,
+  // restore and reset controls below like everything else on this device.
+  var MYTHOLOGY_HISTORY_KEY = "mythologyHistory_v1";
+  var MYTHOLOGY_ITEM_STATS_KEY = "mythologyItemStats_v1";
+  var MYTHOLOGY_TOTALS_KEY = "mythologyTotals_v1";
   function loadAiMarkingSettings(){
     var obj = null;
     try {
@@ -940,6 +955,7 @@
   var examDateNote = document.getElementById("examDateNote");
   var clearEntryHistoryBtn = document.getElementById("clearEntryHistoryBtn");
   var clearWeakSpotBtn = document.getElementById("clearWeakSpotBtn");
+  var clearMythologyHistoryBtn = document.getElementById("clearMythologyHistoryBtn");
 
   var mockMinutesInput = document.getElementById("mockMinutesInput");
   var mockQuestionsInput = document.getElementById("mockQuestionsInput");
@@ -1114,6 +1130,15 @@
     }
   });
 
+  clearMythologyHistoryBtn.addEventListener("click", function(){
+    if (window.confirm("Clear all Greek Mythology history and progress on this device? This can't be undone.")){
+      [MYTHOLOGY_HISTORY_KEY, MYTHOLOGY_ITEM_STATS_KEY, MYTHOLOGY_TOTALS_KEY].forEach(function(key){
+        try { window.localStorage.removeItem(key); } catch (e){ /* ignore */ }
+      });
+      window.alert("Cleared.");
+    }
+  });
+
   saveExamDateBtn.addEventListener("click", function(){
     var val = examDateInput.value;
     if (!val){
@@ -1198,7 +1223,7 @@
     }
     aiMarkingSettings = { provider: provider, apiKey: key };
     saveAiMarkingSettingsToStorage(aiMarkingSettings);
-    aiMarkingNote.textContent = "Saved. Greek Mythology is now available on the entry test practice page.";
+    aiMarkingNote.textContent = "Saved. The Greek Mythology page is now available.";
     aiMarkingNote.className = "settings-note is-success";
     aiMarkingNote.hidden = false;
   });
@@ -1304,7 +1329,7 @@
     DIFF_KEY, SETTINGS_KEY, CHILD_NAME_KEY, STREAK_SETTINGS_KEY, TYPE_STATS_KEY, LIFETIME_KEY,
     MATHS_HISTORY_KEY, ENTRY_HISTORY_KEY, ITEM_STATS_KEY, SUBJECT_STATS_KEY, MOCK_SETTINGS_KEY,
     SESSION_SIZE_SETTINGS_KEY, EXAM_DATE_KEY, PIN_KEY, STATS_VISIBLE_KEY, AI_MARKING_SETTINGS_KEY,
-    AI_DISCLOSURE_SEEN_KEY
+    AI_DISCLOSURE_SEEN_KEY, MYTHOLOGY_HISTORY_KEY, MYTHOLOGY_ITEM_STATS_KEY, MYTHOLOGY_TOTALS_KEY
   ];
 
   // AI_MARKING_SETTINGS_KEY holds the AI marking API key in plain text – it

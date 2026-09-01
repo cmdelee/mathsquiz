@@ -169,6 +169,7 @@
     color:var(--accent);
   }
   .nav-card.is-exam .nav-icon{ background:var(--gold-soft); color:var(--gold); }
+  .nav-card.is-mythology .nav-icon{ background:var(--surface-2); color:var(--ink-soft); }
   .nav-card.is-stats .nav-icon{ background:var(--accent-soft); color:var(--accent); }
   .nav-card.is-admin .nav-icon{ background:var(--surface-2); color:var(--ink-soft); }
   .nav-body{ flex:1 1 auto; min-width:0; }
@@ -274,6 +275,16 @@
       <span class="nav-arrow">→</span>
     </a>
 
+    <a class="nav-card is-mythology" href="mythology.html">
+      <span class="nav-icon">⚡</span>
+      <span class="nav-body">
+        <span class="nav-name">Greek Mythology</span>
+        <p class="nav-desc">Just for fun — long-answer questions, marked by AI. Not linked to the 11+ practice.</p>
+        <p class="nav-teaser" id="mythologyTeaser" hidden></p>
+      </span>
+      <span class="nav-arrow">→</span>
+    </a>
+
     <a class="nav-card is-stats" href="stats.html">
       <span class="nav-icon">★</span>
       <span class="nav-body">
@@ -294,7 +305,7 @@
   </nav>
 
   <footer class="foot">
-    <p>Everything here runs on this device only — nothing is sent anywhere.</p>
+    <p>Everything here runs on this device only — nothing is sent anywhere, except Greek Mythology answers if AI marking's been set up, which go to Claude for marking only.</p>
   </footer>
 
 </div>
@@ -339,6 +350,16 @@
       var xEl = document.getElementById("examTeaser");
       xEl.textContent = "Last time: " + x.correct + "/" + x.attempted + " (" + x.pct + "%)";
       xEl.hidden = false;
+    }
+  } catch (e){ /* ignore */ }
+
+  try {
+    var mythList = loadJSONList("mythologyHistory_v1");
+    if (mythList.length){
+      var y = mythList[0];
+      var yEl = document.getElementById("mythologyTeaser");
+      yEl.textContent = "Last time: " + y.correct + "/" + y.attempted + " (" + y.pct + "%)";
+      yEl.hidden = false;
     }
   } catch (e){ /* ignore */ }
 

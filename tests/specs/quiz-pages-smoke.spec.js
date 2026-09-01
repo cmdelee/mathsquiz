@@ -44,4 +44,22 @@ module.exports = async function run({ browser, baseUrl, check }){
 
     await page.close();
   }
+
+  {
+    const page = await browser.newPage();
+    const consoleErrors = [];
+    page.on("pageerror", (err) => consoleErrors.push(String(err)));
+    await page.goto(baseUrl + "/mythology.html");
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.waitForTimeout(200);
+
+    check("mythology.html: loads without a JS error", consoleErrors.length === 0);
+    check("mythology.html: 'Back to menu' footer link -> index.html",
+      await page.locator('footer a:has-text("Back to menu")').getAttribute("href") === "index.html");
+    check("mythology.html: 'Parents / Admin' footer link -> admin.html",
+      await page.locator('footer a:has-text("Parents / Admin")').getAttribute("href") === "admin.html");
+
+    await page.close();
+  }
 };

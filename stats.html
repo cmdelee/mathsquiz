@@ -689,7 +689,7 @@
     var blank = function(){ return { correct:0, attempted:0 }; };
     if (!obj.bySubject || typeof obj.bySubject !== "object") obj.bySubject = {};
     if (!obj.byFormat || typeof obj.byFormat !== "object") obj.byFormat = {};
-    ["english", "maths", "nvr", "mythology"].forEach(function(k){ if (!obj.bySubject[k]) obj.bySubject[k] = blank(); });
+    ["english", "maths", "nvr"].forEach(function(k){ if (!obj.bySubject[k]) obj.bySubject[k] = blank(); });
     ["adventure", "beacon"].forEach(function(k){ if (!obj.byFormat[k]) obj.byFormat[k] = blank(); });
     return obj;
   }
@@ -936,8 +936,8 @@
     renderTrendChart(entryChartWrap, entryChartNote, list);
   }
 
-  var FORMAT_LABEL = { adventure:"Adventure-style (multiple choice)", beacon:"Beacon-style (written answer)", nvr:"NVR", long:"AI-marked" };
-  var SUBJECT_LABEL = { english:"English", maths:"Maths", nvr:"NVR", mythology:"Greek Mythology" };
+  var FORMAT_LABEL = { adventure:"Adventure-style (multiple choice)", beacon:"Beacon-style (written answer)", nvr:"NVR" };
+  var SUBJECT_LABEL = { english:"English", maths:"Maths", nvr:"NVR" };
 
   function renderCoverageAndAccuracy(){
     var stats = loadItemStats();
@@ -955,7 +955,7 @@
     var subjectStats = loadSubjectStats();
     accuracyList.innerHTML = "";
     var any = false;
-    ["english", "maths", "nvr", "mythology"].forEach(function(k){
+    ["english", "maths", "nvr"].forEach(function(k){
       var b = subjectStats.bySubject[k];
       if (b.attempted){
         any = true;
@@ -1050,15 +1050,8 @@
         : regressedCount + " of these had been solidly correct before and are now slipping (marked below) — the rest are still being worked on for the first time.";
     }
     missed.slice(0, WEAK_SPOT_SHOWN).forEach(function(rec){
-      var formatTag = rec.format === "adventure" ? "Adventure" : (rec.format === "nvr" ? "NVR" : (rec.format === "long" ? "AI-marked" : "Beacon"));
-      var tag;
-      if (rec.subject === "nvr"){
-        tag = formatTag;
-      } else if (rec.subject === "mythology"){
-        tag = SUBJECT_LABEL.mythology;
-      } else {
-        tag = (SUBJECT_LABEL[rec.subject] || rec.subject) + " · " + formatTag;
-      }
+      var formatTag = rec.format === "adventure" ? "Adventure" : (rec.format === "nvr" ? "NVR" : "Beacon");
+      var tag = rec.subject === "nvr" ? formatTag : (SUBJECT_LABEL[rec.subject] || rec.subject) + " · " + formatTag;
       if (rec.regressed) tag += " · Slipping back";
       appendHistoryRow(weakSpotList, rec.text, tag, rec.regressed ? "is-regressed" : null);
     });

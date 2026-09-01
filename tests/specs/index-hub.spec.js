@@ -12,8 +12,10 @@ module.exports = async function run({ browser, baseUrl, check }){
     const statsHref = await page.locator("a.nav-card.is-stats").getAttribute("href");
     const mathsHref = await page.locator("a.nav-card.is-maths").getAttribute("href");
     const examHref = await page.locator("a.nav-card.is-exam").getAttribute("href");
+    const mythologyHref = await page.locator("a.nav-card.is-mythology").getAttribute("href");
     check("index.html: maths card -> maths-quiz.html", mathsHref === "maths-quiz.html");
     check("index.html: exam card -> entry-test.html", examHref === "entry-test.html");
+    check("index.html: mythology card -> mythology.html", mythologyHref === "mythology.html");
     check("index.html: stats card -> stats.html", statsHref === "stats.html");
     check("index.html: admin card -> admin.html", adminHref === "admin.html");
 
