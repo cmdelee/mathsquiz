@@ -199,6 +199,7 @@
   }
   .settings-field input[type="number"],
   .settings-field input[type="text"],
+  .settings-field input[type="password"],
   .settings-field select{
     font:inherit;
     font-size:0.9rem;
@@ -210,6 +211,7 @@
   }
   .settings-field input[type="number"]{ width:5.5em; }
   .settings-field input[type="text"]{ width:14em; max-width:100%; }
+  .settings-field input[type="password"]{ width:22em; max-width:100%; font-family:"IBM Plex Mono", ui-monospace, monospace; }
   .settings-field select{ width:auto; }
   .settings-note{
     flex-basis:100%;
@@ -521,6 +523,36 @@
       <div class="quiz-actions">
         <button id="clearEntryHistoryBtn" class="btn btn-ghost">Clear entry test history</button>
         <button id="clearWeakSpotBtn" class="btn btn-ghost">Clear weak-question history</button>
+      </div>
+    </section>
+
+    <section class="card parents-page">
+      <div class="quiz-head">
+        <h2>AI marking</h2>
+        <p class="quiz-sub">Some question types (currently the trial "Greek Mythology" section) are free-text, with no single right wording, so they can't be marked by matching against a list of accepted answers. Setting this up lets them be marked by AI instead — until it's set up, those questions simply stay hidden on the entry test practice page.</p>
+      </div>
+
+      <div class="parents-block">
+        <h3>How it works, and what's sent</h3>
+        <p class="quiz-sub">When she submits an answer to one of these questions, the question text, a short marking rubric (written for that question, not the real test) and whatever she's typed are sent straight from her browser to the AI provider chosen below — nothing else about her or the device. Nothing is sent anywhere, ever, unless a key is set up here. The API key is stored only in this browser's local storage, the same as everything else on this page — it is never sent anywhere except to that provider, and it's deliberately left out of the backup file below, so it needs re-entering after a restore.</p>
+        <p class="quiz-sub">Only <strong>Claude</strong> (Anthropic) is offered right now, because it's the only option that's actually workable for a page like this: it can be called directly from the browser with no server in between, and Anthropic's terms don't rule out use by children the way some others do. Google's Gemini is excluded outright — its API terms say it must not be used in an app "directed towards or is likely to be accessed by individuals under the age of 18". Microsoft Copilot doesn't offer an individual API key to use here at all. ChatGPT/OpenAI could work in principle, but its API blocks being called directly from a browser and would need a small backend server built first — not done yet, so it isn't offered below.</p>
+        <div class="settings-body">
+          <div class="settings-field">
+            <label for="aiProviderInput">Provider</label>
+            <select id="aiProviderInput">
+              <option value="">Not set up</option>
+              <option value="claude">Claude (Anthropic)</option>
+            </select>
+          </div>
+          <div class="settings-field">
+            <label for="aiApiKeyInput">API key</label>
+            <input type="password" id="aiApiKeyInput" autocomplete="off" spellcheck="false" placeholder="sk-ant-…">
+          </div>
+          <button id="saveAiMarkingBtn" class="btn btn-ghost">Save</button>
+          <button id="testAiMarkingBtn" class="btn btn-ghost">Test key</button>
+          <button id="clearAiMarkingBtn" class="btn btn-ghost">Clear</button>
+          <p class="settings-note" id="aiMarkingNote" hidden></p>
+        </div>
       </div>
     </section>
 
@@ -843,6 +875,25 @@
     try { window.localStorage.setItem(SESSION_SIZE_SETTINGS_KEY, JSON.stringify(s)); } catch (e){ /* ignore */ }
   }
 
+  // ---------- AI marking settings (entry test long-answer questions) ----------
+  var AI_MARKING_SETTINGS_KEY = "entryTestAiMarkingSettings_v1";
+  var AI_DISCLOSURE_SEEN_KEY = "entryTestAiDisclosureSeen_v1";
+  function loadAiMarkingSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(AI_MARKING_SETTINGS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return {
+      provider: obj.provider === "claude" ? "claude" : "",
+      apiKey: typeof obj.apiKey === "string" ? obj.apiKey : ""
+    };
+  }
+  function saveAiMarkingSettingsToStorage(s){
+    try { window.localStorage.setItem(AI_MARKING_SETTINGS_KEY, JSON.stringify(s)); } catch (e){ /* ignore */ }
+  }
+
   var MATHS_HISTORY_KEY = "quizAppHistory_v1";
   var ENTRY_HISTORY_KEY = "entryTestHistory_v1";
 
@@ -902,6 +953,13 @@
   var saveSessionSizeBtn = document.getElementById("saveSessionSizeBtn");
   var sessionSizeNote = document.getElementById("sessionSizeNote");
 
+  var aiProviderInput = document.getElementById("aiProviderInput");
+  var aiApiKeyInput = document.getElementById("aiApiKeyInput");
+  var saveAiMarkingBtn = document.getElementById("saveAiMarkingBtn");
+  var testAiMarkingBtn = document.getElementById("testAiMarkingBtn");
+  var clearAiMarkingBtn = document.getElementById("clearAiMarkingBtn");
+  var aiMarkingNote = document.getElementById("aiMarkingNote");
+
   var statsVisibleInput = document.getElementById("statsVisibleInput");
   var statsVisibleNote = document.getElementById("statsVisibleNote");
 
@@ -921,6 +979,7 @@
   var mockSettings = loadMockSettings();
   var sessionSizeSettings = loadSessionSizeSettings();
   var examDateSettings = loadExamDateSettings();
+  var aiMarkingSettings = loadAiMarkingSettings();
   var statsVisible = loadStatsVisible();
 
   function renderChildName(){
@@ -957,6 +1016,11 @@
     statsVisibleInput.checked = statsVisible;
     statsVisibleNote.hidden = true;
   }
+  function renderAiMarkingSettings(){
+    aiProviderInput.value = aiMarkingSettings.provider || "";
+    aiApiKeyInput.value = aiMarkingSettings.apiKey || "";
+    aiMarkingNote.hidden = true;
+  }
 
   function renderAll(){
     renderChildName();
@@ -965,6 +1029,7 @@
     renderExamDate();
     renderMockSettings();
     renderSessionSizeSettings();
+    renderAiMarkingSettings();
     renderStatsVisible();
   }
 
@@ -1122,6 +1187,82 @@
     sessionSizeNote.hidden = false;
   });
 
+  saveAiMarkingBtn.addEventListener("click", function(){
+    var provider = aiProviderInput.value;
+    var key = aiApiKeyInput.value.trim();
+    if (!provider || !key){
+      aiMarkingNote.textContent = "Choose a provider and paste in an API key first.";
+      aiMarkingNote.className = "settings-note is-error";
+      aiMarkingNote.hidden = false;
+      return;
+    }
+    aiMarkingSettings = { provider: provider, apiKey: key };
+    saveAiMarkingSettingsToStorage(aiMarkingSettings);
+    aiMarkingNote.textContent = "Saved. Greek Mythology is now available on the entry test practice page.";
+    aiMarkingNote.className = "settings-note is-success";
+    aiMarkingNote.hidden = false;
+  });
+
+  clearAiMarkingBtn.addEventListener("click", function(){
+    aiMarkingSettings = { provider: "", apiKey: "" };
+    saveAiMarkingSettingsToStorage(aiMarkingSettings);
+    renderAiMarkingSettings();
+    aiMarkingNote.textContent = "Cleared. Long-answer questions are hidden again until a key is set up.";
+    aiMarkingNote.className = "settings-note is-success";
+    aiMarkingNote.hidden = false;
+  });
+
+  testAiMarkingBtn.addEventListener("click", function(){
+    var provider = aiProviderInput.value;
+    var key = aiApiKeyInput.value.trim();
+    if (!provider || !key){
+      aiMarkingNote.textContent = "Choose a provider and paste in an API key first.";
+      aiMarkingNote.className = "settings-note is-error";
+      aiMarkingNote.hidden = false;
+      return;
+    }
+    testAiMarkingBtn.disabled = true;
+    testAiMarkingBtn.textContent = "Testing…";
+    aiMarkingNote.hidden = true;
+    fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": key,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 8,
+        messages: [{ role: "user", content: "Reply with just the word OK." }]
+      })
+    }).then(function(res){
+      if (!res.ok){
+        return res.text().then(function(bodyText){
+          var msg = "API error (" + res.status + ")";
+          try {
+            var parsedErr = JSON.parse(bodyText);
+            if (parsedErr && parsedErr.error && parsedErr.error.message) msg = parsedErr.error.message;
+          } catch (e){ /* keep the default message */ }
+          throw new Error(msg);
+        });
+      }
+      return res.json();
+    }).then(function(){
+      aiMarkingNote.textContent = "Key works.";
+      aiMarkingNote.className = "settings-note is-success";
+      aiMarkingNote.hidden = false;
+    }).catch(function(err){
+      aiMarkingNote.textContent = "Couldn't verify the key (" + (err && err.message ? err.message : "network problem") + ").";
+      aiMarkingNote.className = "settings-note is-error";
+      aiMarkingNote.hidden = false;
+    }).then(function(){
+      testAiMarkingBtn.disabled = false;
+      testAiMarkingBtn.textContent = "Test key";
+    });
+  });
+
   statsVisibleInput.addEventListener("change", function(){
     statsVisible = statsVisibleInput.checked;
     saveStatsVisible(statsVisible);
@@ -1162,12 +1303,18 @@
   var ALL_DATA_KEYS = [
     DIFF_KEY, SETTINGS_KEY, CHILD_NAME_KEY, STREAK_SETTINGS_KEY, TYPE_STATS_KEY, LIFETIME_KEY,
     MATHS_HISTORY_KEY, ENTRY_HISTORY_KEY, ITEM_STATS_KEY, SUBJECT_STATS_KEY, MOCK_SETTINGS_KEY,
-    SESSION_SIZE_SETTINGS_KEY, EXAM_DATE_KEY, PIN_KEY, STATS_VISIBLE_KEY
+    SESSION_SIZE_SETTINGS_KEY, EXAM_DATE_KEY, PIN_KEY, STATS_VISIBLE_KEY, AI_MARKING_SETTINGS_KEY,
+    AI_DISCLOSURE_SEEN_KEY
   ];
 
+  // AI_MARKING_SETTINGS_KEY holds the AI marking API key in plain text – it
+  // deliberately never goes into the downloadable backup file (that key
+  // needs re-entering after a restore), even though "Reset everything"
+  // above does still clear it from this device.
   backupBtn.addEventListener("click", function(){
     var data = {};
     ALL_DATA_KEYS.forEach(function(key){
+      if (key === AI_MARKING_SETTINGS_KEY) return;
       var raw = null;
       try { raw = window.localStorage.getItem(key); } catch (e){ /* ignore */ }
       if (raw !== null) data[key] = raw;
