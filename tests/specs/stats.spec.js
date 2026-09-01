@@ -54,7 +54,10 @@ module.exports = async function run({ browser, baseUrl, check }){
     check("stats.html: maths history rows rendered (2)", await page.locator("#mathsHistoryList .history-row").count() === 2);
     check("stats.html: entry test history summary rendered", (await page.locator("#entryHistorySummary").textContent()).includes("1 session"));
     check("stats.html: coverage text shows bank size", (await page.locator("#coverageText").textContent()).includes("of 999"));
-    check("stats.html: weak-question list shows the incorrect item", await page.locator("#weakSpotList .history-row").count() === 1);
+    check("stats.html (visible=1): weak-question list is NOT shown to a PIN-free (child) viewer",
+      await page.locator("#weakSpotList .history-row").count() === 0);
+    check("stats.html (visible=1): parent-only note shown in its place",
+      await page.locator("#weakSpotLockedNote").isVisible());
     check("stats.html: exam countdown populated", /to go|today|passed/.test(await page.locator("#examCountdownText").textContent()));
     check("stats.html: difficulty levels list has all 4 operation types", await page.locator("#levelList .history-row").count() === 4);
 

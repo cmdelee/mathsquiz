@@ -2613,8 +2613,13 @@ var AMARA_PASSAGE =
   sentence:"Learning a {{blank}} language can open up so many new friendships.",
   word:"foreign", prefix:"for", suffix:"" },
 { kind:"spell", subject:"english",
+  // prefix:"f"/suffix:"y" used to give away no more than "f___y", which
+  // "fifty" fits exactly as well as "forty" does — no way to tell them
+  // apart from the sentence alone. Revealing "fo" instead keeps the same
+  // amount of the word shown (2 letters either way) but only "forty"
+  // starts with it.
   sentence:"Grandad says he has grown roughly {{blank}} different types of rose.",
-  word:"forty", prefix:"f", suffix:"y" },
+  word:"forty", prefix:"fo", suffix:"" },
 { kind:"spell", subject:"english",
   sentence:"The postman visits our street {{blank}}, sometimes twice a day.",
   word:"frequently", prefix:"fre", suffix:"ly" },
@@ -3871,7 +3876,14 @@ var AMARA_PASSAGE =
 
   // ---------- Answer checking ----------
   function normalize(s){
-    return String(s).trim().toLowerCase().replace(/£/g, "").replace(/\s+/g, "");
+    var out = String(s).trim().toLowerCase().replace(/£/g, "").replace(/,/g, "").replace(/\s+/g, "");
+    // "£3.06p" / "3.06p" – a trailing "p" after a pounds-and-pence decimal
+    // is just habitual currency notation, not a pence multiplier, so drop
+    // it once there's already a decimal point (a bare "45p" is genuinely
+    // 45 pence and is left alone – that's handled by listing "45p" as one
+    // of a question's own accepted answers instead).
+    out = out.replace(/^(-?\d+\.\d+)p$/, "$1");
+    return out;
   }
   function isNumericStr(s){
     return /^-?\d+(\.\d+)?$/.test(s);
@@ -3886,6 +3898,11 @@ var AMARA_PASSAGE =
     }
     return false;
   }
+
+  // Exposed only so the test suite can exercise answer-checking directly
+  // against a chosen item, rather than needing to land on one specific
+  // question out of a randomised session.
+  window.__entryTestAnswerCheck = shortAnswerCorrect;
 
   // ---------- Local history ----------
   // Only the most recent session shows here — full history lives on the

@@ -450,6 +450,8 @@
         <h3>Questions to practice again</h3>
         <p class="quiz-sub" id="weakSpotNote">None right now.</p>
         <ul class="history-list" id="weakSpotList"></ul>
+        <p class="quiz-sub" id="weakSpotLockedNote" hidden>This bit's just for parents.</p>
+        <button type="button" class="btn btn-ghost" id="weakSpotUnlockBtn" hidden>Parent: enter PIN to view</button>
       </div>
 
       <div class="parents-block">
@@ -816,6 +818,8 @@
   var accuracyList = document.getElementById("accuracyList");
   var weakSpotNote = document.getElementById("weakSpotNote");
   var weakSpotList = document.getElementById("weakSpotList");
+  var weakSpotLockedNote = document.getElementById("weakSpotLockedNote");
+  var weakSpotUnlockBtn = document.getElementById("weakSpotUnlockBtn");
   var examCountdownText = document.getElementById("examCountdownText");
 
   // ---------- Render: maths practice ----------
@@ -958,6 +962,19 @@
 
   var WEAK_SPOT_SHOWN = 15;
   function renderWeakSpotList(){
+    // The actual question text here is the one thing on this page that
+    // shouldn't be visible when a child's opened it via the PIN-free
+    // toggle — only when someone's unlocked the page with the real PIN.
+    if (!unlockedViaPin){
+      weakSpotNote.hidden = true;
+      weakSpotList.innerHTML = "";
+      weakSpotLockedNote.hidden = false;
+      weakSpotUnlockBtn.hidden = false;
+      return;
+    }
+    weakSpotLockedNote.hidden = true;
+    weakSpotUnlockBtn.hidden = true;
+
     var stats = loadItemStats();
     var missed = Object.keys(stats)
       .map(function(id){ return stats[id]; })
@@ -1024,9 +1041,15 @@
     catch (e){ return false; }
   }
 
-  function unlock(){
+  // True only once the real PIN's been entered — never just because the
+  // child-visible toggle skipped the lock screen. The weak-spot list of
+  // actual question text is gated on this, not on being unlocked at all.
+  var unlockedViaPin = false;
+
+  function unlock(viaPin){
     lockCard.hidden = true;
     statsView.hidden = false;
+    unlockedViaPin = !!viaPin;
     renderAll();
   }
 
@@ -1045,7 +1068,27 @@
         window.alert("Incorrect PIN.");
         return;
       }
-      unlock();
+      unlock(true);
+    });
+  });
+
+  weakSpotUnlockBtn.addEventListener("click", function(){
+    var storedHash = loadPinHash();
+
+    if (!storedHash){
+      window.alert("No parent PIN has been set up yet. Ask a parent to visit the Parents / Admin page first.");
+      return;
+    }
+
+    var entered = window.prompt("Enter the parent PIN:");
+    if (entered === null) return;
+    hashPin(entered.trim()).then(function(enteredHash){
+      if (enteredHash !== storedHash){
+        window.alert("Incorrect PIN.");
+        return;
+      }
+      unlockedViaPin = true;
+      renderWeakSpotList();
     });
   });
 
