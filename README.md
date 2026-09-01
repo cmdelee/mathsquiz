@@ -290,9 +290,11 @@ involved) — see `MYTHOLOGY_ITEMS`/`MYTHOLOGY_QUICK_ITEMS`, `HARRY_POTTER_ITEMS
 `HARRY_POTTER_QUICK_ITEMS`, `STRANGER_THINGS_ITEMS`/`STRANGER_THINGS_QUICK_ITEMS` and
 `RED_DWARF_ITEMS`/`RED_DWARF_QUICK_ITEMS` in `mythology.html`. Picking a subject draws 25 questions
 at random from that combined pool (`buildSessionQueue()`), with two guarantees: at least one
-question of each kind (long-answer, multiple-choice, quick-answer) every time, and never more than
-5 long-answer questions in one session, so a session is quick to get through rather than mostly
-slow, effortful free-text marking.
+question of each kind the session actually draws from (long-answer, multiple-choice, quick-answer)
+every time, and never more than 5 long-answer questions in one session, so a session is quick to
+get through rather than mostly slow, effortful free-text marking. Long-answer questions need an AI
+marking key to be marked at all (see below), so without one they're left out of the pool entirely
+and a session is just multiple-choice/quick-answer.
 
 Kept at the `mythology.html` filename/URL even though it's grown beyond just mythology, so any
 existing bookmark or home-screen install still opens it.
@@ -321,9 +323,15 @@ mark and never carry that badge, since there's nothing to send anywhere for thos
 long-answer question, the question, its rubric and whatever's been typed are sent straight from
 the browser to Claude (Anthropic's AI), which comes back with a marks score out of that question's
 own total and a line of feedback explaining what earned or missed a mark — full marks colours the
-question card green, zero marks red, anything in between amber. Nothing is sent anywhere unless an
-API key's been set up on the admin page first (see "AI marking" above), and the page makes that
-clear with a one-off disclosure the first time it's used, before anything's ever sent.
+question card green, zero marks red, anything in between amber.
+
+The rest of Trivia works without an AI marking key being set up at all — it's only the long-answer
+questions that need one. Without a key, the subject picker and quick-answer sessions are fully
+usable, a note on the landing page explains that the longer questions are left out until a key's
+set up (see "AI marking" under Parents/Admin above), and picking a subject skips straight into a
+session rather than showing the one-off AI disclosure, since nothing's being sent anywhere. Once a
+key is set up, that disclosure appears once, the first time a session is started, explaining what's
+sent and to whom before anything actually is.
 
 This needs a Claude API key of your own (get one at
 [console.anthropic.com](https://console.anthropic.com)) — it isn't bundled with the app, and each
@@ -407,7 +415,7 @@ commit and push from a local clone with Git/GitHub Desktop.
 
 ## Testing
 
-`tests/` holds a Playwright suite (360+ checks as of the last update) covering the things most
+`tests/` holds a Playwright suite (365+ checks as of the last update) covering the things most
 likely to break silently: the PIN gate on `admin.html` and `stats.html`, the streak maths,
 backup/restore round-tripping every setting, the mock exam configuration, the Progress-page
 visibility toggle, and Trivia's subject picker (including per-subject enable/disable, with a guard
@@ -438,7 +446,8 @@ see `tests/README.md` for how to install Playwright and run it locally, and
 - Trivia's four subject banks are likewise fixed — 20 written long-answer questions plus around
   100 quick multiple-choice/single-word questions each — adding more follows the same pattern,
   appending to the relevant `*_ITEMS`/`*_QUICK_ITEMS` array in `mythology.html`.
-- Trivia needs its own Claude API key and a live connection to mark answers — without one it just
-  shows a "not set up" message rather than falling back to anything else, and each answer marked
-  spends a small amount of that key's own balance (a fraction of a cent per answer on the model
-  used, `claude-haiku-4-5`).
+- Trivia works without a Claude API key, but the long-answer questions need a live connection to
+  mark them, so without one they're left out of sessions entirely — a note on the page says so and
+  points to `admin.html`. Each long-answer question marked spends a small amount of that key's own
+  balance (a fraction of a cent per answer on the model used, `claude-haiku-4-5`);
+  multiple-choice/quick-answer questions cost nothing either way.

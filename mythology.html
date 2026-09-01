@@ -520,22 +520,18 @@
   </header>
 
   <section class="card intro-card">
-    <p>Trivia across four subjects — Greek Mythology, Harry Potter, Stranger Things and Red Dwarf — pitched at a strong Year 6 reader who already knows them well. Each session is 25 random questions from that subject's own pool: mostly quick multiple-choice and single-word questions marked instantly, plus up to 5 longer free-text ones. The free-text questions don't have one fixed correct wording, so those are marked by sending them to an AI (Claude) instead of matching against a fixed list of accepted answers — everything else is matched and marked on this device, with nothing sent anywhere.</p>
+    <p>Trivia across four subjects — Greek Mythology, Harry Potter, Stranger Things and Red Dwarf — pitched at a strong Year 6 reader who already knows them well. Each session is 25 random questions from that subject's own pool: mostly quick multiple-choice and single-word questions marked instantly, plus up to 5 longer free-text ones once AI marking's been set up (see below) — until then, sessions stick to the quick questions only. The free-text questions don't have one fixed correct wording, so those are marked by sending them to an AI (Claude) instead of matching against a fixed list of accepted answers — everything else is matched and marked on this device, with nothing sent anywhere.</p>
     <p>This is a standalone page, separate from the 11+ entry test practice — it's here purely for fun, with its own progress tracking below rather than on the main Progress page.</p>
   </section>
 
   <section class="card quiz" id="notSetUpCard" hidden>
-    <div class="quiz-head">
-      <h2>Not set up yet</h2>
-      <p class="quiz-sub">A few questions each session are marked by AI, which needs an API key set up first — nothing is sent anywhere until that's done.</p>
-    </div>
-    <p class="quiz-note">Ask a parent to open the <a href="admin.html">Parents / Admin</a> page and set this up under "AI marking".</p>
+    <p class="quiz-note">A few questions each session are longer, free-text ones marked by AI — those need an API key set up first, so sessions leave them out and stick to the quick questions until then. Ask a parent to open the <a href="admin.html">Parents / Admin</a> page and set this up under "AI marking" if you'd like those included too.</p>
   </section>
 
   <section class="card quiz" id="subjectPickerCard" hidden>
     <div class="quiz-head">
       <h2>Pick a subject</h2>
-      <p class="quiz-sub">25 random questions each time, one at a time — a mix of quick picks and a few longer ones to write.</p>
+      <p class="quiz-sub">25 random questions each time, one at a time — a mix of quick picks and, once AI marking's set up, a few longer ones to write.</p>
     </div>
     <div class="subject-options">
       <button class="subject-btn" data-subject="mythology">
@@ -2914,16 +2910,23 @@
   // questions, since those are the slow, effortful ones. Everything else
   // is drawn at random with no further weighting, then shuffled again so
   // the guaranteed picks aren't always first.
+  //
+  // Long-answer questions are marked by AI, so without an API key set up
+  // there's nothing that can mark them — they're left out of the pool
+  // entirely rather than being offered and failing to mark. Sessions then
+  // fall back to just the multiple-choice/short-answer guarantee.
   function buildSessionQueue(subjectKey){
     var pool = ITEMS_BY_SUBJECT[subjectKey] || [];
+    var allowLong = hasAiMarkingKey();
     var byKind = { long: [], mcq: [], short: [] };
     shuffle(pool).forEach(function(item){
+      if (item.kind === "long" && !allowLong) return;
       if (byKind[item.kind]) byKind[item.kind].push(item);
     });
 
     var picked = [];
     var longCount = 0;
-    ["long", "mcq", "short"].forEach(function(kind){
+    (allowLong ? ["long", "mcq", "short"] : ["mcq", "short"]).forEach(function(kind){
       if (byKind[kind].length){
         var item = byKind[kind].shift();
         picked.push(item);
@@ -3447,13 +3450,8 @@
   function showLanding(){
     quizSection.hidden = true;
     aiDisclosureView.hidden = true;
-    if (hasAiMarkingKey()){
-      notSetUpCard.hidden = true;
-      subjectPickerCard.hidden = false;
-    } else {
-      notSetUpCard.hidden = false;
-      subjectPickerCard.hidden = true;
-    }
+    notSetUpCard.hidden = hasAiMarkingKey();
+    subjectPickerCard.hidden = false;
     var enabledMap = loadTriviaEnabledSubjects();
     var anyEnabled = subjectButtons.some(function(btn){
       return isTriviaSubjectEnabled(enabledMap, btn.getAttribute("data-subject"));
@@ -3505,7 +3503,10 @@
   subjectButtons.forEach(function(btn){
     btn.addEventListener("click", function(){
       var subjectKey = btn.getAttribute("data-subject");
-      if (!hasSeenAiDisclosure()){
+      // Nothing's sent to an AI at all without a key set up — the session
+      // just won't have any long-answer questions in it — so there's
+      // nothing here that needs disclosing yet.
+      if (hasAiMarkingKey() && !hasSeenAiDisclosure()){
         showAiDisclosure(subjectKey);
         return;
       }

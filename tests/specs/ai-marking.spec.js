@@ -207,7 +207,7 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.close();
   }
 
-  // ---- landing: gated on a key actually being configured ----
+  // ---- landing: usable even without a key, but long-answer questions are gated on one ----
   {
     const page = await browser.newPage();
     await page.goto(baseUrl + "/mythology.html");
@@ -215,12 +215,26 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.reload();
     await page.waitForTimeout(150);
 
-    check("mythology.html: 'not set up yet' card shows with no AI marking key set",
+    check("mythology.html: the subject picker is available even with no AI marking key set",
+      await page.locator("#subjectPickerCard").isVisible());
+    check("mythology.html: a note explains long-answer questions are left out without a key",
       await page.locator("#notSetUpCard").isVisible());
-    check("mythology.html: the subject picker is hidden until then",
-      await page.locator("#subjectPickerCard").isHidden());
-    check("mythology.html: the not-set-up card points to Parents / Admin",
+    check("mythology.html: the note points to Parents / Admin",
       /Parents \/ Admin/.test(await page.locator("#notSetUpCard").textContent()));
+
+    // Picking a subject with no key set skips the AI disclosure entirely — nothing's
+    // being sent to an AI — and goes straight into a session with no long-answer items.
+    await page.click('[data-subject="mythology"]');
+    await page.waitForTimeout(150);
+    check("mythology.html: picking a subject with no key skips the AI disclosure",
+      await page.locator("#aiDisclosureView").isHidden() && await page.locator("#quizSection").isVisible());
+    const queueWithoutKey = await page.evaluate(() => window.__mythologyCurrentQueue());
+    check("mythology.html: a session with no AI marking key has no long-answer questions",
+      queueWithoutKey.every((item) => item.kind !== "long"));
+    check("mythology.html: a session with no AI marking key is still a full 25 questions",
+      queueWithoutKey.length === 25);
+    await page.click("#quitBtn");
+    await page.waitForTimeout(100);
 
     await page.evaluate((key) => {
       localStorage.setItem(key, JSON.stringify({ provider: "claude", apiKey: "sk-ant-test-key" }));
@@ -228,9 +242,9 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.reload();
     await page.waitForTimeout(150);
 
-    check("mythology.html: the subject picker appears once a key is configured",
+    check("mythology.html: the subject picker is still shown once a key is configured",
       await page.locator("#subjectPickerCard").isVisible());
-    check("mythology.html: 'not set up yet' card is hidden once a key is configured",
+    check("mythology.html: the 'no key' note is hidden once a key is configured",
       await page.locator("#notSetUpCard").isHidden());
     check("mythology.html: all four subjects are offered as picker buttons",
       await page.locator(".subject-btn").count() === 4);
