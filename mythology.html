@@ -348,6 +348,31 @@
   .review-list li{ color:var(--ink-soft); }
   .review-list strong{ color:var(--ink); }
 
+  .session-tip{
+    text-align:left;
+    margin:0 0 18px;
+    padding:14px 16px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-left:3px solid var(--accent);
+    border-radius:8px;
+  }
+  .session-tip-label{
+    margin:0 0 4px;
+    font-size:0.72rem;
+    font-weight:700;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--accent);
+  }
+  .session-tip-text{
+    margin:0;
+    font-size:0.9rem;
+    line-height:1.5;
+    color:var(--ink-soft);
+  }
+  .session-tip-text.is-loading{ font-style:italic; }
+
   .quiz-actions{
     margin-top:18px;
     padding-top:16px;
@@ -518,6 +543,10 @@
       <h3 id="completionTitle">Session complete!</h3>
       <p id="completionStats"></p>
       <ul class="review-list" id="reviewList" hidden></ul>
+      <div class="session-tip" id="sessionTip" hidden>
+        <p class="session-tip-label">Tip for next time</p>
+        <p class="session-tip-text" id="sessionTipText"></p>
+      </div>
       <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none;">
         <button id="retryBtn" class="btn btn-primary" type="button">Practice again</button>
         <button id="backBtn" class="btn btn-ghost" type="button">Back</button>
@@ -1241,6 +1270,71 @@
     });
   }
 
+  // One extra AI call once a session finishes (only when it's not a clean
+  // sweep - see finishSession), looking back across every answer together
+  // rather than one question at a time, to spot a single recurring pattern
+  // worth fixing next time - leaving out names/dates, answering too
+  // briefly, not fully addressing what's actually being asked, and so on.
+  // Same key and model as marking itself. Resolves to a short plain-text
+  // tip (not JSON - there's nothing to route on here); rejects the same
+  // way markLongAnswerWithAi does, and the caller just hides the tip box
+  // on failure rather than blocking or spoiling the completion screen.
+  function generateSessionTip(subjectKey, answers){
+    var settings = loadAiMarkingSettings();
+    if (!settings.provider || !settings.apiKey){
+      return Promise.reject(new Error("no API key configured"));
+    }
+    var subjectName = SUBJECT_NAME[subjectKey] || "trivia";
+    var transcript = answers.map(function(a, i){
+      return (i + 1) + ". Question: " + a.prompt +
+        "\n   Her answer: " + (a.answerText || "(no answer given)") +
+        "\n   Marked: " + a.verdict + " - " + (a.feedback || "");
+    }).join("\n\n");
+    var systemPrompt = "You are looking back over a UK Year 6 pupil's just-finished practice session of " +
+      answers.length + " long-answer trivia questions about " + subjectName + ", each already marked " +
+      "correct, partial or incorrect with its own feedback. Read all of them together and look for ONE " +
+      "clear, recurring pattern in how she could do better next time - for example leaving out specific " +
+      "names, dates or numbers, answering too briefly, not fully addressing what the question actually " +
+      "asks, or mixing up similar people or events. Reply with ONLY that one tip: a single short, " +
+      "encouraging, second-person sentence or two, written directly to her, with no preamble, no markdown " +
+      "and no bullet points. If she did well across the board with no clear pattern to fix, just encourage " +
+      "her to keep it up in one sentence instead.";
+
+    return fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": settings.apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: AI_MARKING_MODEL,
+        max_tokens: 150,
+        system: systemPrompt,
+        messages: [{ role: "user", content: transcript }]
+      })
+    }).then(function(res){
+      if (!res.ok){
+        return res.text().then(function(bodyText){
+          var msg = "API error (" + res.status + ")";
+          try {
+            var parsedErr = JSON.parse(bodyText);
+            if (parsedErr && parsedErr.error && parsedErr.error.message) msg = parsedErr.error.message;
+          } catch (e){ /* keep the default message */ }
+          throw new Error(msg);
+        });
+      }
+      return res.json();
+    }).then(function(data){
+      var blocks = (data && Array.isArray(data.content)) ? data.content : [];
+      var textBlock = blocks.filter(function(b){ return b && b.type === "text" && typeof b.text === "string"; })[0];
+      var text = textBlock ? textBlock.text.trim() : "";
+      if (!text) throw new Error("unexpected response from the AI");
+      return text.slice(0, 400);
+    });
+  }
+
   // ---------- This page's own history and progress, tracked per subject ----------
   // Entirely separate from the entry test app and its Progress page — a
   // just-for-fun trivia section with its own small tracking here instead,
@@ -1394,6 +1488,8 @@
   var completionTitle = document.getElementById("completionTitle");
   var completionStats = document.getElementById("completionStats");
   var reviewList = document.getElementById("reviewList");
+  var sessionTip = document.getElementById("sessionTip");
+  var sessionTipText = document.getElementById("sessionTipText");
   var retryBtn = document.getElementById("retryBtn");
   var backBtn = document.getElementById("backBtn");
   var quitRow = document.getElementById("quitRow");
@@ -1408,6 +1504,11 @@
   var attemptedCount = 0;
   var checked = false;
   var missed = [];
+  // Every question answered this session (right, wrong or partial), with
+  // what was actually typed - not just the ones missed - so the
+  // end-of-session tip below can look for a pattern across the whole
+  // session rather than judging each miss in isolation.
+  var sessionAnswers = [];
   var currentSubject = null;
   // The subject a child tapped, waiting on the one-off disclosure before a
   // session actually starts for it.
@@ -1485,6 +1586,7 @@
     correctCount = 0;
     attemptedCount = 0;
     missed = [];
+    sessionAnswers = [];
     quizTitle.textContent = SUBJECT_NAME[subjectKey] || "Trivia";
     notSetUpCard.hidden = true;
     subjectPickerCard.hidden = true;
@@ -1560,7 +1662,7 @@
     checkBtn.hidden = false;
     checkBtn.textContent = "Mark my answer";
 
-    function applyResult(result){
+    function applyResult(result, answerText){
       // The session may have moved on (quit, or a new one started) while
       // this was in flight — a late reply for an abandoned question must
       // not mutate whatever's on screen now.
@@ -1581,6 +1683,12 @@
         qFeedbackEl.className = "q-feedback is-incorrect";
         missed.push({ prompt:item.prompt, correctText:item.modelAnswer });
       }
+      sessionAnswers.push({
+        prompt: item.prompt,
+        answerText: answerText,
+        verdict: result.verdict,
+        feedback: result.feedback || ""
+      });
       var lead = isCorrect ? "Correct! " : (isPartial ? "Partly there. " : "Not quite. ");
       qFeedbackEl.textContent = lead + (result.feedback || "");
       nextBtn.hidden = false;
@@ -1596,7 +1704,9 @@
       textarea.disabled = true;
       checkBtn.disabled = true;
       checkBtn.textContent = "Marking…";
-      markLongAnswerWithAi(item, answerText).then(applyResult).catch(function(err){
+      markLongAnswerWithAi(item, answerText).then(function(result){
+        applyResult(result, answerText);
+      }).catch(function(err){
         // Same staleness guard as applyResult — don't roll back a question
         // that isn't the live one any more.
         if (myToken !== sessionToken) return;
@@ -1651,6 +1761,36 @@
       correct: correctCount,
       pct: pct
     });
+
+    // A short tip looking across the whole session for a pattern worth
+    // fixing next time. Skipped (no extra API call) on a clean sweep —
+    // there's nothing to point out — in favour of a plain well-done note.
+    // sessionToken is captured now and checked when the request resolves,
+    // same staleness guard as the per-question marking calls, so quitting
+    // or starting a new session before it replies can't mutate a screen
+    // that's since moved on.
+    var tipToken = sessionToken;
+    if (attemptedCount && correctCount === attemptedCount){
+      sessionTip.hidden = false;
+      sessionTipText.className = "session-tip-text";
+      sessionTipText.textContent = "Every answer hit the mark this session — keep it up!";
+    } else if (sessionAnswers.length){
+      sessionTip.hidden = false;
+      sessionTipText.className = "session-tip-text is-loading";
+      sessionTipText.textContent = "Working out a tip for next time…";
+      generateSessionTip(currentSubject, sessionAnswers).then(function(tip){
+        if (tipToken !== sessionToken) return;
+        sessionTipText.className = "session-tip-text";
+        sessionTipText.textContent = tip;
+      }).catch(function(){
+        // Best-effort only — a failed tip shouldn't spoil an otherwise
+        // complete session, so it's just hidden rather than shown as an error.
+        if (tipToken !== sessionToken) return;
+        sessionTip.hidden = true;
+      });
+    } else {
+      sessionTip.hidden = true;
+    }
   }
 
   retryBtn.addEventListener("click", function(){ beginSession(currentSubject); });

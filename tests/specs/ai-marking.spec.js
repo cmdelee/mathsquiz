@@ -256,7 +256,11 @@ module.exports = async function run({ browser, baseUrl, check }){
   // ---- its own progress tracking, per subject, separate from stats.html ----
   {
     const page = await browser.newPage();
-    await page.route(ANTHROPIC_URL, (route) => route.fulfill(claudeResponse("correct", "Nice work.")));
+    let markingCalls = 0;
+    await page.route(ANTHROPIC_URL, (route) => {
+      markingCalls++;
+      return route.fulfill(claudeResponse("correct", "Nice work."));
+    });
     await page.goto(baseUrl + "/mythology.html");
     await page.evaluate((keys) => {
       localStorage.clear();
@@ -284,6 +288,11 @@ module.exports = async function run({ browser, baseUrl, check }){
       await page.locator("#completionPanel").isVisible());
     check("mythology.html: the completion panel reports the session score",
       /5 right/.test(await page.locator("#completionStats").textContent()));
+    check("mythology.html: a perfect session shows a well-done tip rather than a generated one",
+      await page.locator("#sessionTip").isVisible() &&
+      /keep it up/i.test(await page.locator("#sessionTipText").textContent()));
+    check("mythology.html: a perfect session doesn't spend a 6th AI call generating a tip",
+      markingCalls === 5);
     await page.click("#backBtn");
     await page.waitForTimeout(150);
 
@@ -307,6 +316,114 @@ module.exports = async function run({ browser, baseUrl, check }){
         localStorage.getItem("entryTestSubjectStats_v1") === null;
     });
     check("mythology.html: doesn't write to entry-test.html's history or subject-stats keys", noCrossContamination);
+
+    await page.close();
+  }
+
+  // ---- session tip: a mixed (not perfect) session gets an AI-generated, pattern-spotting tip ----
+  {
+    const page = await browser.newPage();
+    let markingCallCount = 0;
+    let tipCallCount = 0;
+    // The tip request is gated so the loading state can be checked
+    // deterministically before it's allowed to resolve, rather than racing
+    // a fixed timeout against however fast the mocked route replies.
+    let resolveTipGate;
+    const tipGate = new Promise((resolve) => { resolveTipGate = resolve; });
+    await page.route(ANTHROPIC_URL, async (route) => {
+      const postData = route.request().postDataJSON();
+      const userContent = postData && postData.messages && postData.messages[0] && postData.messages[0].content;
+      const isTipRequest = typeof userContent === "string" && userContent.indexOf("Her answer:") !== -1;
+      if (isTipRequest){
+        tipCallCount++;
+        await tipGate;
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ content: [{ type: "text", text: "Try to include specific names and dates, not just the general idea." }] })
+        });
+      }
+      markingCallCount++;
+      // Alternate correct/incorrect so this session isn't a perfect sweep.
+      const verdict = markingCallCount % 2 === 0 ? "incorrect" : "correct";
+      return route.fulfill(claudeResponse(verdict, verdict === "correct" ? "Nice work." : "Missing some detail."));
+    });
+    await page.goto(baseUrl + "/mythology.html");
+    await page.evaluate((keys) => {
+      localStorage.clear();
+      localStorage.setItem(keys.settings, JSON.stringify({ provider: "claude", apiKey: "sk-ant-test-key" }));
+      localStorage.setItem(keys.disclosure, "1");
+    }, { settings: AI_SETTINGS_KEY, disclosure: AI_DISCLOSURE_KEY });
+    await page.reload();
+    await page.waitForTimeout(150);
+
+    await page.click('[data-subject="harry-potter"]');
+    await page.waitForTimeout(150);
+    for (let i = 0; i < 5; i++){
+      await page.fill(".long-answer-box", "An answer that's a bit vague.");
+      await page.click("#checkBtn");
+      await page.waitForTimeout(200);
+      await page.click("#nextBtn");
+      await page.waitForTimeout(100);
+    }
+
+    check("mythology.html: the tip box shows a loading placeholder as soon as a mixed session completes",
+      await page.locator("#sessionTip").isVisible() &&
+      (await page.locator("#sessionTipText").getAttribute("class") || "").indexOf("is-loading") !== -1);
+    check("mythology.html: the tip request has been made (held, not yet resolved)", tipCallCount === 1);
+
+    resolveTipGate();
+    await page.waitForTimeout(300); // give the now-released tip request time to resolve
+
+    check("mythology.html: a mixed session makes exactly one extra AI call to generate the tip", tipCallCount === 1);
+    check("mythology.html: the tip box shows the AI-generated tip once it resolves",
+      (await page.locator("#sessionTipText").textContent()).indexOf("specific names and dates") !== -1);
+    check("mythology.html: the tip box drops the loading style once resolved",
+      (await page.locator("#sessionTipText").getAttribute("class") || "") === "session-tip-text");
+
+    await page.close();
+  }
+
+  // ---- session tip: a failed tip request just hides the tip box, not an error ----
+  {
+    const page = await browser.newPage();
+    await page.route(ANTHROPIC_URL, (route) => {
+      const postData = route.request().postDataJSON();
+      const userContent = postData && postData.messages && postData.messages[0] && postData.messages[0].content;
+      const isTipRequest = typeof userContent === "string" && userContent.indexOf("Her answer:") !== -1;
+      if (isTipRequest){
+        return route.fulfill({
+          status: 500, contentType: "application/json", body: JSON.stringify({ error: { message: "Overloaded." } })
+        });
+      }
+      return route.fulfill(claudeResponse("incorrect", "Missing some detail."));
+    });
+    await page.goto(baseUrl + "/mythology.html");
+    await page.evaluate((keys) => {
+      localStorage.clear();
+      localStorage.setItem(keys.settings, JSON.stringify({ provider: "claude", apiKey: "sk-ant-test-key" }));
+      localStorage.setItem(keys.disclosure, "1");
+    }, { settings: AI_SETTINGS_KEY, disclosure: AI_DISCLOSURE_KEY });
+    await page.reload();
+    await page.waitForTimeout(150);
+
+    await page.click('[data-subject="stranger-things"]');
+    await page.waitForTimeout(150);
+    for (let i = 0; i < 5; i++){
+      await page.fill(".long-answer-box", "An answer that's a bit vague.");
+      await page.click("#checkBtn");
+      await page.waitForTimeout(200);
+      await page.click("#nextBtn");
+      await page.waitForTimeout(100);
+    }
+
+    check("mythology.html: the completion panel still shows normally even when the tip request fails",
+      await page.locator("#completionPanel").isVisible());
+
+    await page.waitForTimeout(300); // give the failed tip request time to reject
+
+    check("mythology.html: a failed tip request hides the tip box rather than showing an error",
+      await page.locator("#sessionTip").isHidden());
 
     await page.close();
   }

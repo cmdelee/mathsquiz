@@ -308,6 +308,18 @@ in between, and Anthropic's terms don't rule out use by children the way Google'
 ChatGPT/OpenAI's API blocks being called directly from a browser (it would need a small backend
 server, not built here), and Microsoft Copilot doesn't offer an individual API key at all.
 
+### Tip for next time
+
+Once a session finishes, the completion screen doesn't just show the score — if it wasn't a clean
+sweep, one more request goes to Claude with all five questions, answers and marks from that
+session together (not one at a time, the way marking itself works), asking it to spot a single
+recurring pattern worth fixing next time — leaving out specific names/dates, answering too
+briefly, not quite addressing what the question actually asked, that sort of thing — and hand back
+one short, encouraging sentence written directly to her. A perfect 5/5 skips this extra request
+entirely (there's nothing to point out) in favour of a plain well-done note, so it only ever costs
+the small amount of extra API credit when there's actually something to learn from. See
+`generateSessionTip()` in `mythology.html`, right below `markLongAnswerWithAi()`.
+
 ### History and progress
 
 Trivia keeps its own history and progress, separate from `stats.html` and the maths/entry-test
