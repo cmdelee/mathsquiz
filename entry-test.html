@@ -3701,7 +3701,10 @@ var AMARA_PASSAGE =
   answers:["30.00","£30.00","30"], hint:"Give your answer in pounds and pence, e.g. 30.00" }
   ];
 
-  var SESSION_SIZE = { adventure:10, beacon:10, mixed:15, mock:20 };
+  // Mock exam doesn't have a fixed size here – its question count is a
+  // parents-page setting (see mockSettings below), since it's configured
+  // alongside the time limit.
+  var SESSION_SIZE = { adventure:10, beacon:10, mixed:15 };
   var TAG_LABEL = {
     adventure:"Adventure paper",
     beacon:"Beacon paper"
@@ -3877,6 +3880,9 @@ var AMARA_PASSAGE =
   var DEFAULT_MOCK_MINUTES = 20;
   var MOCK_MINUTES_MIN = 5;
   var MOCK_MINUTES_MAX = 90;
+  var DEFAULT_MOCK_QUESTIONS = 20;
+  var MOCK_QUESTIONS_MIN = 5;
+  var MOCK_QUESTIONS_MAX = 60;
   function loadMockSettings(){
     var obj = null;
     try {
@@ -3886,7 +3892,9 @@ var AMARA_PASSAGE =
     if (!obj || typeof obj !== "object") obj = {};
     var m = parseInt(obj.minutes, 10);
     if (!isFinite(m) || isNaN(m) || m < MOCK_MINUTES_MIN || m > MOCK_MINUTES_MAX) m = DEFAULT_MOCK_MINUTES;
-    return { minutes: m };
+    var q = parseInt(obj.questions, 10);
+    if (!isFinite(q) || isNaN(q) || q < MOCK_QUESTIONS_MIN || q > MOCK_QUESTIONS_MAX) q = DEFAULT_MOCK_QUESTIONS;
+    return { minutes: m, questions: q };
   }
   var mockSettings = loadMockSettings();
 
@@ -3982,7 +3990,8 @@ var AMARA_PASSAGE =
     var pool = paper === "adventure" ? ADVENTURE_ITEMS :
       paper === "beacon" ? BEACON_ITEMS :
       ADVENTURE_ITEMS.concat(BEACON_ITEMS);
-    return weightedSampleWithoutReplacement(pool, itemWeight, SESSION_SIZE[paper]);
+    var size = paper === "mock" ? mockSettings.questions : SESSION_SIZE[paper];
+    return weightedSampleWithoutReplacement(pool, itemWeight, size);
   }
 
   function startSession(paper){

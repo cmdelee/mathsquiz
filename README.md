@@ -76,9 +76,9 @@ it. It's split into four sections:
 - **Entry test practice**: full session history with a recent-scores chart, how many of the 999
   questions have been seen at least once, accuracy broken down by subject (English/maths) and by
   paper format (Adventure/Beacon), a list of whichever questions are currently flagged as
-  recently missed, an optional exam date with a countdown, the time limit for the timed "Mock
-  exam" mode, and buttons to clear the history or to clear the page's memory of missed questions
-  (used to weight future sessions — see below).
+  recently missed, an optional exam date with a countdown, the time limit and question count for
+  the timed "Mock exam" mode, and buttons to clear the history or to clear the page's memory of
+  missed questions (used to weight future sessions — see below).
 - **Backup and reset**: download everything above as one JSON file, restore from a previously
   downloaded file (replacing whatever's currently on the device), or wipe everything for both
   apps back to a completely fresh start.
@@ -223,8 +223,9 @@ by paper format (Adventure/Beacon) for the parents page, and `entryTestBankSize_
 every load so that page can also show how many of the (currently 999) questions have been seen at
 least once, without needing a copy of the item bank itself.
 
-The Mock exam mode is a longer 20-question session with a visible countdown timer (default 20
-minutes, changeable on the parents page from 5 to 90 minutes) — if time runs out mid-session, it
+The Mock exam mode is a longer session with a visible countdown timer, both configurable on the
+parents page — by default 20 minutes and 20 questions, but either can be changed independently
+(minutes 5–90, questions 5–60), e.g. 20 minutes for 15 questions. If time runs out mid-session, it
 finishes automatically with whatever's been answered so far, the same way a real exam would. The
 parents page also has an optional exam date setting (`entryTestExamDateSettings_v1`), shown there
 as a "days/weeks to go" countdown to help judge when to lean more of her practice towards it.

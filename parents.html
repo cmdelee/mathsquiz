@@ -473,14 +473,18 @@
       </div>
 
       <div class="parents-block">
-        <h3>Mock exam time limit</h3>
-        <p class="quiz-sub">How long the timed "Mock exam" mode gives, in minutes.</p>
+        <h3>Mock exam settings</h3>
+        <p class="quiz-sub">How long the timed "Mock exam" mode gives, and how many questions it draws — e.g. 20 minutes, 15 questions.</p>
         <div class="settings-body">
           <div class="settings-field">
             <label for="mockMinutesInput">Minutes</label>
             <input type="number" id="mockMinutesInput" min="5" max="90" step="1" inputmode="numeric">
           </div>
-          <button id="saveMockBtn" class="btn btn-ghost">Save time limit</button>
+          <div class="settings-field">
+            <label for="mockQuestionsInput">Questions</label>
+            <input type="number" id="mockQuestionsInput" min="5" max="60" step="1" inputmode="numeric">
+          </div>
+          <button id="saveMockBtn" class="btn btn-ghost">Save</button>
           <p class="settings-note" id="mockNote" hidden></p>
         </div>
       </div>
@@ -841,11 +845,14 @@
     try { window.localStorage.setItem(EXAM_DATE_KEY, JSON.stringify(s)); } catch (e){ /* ignore */ }
   }
 
-  // ---------- Mock exam time limit (entry test) ----------
+  // ---------- Mock exam settings (entry test) ----------
   var MOCK_SETTINGS_KEY = "entryTestMockSettings_v1";
   var DEFAULT_MOCK_MINUTES = 20;
   var MOCK_MINUTES_MIN = 5;
   var MOCK_MINUTES_MAX = 90;
+  var DEFAULT_MOCK_QUESTIONS = 20;
+  var MOCK_QUESTIONS_MIN = 5;
+  var MOCK_QUESTIONS_MAX = 60;
   function loadMockSettings(){
     var obj = null;
     try {
@@ -855,7 +862,9 @@
     if (!obj || typeof obj !== "object") obj = {};
     var m = parseInt(obj.minutes, 10);
     if (!isFinite(m) || isNaN(m) || m < MOCK_MINUTES_MIN || m > MOCK_MINUTES_MAX) m = DEFAULT_MOCK_MINUTES;
-    return { minutes: m };
+    var q = parseInt(obj.questions, 10);
+    if (!isFinite(q) || isNaN(q) || q < MOCK_QUESTIONS_MIN || q > MOCK_QUESTIONS_MAX) q = DEFAULT_MOCK_QUESTIONS;
+    return { minutes: m, questions: q };
   }
   function saveMockSettingsToStorage(s){
     try { window.localStorage.setItem(MOCK_SETTINGS_KEY, JSON.stringify(s)); } catch (e){ /* ignore */ }
@@ -999,6 +1008,7 @@
   var clearWeakSpotBtn = document.getElementById("clearWeakSpotBtn");
 
   var mockMinutesInput = document.getElementById("mockMinutesInput");
+  var mockQuestionsInput = document.getElementById("mockQuestionsInput");
   var saveMockBtn = document.getElementById("saveMockBtn");
   var mockNote = document.getElementById("mockNote");
 
@@ -1219,6 +1229,7 @@
 
   function renderMockSettings(){
     mockMinutesInput.value = mockSettings.minutes;
+    mockQuestionsInput.value = mockSettings.questions;
     mockNote.hidden = true;
   }
 
@@ -1343,16 +1354,20 @@
   });
 
   saveMockBtn.addEventListener("click", function(){
-    var raw = mockMinutesInput.value;
-    var num = parseInt(raw, 10);
-    var isValid = raw !== "" && isFinite(num) && num >= MOCK_MINUTES_MIN && num <= MOCK_MINUTES_MAX;
-    if (!isValid){
-      mockNote.textContent = "Enter a whole number between " + MOCK_MINUTES_MIN + " and " + MOCK_MINUTES_MAX + ".";
+    var minutesRaw = mockMinutesInput.value;
+    var minutesNum = parseInt(minutesRaw, 10);
+    var questionsRaw = mockQuestionsInput.value;
+    var questionsNum = parseInt(questionsRaw, 10);
+    var minutesValid = minutesRaw !== "" && isFinite(minutesNum) && minutesNum >= MOCK_MINUTES_MIN && minutesNum <= MOCK_MINUTES_MAX;
+    var questionsValid = questionsRaw !== "" && isFinite(questionsNum) && questionsNum >= MOCK_QUESTIONS_MIN && questionsNum <= MOCK_QUESTIONS_MAX;
+    if (!minutesValid || !questionsValid){
+      mockNote.textContent = "Minutes: a whole number between " + MOCK_MINUTES_MIN + " and " + MOCK_MINUTES_MAX +
+        ". Questions: a whole number between " + MOCK_QUESTIONS_MIN + " and " + MOCK_QUESTIONS_MAX + ".";
       mockNote.className = "settings-note is-error";
       mockNote.hidden = false;
       return;
     }
-    mockSettings = { minutes: num };
+    mockSettings = { minutes: minutesNum, questions: questionsNum };
     saveMockSettingsToStorage(mockSettings);
     mockNote.textContent = "Saved. Takes effect next time a mock exam is started.";
     mockNote.className = "settings-note is-success";
