@@ -598,7 +598,8 @@
 
   <footer class="foot">
     <p><a href="index.html">← Back to menu</a></p>
-    <p><a href="parents.html">Parents / Admin →</a></p>
+    <p><a href="stats.html">My progress →</a></p>
+    <p><a href="admin.html">Parents / Admin →</a></p>
   </footer>
 
 </div>
@@ -1183,9 +1184,9 @@
   }
 
   // Shown to the child on the main page: only ever the most recent session,
-  // never a browsable list – full history and reset controls live on the
-  // separate, PIN-gated parents/admin page (parents.html), which reads and
-  // writes the same localStorage keys as this page.
+  // never a browsable list – full history lives on the Progress page
+  // (stats.html), and reset controls on the admin page (admin.html); both
+  // read and write the same localStorage keys as this page.
   function renderLastSession(list){
     lastSessionSection.hidden = false;
     if (list === null || !list.length){

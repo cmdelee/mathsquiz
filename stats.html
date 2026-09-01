@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Progress</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#35664F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quiz App">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --bg:#EEF1E6;
+    --grain:#E3E8D8;
+    --surface:#FFFFFF;
+    --surface-2:#F6F7F0;
+    --border:#D8DECB;
+    --ink:#232B22;
+    --ink-soft:#5B6656;
+    --ink-faint:#8A9483;
+    --accent:#35664F;
+    --accent-ink:#F5FBF6;
+    --accent-soft:#DCEAE1;
+    --gold:#8B6B36;
+    --gold-ink:#FBF6EC;
+    --gold-soft:#EFE3C9;
+    --success:#2E7D4F;
+    --success-bg:#E4F2E6;
+    --error:#B4432F;
+    --error-bg:#FBE7E1;
+    --focus:#35664F;
+    --shadow: 0 1px 2px rgba(35,43,34,0.06), 0 8px 24px -12px rgba(35,43,34,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#171C16;
+      --grain:#1D231B;
+      --surface:#1F251C;
+      --surface-2:#252C21;
+      --border:#333D2C;
+      --ink:#E9ECDF;
+      --ink-soft:#AAB79D;
+      --ink-faint:#748069;
+      --accent:#74B594;
+      --accent-ink:#0E1F16;
+      --accent-soft:#243A2D;
+      --gold:#D6AD6C;
+      --gold-ink:#241C0C;
+      --gold-soft:#3A2F1B;
+      --success:#79D19C;
+      --success-bg:#1E3327;
+      --error:#E8917E;
+      --error-bg:#3A211C;
+      --focus:#74B594;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#171C16;
+    --grain:#1D231B;
+    --surface:#1F251C;
+    --surface-2:#252C21;
+    --border:#333D2C;
+    --ink:#E9ECDF;
+    --ink-soft:#AAB79D;
+    --ink-faint:#748069;
+    --accent:#74B594;
+    --accent-ink:#0E1F16;
+    --accent-soft:#243A2D;
+    --gold:#D6AD6C;
+    --gold-ink:#241C0C;
+    --gold-soft:#3A2F1B;
+    --success:#79D19C;
+    --success-bg:#1E3327;
+    --error:#E8917E;
+    --error-bg:#3A211C;
+    --focus:#74B594;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  /* Stops Chrome/Samsung Internet's pull-down-to-refresh gesture from
+     firing when someone scrolls up past the top of the page (easy to
+     trigger by accident on a tablet mid-quiz, and it throws away
+     whatever question was on screen). Doesn't affect normal scrolling. */
+  html{-webkit-text-size-adjust:100%; overscroll-behavior-y:contain;}
+  body{
+    margin:0;
+    overscroll-behavior-y:contain;
+    background-color:var(--bg);
+    background-image:
+      radial-gradient(circle at 1px 1px, var(--grain) 1px, transparent 1px);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{
+    max-width:700px;
+    margin:0 auto;
+    padding:40px 20px 64px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+  }
+
+  .masthead{ text-align:left; }
+  .eyebrow{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:0.95rem;
+    color:var(--accent);
+    letter-spacing:0.02em;
+  }
+  h1{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:clamp(1.9rem, 5vw, 2.5rem);
+    line-height:1.08;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .date-line{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:1rem;
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:var(--shadow);
+  }
+
+  .lock-card{
+    padding:30px 24px;
+    text-align:center;
+  }
+  .lock-card p{
+    margin:0 0 18px;
+    color:var(--ink-soft);
+    font-size:0.92rem;
+    max-width:44ch;
+    margin-left:auto;
+    margin-right:auto;
+  }
+
+  .quiz{ padding:24px 22px 22px; }
+  .quiz-head h2{
+    margin:0 0 4px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.4rem;
+  }
+  .quiz-sub{
+    margin:0 0 18px;
+    color:var(--ink-soft);
+    font-size:0.9rem;
+    max-width:60ch;
+  }
+
+  .parents-page{ padding:24px 22px 22px; }
+  .parents-block{ margin:0 0 22px; }
+  .parents-block:last-child{ margin-bottom:0; }
+  .parents-block h3{
+    margin:0 0 8px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.05rem;
+    color:var(--ink);
+  }
+  .settings-body{
+    padding:14px 16px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-end;
+    gap:14px 20px;
+  }
+  .settings-field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .settings-field label{
+    font-size:0.85rem;
+    color:var(--ink-soft);
+  }
+  .settings-field input[type="number"],
+  .settings-field input[type="text"],
+  .settings-field select{
+    font:inherit;
+    font-size:0.9rem;
+    padding:6px 8px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--ink);
+  }
+  .settings-field input[type="number"]{ width:5.5em; }
+  .settings-field input[type="text"]{ width:14em; max-width:100%; }
+  .settings-field select{ width:auto; }
+  .settings-note{
+    flex-basis:100%;
+    margin:2px 0 0;
+    font-size:0.88rem;
+    color:var(--ink-soft);
+  }
+  .settings-note.is-error{ color:var(--error); }
+  .settings-note.is-success{ color:var(--success); }
+
+  .history-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .history-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:10px 2px;
+    border-top:1px solid var(--border);
+    font-size:0.88rem;
+  }
+  .history-row:first-child{ border-top:none; }
+  .history-row.is-more{ color:var(--ink-faint); font-size:0.82rem; }
+  .history-date{ color:var(--ink-soft); }
+  .history-score{
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric:tabular-nums;
+    font-weight:600;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+  .history-note{
+    margin:14px 0 0;
+    font-size:0.78rem;
+    color:var(--ink-faint);
+  }
+
+  .trend-chart-wrap{
+    padding:14px 16px 10px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+  }
+  .trend-chart-wrap[hidden]{ display:none; }
+  .trend-chart{
+    width:100%;
+    height:64px;
+    display:block;
+  }
+  .trend-bar{ fill:var(--accent); }
+  .trend-bar:hover{ filter:brightness(1.15); }
+  .trend-chart-caption{
+    margin:8px 0 0;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    font-size:0.76rem;
+    color:var(--ink-faint);
+  }
+
+  .quiz-actions{
+    margin-top:18px;
+    padding-top:16px;
+    border-top:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    font:inherit;
+    font-weight:600;
+    font-size:0.92rem;
+    padding:10px 18px;
+    border-radius:7px;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:filter 0.12s ease, background-color 0.12s ease;
+  }
+  .btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .btn-primary{
+    background:var(--accent);
+    color:var(--accent-ink);
+  }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .btn-ghost{
+    background:transparent;
+    color:var(--ink);
+    border-color:var(--border);
+  }
+  .btn-ghost:hover{ background:var(--surface-2); }
+  .btn-danger{
+    background:transparent;
+    color:var(--error);
+    border-color:var(--error);
+  }
+  .btn-danger:hover{ background:var(--error-bg); }
+
+  .foot{
+    font-size:0.78rem;
+    color:var(--ink-faint);
+    line-height:1.7;
+    padding:4px 4px 0;
+  }
+  .foot a{ color:var(--ink-soft); }
+  .foot a:hover{ color:var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="masthead">
+    <p class="eyebrow">Skipton · North Yorkshire</p>
+    <h1 id="pageTitle">Progress</h1>
+    <p class="date-line">Scores, streaks and history for both practice apps.</p>
+  </header>
+
+  <section class="card lock-card" id="lockCard">
+    <p id="lockText">This page needs the parent PIN, unless a parent has turned on access from the Parents / Admin page.</p>
+    <button id="unlockBtn" class="btn btn-primary">Enter PIN</button>
+  </section>
+
+  <div id="statsView" hidden>
+
+    <section class="card parents-page">
+      <div class="quiz-head">
+        <h2>Maths practice</h2>
+        <p class="quiz-sub">Lifetime stats, streaks, levels and session history for the maths app.</p>
+      </div>
+
+      <div class="parents-block">
+        <h3>Lifetime stats</h3>
+        <p class="quiz-sub" id="lifetimeStatsText">No sessions completed yet.</p>
+      </div>
+
+      <div class="parents-block">
+        <h3>Streak</h3>
+        <p class="quiz-sub" id="streakGoalText"></p>
+        <p class="quiz-sub" id="streakStatusText" style="margin-top:6px; margin-bottom:0;"></p>
+      </div>
+
+      <div class="parents-block">
+        <h3>Difficulty levels</h3>
+        <p class="quiz-sub">The level column is what's driving today's questions; the accuracy alongside it is how the last few attempts of that type have gone, which can lag behind a level that's just changed.</p>
+        <ul class="history-list" id="levelList"></ul>
+      </div>
+
+      <div class="parents-block">
+        <h3>Session history</h3>
+        <p class="quiz-sub" id="mathsHistorySummary">No sessions completed yet.</p>
+        <ul class="history-list" id="mathsHistoryList"></ul>
+      </div>
+
+      <div class="parents-block">
+        <h3>Progress</h3>
+        <p class="quiz-sub" id="mathsChartNote">Not enough sessions yet to show a trend.</p>
+        <div class="trend-chart-wrap" id="mathsChartWrap" hidden></div>
+      </div>
+    </section>
+
+    <section class="card parents-page">
+      <div class="quiz-head">
+        <h2>Entry test practice</h2>
+        <p class="quiz-sub">Session history, coverage and accuracy for the Skipton Girls' entry test practice page.</p>
+      </div>
+
+      <div class="parents-block">
+        <h3>Session history</h3>
+        <p class="quiz-sub" id="entryHistorySummary">No sessions completed yet.</p>
+        <ul class="history-list" id="entryHistoryList"></ul>
+      </div>
+
+      <div class="parents-block">
+        <h3>Progress</h3>
+        <p class="quiz-sub" id="entryChartNote">Not enough sessions yet to show a trend.</p>
+        <div class="trend-chart-wrap" id="entryChartWrap" hidden></div>
+      </div>
+
+      <div class="parents-block">
+        <h3>Coverage and accuracy</h3>
+        <p class="quiz-sub" id="coverageText">No questions answered yet.</p>
+        <ul class="history-list" id="accuracyList"></ul>
+      </div>
+
+      <div class="parents-block">
+        <h3>Questions currently being missed</h3>
+        <p class="quiz-sub" id="weakSpotNote">None right now.</p>
+        <ul class="history-list" id="weakSpotList"></ul>
+      </div>
+
+      <div class="parents-block">
+        <h3>Exam date</h3>
+        <p class="quiz-sub" id="examCountdownText">No exam date set yet.</p>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="foot">
+    <p><a href="index.html">← Back to menu</a></p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Parent PIN ----------
+  // Same self-set PIN as before, shared across this page and both practice
+  // apps via localStorage — only its hash is ever stored.
+  var PIN_KEY = "quizAppParentPinHash_v1";
+  var PIN_MIN_LENGTH = 4;
+
+  function loadPinHash(){
+    try { return window.localStorage.getItem(PIN_KEY) || null; }
+    catch (e){ return null; }
+  }
+  function hashPin(pin){
+    var text = "quiz-app:" + pin;
+    if (window.crypto && window.crypto.subtle && window.isSecureContext){
+      return window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))
+        .then(function(buf){
+          return Array.prototype.map.call(new Uint8Array(buf), function(b){
+            return b.toString(16).padStart(2, "0");
+          }).join("");
+        })
+        .catch(function(){ return simpleHash(text); });
+    }
+    return Promise.resolve(simpleHash(text));
+  }
+  function simpleHash(text){
+    var hash = 5381;
+    for (var i = 0; i < text.length; i++){
+      hash = (((hash << 5) + hash) + text.charCodeAt(i)) & 0xFFFFFFFF;
+    }
+    return "fb" + (hash >>> 0).toString(16);
+  }
+
+  // Note: this page never creates or changes the PIN — that only happens
+  // on the Parents / Admin page. If no PIN exists yet, this page just asks
+  // that a parent sets one up there first (see the unlock flow below).
+
+  // ---------- Maths practice data (shared localStorage keys) ----------
+  var DIFF_KEY = "quizAppDifficulty_v1";
+  var DIFF_MIN_LEVEL = 1;
+  var DIFF_MAX_LEVEL = 6;
+  var DIFF_TYPES = ["multiplication", "division", "addition", "subtraction"];
+  var TYPE_LABELS = {
+    multiplication: "Long multiplication",
+    division: "Long division",
+    subtraction: "Long subtraction",
+    addition: "Long addition"
+  };
+
+  function loadDifficulty(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(DIFF_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    DIFF_TYPES.forEach(function(t){
+      var v = obj[t];
+      obj[t] = (typeof v === "number" && v >= DIFF_MIN_LEVEL && v <= DIFF_MAX_LEVEL) ? v : DIFF_MIN_LEVEL;
+    });
+    return obj;
+  }
+  var CHILD_NAME_KEY = "quizAppChildName_v1";
+  var CHILD_NAME_MAX = 40;
+  function loadChildName(){
+    try {
+      var v = window.localStorage.getItem(CHILD_NAME_KEY);
+      return v ? v.slice(0, CHILD_NAME_MAX) : "";
+    } catch (e){ return ""; }
+  }
+
+  // ---------- Streak settings (maths practice) ----------
+  var STREAK_SETTINGS_KEY = "quizAppStreakSettings_v1";
+  var STREAK_PERIODS = ["day", "week"];
+  var DEFAULT_STREAK_PERIOD = "week";
+  var DEFAULT_STREAK_THRESHOLD = 1;
+  var STREAK_THRESHOLD_MIN = 1;
+  var STREAK_THRESHOLD_MAX = 20;
+
+  function clampStreakThreshold(v, fallback){
+    v = parseInt(v, 10);
+    if (!isFinite(v) || isNaN(v)) return fallback;
+    if (v < STREAK_THRESHOLD_MIN) return STREAK_THRESHOLD_MIN;
+    if (v > STREAK_THRESHOLD_MAX) return STREAK_THRESHOLD_MAX;
+    return v;
+  }
+  function loadStreakSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(STREAK_SETTINGS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return {
+      period: STREAK_PERIODS.indexOf(obj.period) !== -1 ? obj.period : DEFAULT_STREAK_PERIOD,
+      threshold: clampStreakThreshold(obj.threshold, DEFAULT_STREAK_THRESHOLD)
+    };
+  }
+  // Same streak maths as maths-quiz.html – kept in step with it so the
+  // status shown here always matches what the child sees on that page.
+  function streakPeriodKey(d, period){
+    if (period === "day") return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+    var day = d.getDay();
+    var diffToMonday = (day === 0 ? -6 : 1 - day);
+    var monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMonday);
+    return monday.getFullYear()+"-"+pad(monday.getMonth()+1)+"-"+pad(monday.getDate());
+  }
+  function computeStreak(history, settings, now){
+    var stepDays = settings.period === "day" ? 1 : 7;
+    var counts = {};
+    history.forEach(function(rec){
+      var key = streakPeriodKey(parseISO(rec.date), settings.period);
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var todayKey = streakPeriodKey(today, settings.period);
+    var currentCount = counts[todayKey] || 0;
+    var currentMet = currentCount >= settings.threshold;
+    var streak = currentMet ? 1 : 0;
+    var cursor = new Date(today.getTime());
+    cursor.setDate(cursor.getDate() - stepDays);
+    while (true){
+      var key = streakPeriodKey(cursor, settings.period);
+      if ((counts[key] || 0) >= settings.threshold){
+        streak++;
+        cursor.setDate(cursor.getDate() - stepDays);
+      } else {
+        break;
+      }
+    }
+    return { streak:streak, currentCount:currentCount, currentMet:currentMet };
+  }
+
+  // Longest run of consecutive qualifying periods anywhere in the history,
+  // not just the one still running – so a streak broken months ago doesn't
+  // disappear from view, it just stops being the *current* one.
+  function computeLongestStreak(history, settings){
+    var stepDays = settings.period === "day" ? 1 : 7;
+    var counts = {};
+    history.forEach(function(rec){
+      var key = streakPeriodKey(parseISO(rec.date), settings.period);
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    var qualifying = Object.keys(counts).filter(function(k){ return counts[k] >= settings.threshold; });
+    if (!qualifying.length) return 0;
+    var dates = qualifying.map(parseISO).sort(function(a, b){ return a - b; });
+    var longest = 1, current = 1;
+    for (var i = 1; i < dates.length; i++){
+      var diffDays = Math.round((dates[i] - dates[i-1]) / 86400000);
+      current = (diffDays === stepDays) ? current + 1 : 1;
+      if (current > longest) longest = current;
+    }
+    return longest;
+  }
+
+  // ---------- Per-operation accuracy (maths practice) ----------
+  var TYPE_STATS_KEY = "quizAppTypeStats_v1";
+  function loadTypeStats(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(TYPE_STATS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    DIFF_TYPES.forEach(function(t){ if (!Array.isArray(obj[t])) obj[t] = []; });
+    return obj;
+  }
+
+  // ---------- Lifetime stats (maths practice) ----------
+  var LIFETIME_KEY = "quizAppLifetimeStats_v1";
+  function loadLifetimeStats(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(LIFETIME_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return {
+      sessions: typeof obj.sessions === "number" ? obj.sessions : 0,
+      questionsAnswered: typeof obj.questionsAnswered === "number" ? obj.questionsAnswered : 0,
+      questionsCorrect: typeof obj.questionsCorrect === "number" ? obj.questionsCorrect : 0
+    };
+  }
+
+  // ---------- Weak-spot practice stats (entry test) ----------
+  var ITEM_STATS_KEY = "entryTestItemStats_v1";
+  function loadItemStats(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(ITEM_STATS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    return (obj && typeof obj === "object") ? obj : {};
+  }
+
+  // ---------- Accuracy by subject / paper format (entry test) ----------
+  var SUBJECT_STATS_KEY = "entryTestSubjectStats_v1";
+  function loadSubjectStats(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(SUBJECT_STATS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    var blank = function(){ return { correct:0, attempted:0 }; };
+    if (!obj.bySubject || typeof obj.bySubject !== "object") obj.bySubject = {};
+    if (!obj.byFormat || typeof obj.byFormat !== "object") obj.byFormat = {};
+    ["english", "maths"].forEach(function(k){ if (!obj.bySubject[k]) obj.bySubject[k] = blank(); });
+    ["adventure", "beacon"].forEach(function(k){ if (!obj.byFormat[k]) obj.byFormat[k] = blank(); });
+    return obj;
+  }
+
+  // ---------- Question bank size (entry test) ----------
+  // Written by entry-test.html on every load; read here only, so this page
+  // never needs its own copy of the item bank just to show coverage.
+  var BANK_SIZE_KEY = "entryTestBankSize_v1";
+  function loadBankSize(){
+    var n = parseInt(window.localStorage.getItem(BANK_SIZE_KEY), 10);
+    return isFinite(n) && n > 0 ? n : null;
+  }
+
+  // ---------- Exam date (entry test) ----------
+  var EXAM_DATE_KEY = "entryTestExamDateSettings_v1";
+  function loadExamDateSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(EXAM_DATE_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return { date: typeof obj.date === "string" ? obj.date : null };
+  }
+  // Note: mock exam length/question-count settings are edited on the
+  // Parents / Admin page and aren't shown here.
+
+  var MATHS_HISTORY_KEY = "quizAppHistory_v1";
+  var ENTRY_HISTORY_KEY = "entryTestHistory_v1";
+  var HISTORY_SHOWN = 20;
+  var TREND_CHART_MAX = 15;
+
+  function loadJSONList(key){
+    try {
+      var raw = window.localStorage.getItem(key);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (e){ return []; }
+  }
+
+  function pad(n){ return n < 10 ? "0"+n : ""+n; }
+  function parseISO(s){
+    var p = s.split("-");
+    return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
+  }
+
+  function appendHistoryRow(listEl, left, right, extraClass){
+    var li = document.createElement("li");
+    li.className = "history-row" + (extraClass ? " " + extraClass : "");
+    var l = document.createElement("span");
+    l.className = "history-date";
+    l.textContent = left;
+    var r = document.createElement("span");
+    r.className = "history-score";
+    r.textContent = right;
+    li.appendChild(l);
+    if (right) li.appendChild(r);
+    listEl.appendChild(li);
+  }
+
+  // ---------- Progress trend chart ----------
+  // A small dependency-free inline SVG bar chart of recent scores – no
+  // charting library, so the page keeps working fully offline.
+  var SVG_NS = "http://www.w3.org/2000/svg";
+
+  function buildTrendChart(records){
+    var data = records.slice(0, TREND_CHART_MAX).slice().reverse(); // oldest → newest, left to right
+    var w = 100, h = 40, barGap = 0.6;
+    var barW = w / data.length;
+    var svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("class", "trend-chart");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Chart of recent session scores");
+    data.forEach(function(rec, i){
+      var pct = Math.max(0, Math.min(100, rec.pct || 0));
+      var barH = Math.max(0.5, (pct / 100) * (h - 4));
+      var rect = document.createElementNS(SVG_NS, "rect");
+      rect.setAttribute("x", (i * barW + barGap / 2).toFixed(2));
+      rect.setAttribute("width", Math.max(0.5, barW - barGap).toFixed(2));
+      rect.setAttribute("y", (h - barH - 2).toFixed(2));
+      rect.setAttribute("height", barH.toFixed(2));
+      rect.setAttribute("class", "trend-bar");
+      var title = document.createElementNS(SVG_NS, "title");
+      title.textContent = pct + "%";
+      rect.appendChild(title);
+      svg.appendChild(rect);
+    });
+    return svg;
+  }
+
+  function renderTrendChart(wrapEl, noteEl, records){
+    wrapEl.innerHTML = "";
+    if (records.length < 2){
+      wrapEl.hidden = true;
+      noteEl.hidden = false;
+      noteEl.textContent = "Not enough sessions yet to show a trend.";
+      return;
+    }
+    noteEl.hidden = true;
+    wrapEl.hidden = false;
+    wrapEl.appendChild(buildTrendChart(records));
+    var shown = Math.min(records.length, TREND_CHART_MAX);
+    var caption = document.createElement("p");
+    caption.className = "trend-chart-caption";
+    var left = document.createElement("span");
+    left.textContent = "Last " + shown + " session" + (shown === 1 ? "" : "s");
+    var right = document.createElement("span");
+    right.textContent = "Tap or hover a bar for its score";
+    caption.appendChild(left);
+    caption.appendChild(right);
+    wrapEl.appendChild(caption);
+  }
+
+  // ---------- Element refs ----------
+  var lockCard = document.getElementById("lockCard");
+  var lockText = document.getElementById("lockText");
+  var unlockBtn = document.getElementById("unlockBtn");
+  var statsView = document.getElementById("statsView");
+  var pageTitle = document.getElementById("pageTitle");
+
+  var levelList = document.getElementById("levelList");
+  var lifetimeStatsText = document.getElementById("lifetimeStatsText");
+  var mathsHistorySummary = document.getElementById("mathsHistorySummary");
+  var mathsHistoryList = document.getElementById("mathsHistoryList");
+  var mathsChartNote = document.getElementById("mathsChartNote");
+  var mathsChartWrap = document.getElementById("mathsChartWrap");
+
+  var streakGoalText = document.getElementById("streakGoalText");
+  var streakStatusText = document.getElementById("streakStatusText");
+
+  var entryHistorySummary = document.getElementById("entryHistorySummary");
+  var entryHistoryList = document.getElementById("entryHistoryList");
+  var entryChartNote = document.getElementById("entryChartNote");
+  var entryChartWrap = document.getElementById("entryChartWrap");
+  var coverageText = document.getElementById("coverageText");
+  var accuracyList = document.getElementById("accuracyList");
+  var weakSpotNote = document.getElementById("weakSpotNote");
+  var weakSpotList = document.getElementById("weakSpotList");
+  var examCountdownText = document.getElementById("examCountdownText");
+
+  // ---------- Render: maths practice ----------
+  var childName = loadChildName();
+  var difficulty = loadDifficulty();
+  var streakSettings = loadStreakSettings();
+  var typeStats = loadTypeStats();
+  var lifetimeStats = loadLifetimeStats();
+  var examDateSettings = loadExamDateSettings();
+
+  function renderLevels(){
+    levelList.innerHTML = "";
+    DIFF_TYPES.forEach(function(t){
+      var attempts = typeStats[t] || [];
+      var right = "Level " + difficulty[t] + " of " + DIFF_MAX_LEVEL;
+      if (attempts.length){
+        var correct = attempts.filter(Boolean).length;
+        right += " · " + correct + "/" + attempts.length + " recently";
+      }
+      appendHistoryRow(levelList, TYPE_LABELS[t], right);
+    });
+  }
+  function renderLifetimeStats(){
+    if (!lifetimeStats.sessions){
+      lifetimeStatsText.textContent = "No sessions completed yet.";
+      return;
+    }
+    var pct = lifetimeStats.questionsAnswered ? Math.round((lifetimeStats.questionsCorrect / lifetimeStats.questionsAnswered) * 100) : 0;
+    lifetimeStatsText.textContent = lifetimeStats.sessions + " session" + (lifetimeStats.sessions === 1 ? "" : "s") +
+      " completed, " + lifetimeStats.questionsAnswered + " question" + (lifetimeStats.questionsAnswered === 1 ? "" : "s") +
+      " answered (" + pct + "% correct) since she started.";
+  }
+  function formatMathsHistoryDate(iso){
+    return parseISO(iso).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
+  }
+  function renderMathsHistory(){
+    var list = loadJSONList(MATHS_HISTORY_KEY);
+    mathsHistoryList.innerHTML = "";
+    if (!list.length){
+      mathsHistorySummary.textContent = "No sessions completed yet.";
+    } else {
+      mathsHistorySummary.textContent = list.length + " session" + (list.length === 1 ? "" : "s") + " completed on this device.";
+      var shown = list.slice(0, HISTORY_SHOWN);
+      shown.forEach(function(rec){
+        var left = formatMathsHistoryDate(rec.date) + " · " + (rec.status === "holiday" ? "Holidays" : "Term time");
+        var right = rec.correct + "/" + rec.attempted + " (" + rec.pct + "%)";
+        appendHistoryRow(mathsHistoryList, left, right);
+      });
+      var remaining = list.length - shown.length;
+      if (remaining > 0){
+        appendHistoryRow(mathsHistoryList, "…and " + remaining + " earlier session" + (remaining === 1 ? "" : "s") + ".", "", "is-more");
+      }
+    }
+    renderTrendChart(mathsChartWrap, mathsChartNote, list);
+    renderStreak(list);
+  }
+
+  function renderStreak(mathsHistory){
+    var unit = streakSettings.period === "day" ? "day" : "week";
+    streakGoalText.textContent = "Goal: " + streakSettings.threshold + " session" + (streakSettings.threshold === 1 ? "" : "s") +
+      " per " + unit + " to keep the streak going.";
+    if (!mathsHistory.length){
+      streakStatusText.textContent = "No maths sessions yet.";
+      return;
+    }
+    var result = computeStreak(mathsHistory, streakSettings, new Date());
+    var longest = computeLongestStreak(mathsHistory, streakSettings);
+    var text = result.streak > 0
+      ? "Current streak: " + result.streak + " " + (result.streak === 1 ? unit : unit + "s") + "."
+      : "No current streak.";
+    if (longest > result.streak){
+      text += " Best so far: " + longest + " " + (longest === 1 ? unit : unit + "s") + ".";
+    }
+    streakStatusText.textContent = text;
+  }
+
+  // ---------- Render: entry test practice ----------
+  var ENTRY_PAPER_LABEL = { adventure:"Adventure paper", beacon:"Beacon paper", mixed:"Mixed practice", mock:"Mock exam" };
+  function formatEntryHistoryDate(iso){
+    return new Date(iso).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
+  }
+  function renderEntryHistory(){
+    var list = loadJSONList(ENTRY_HISTORY_KEY);
+    entryHistoryList.innerHTML = "";
+    if (!list.length){
+      entryHistorySummary.textContent = "No sessions completed yet.";
+    } else {
+      entryHistorySummary.textContent = list.length + " session" + (list.length === 1 ? "" : "s") + " completed on this device.";
+      var shown = list.slice(0, HISTORY_SHOWN);
+      shown.forEach(function(rec){
+        var left = formatEntryHistoryDate(rec.date) + " · " + (ENTRY_PAPER_LABEL[rec.paper] || rec.paper);
+        var right = rec.correct + " of " + rec.attempted + " (" + rec.pct + "%)";
+        appendHistoryRow(entryHistoryList, left, right);
+      });
+      var remaining = list.length - shown.length;
+      if (remaining > 0){
+        appendHistoryRow(entryHistoryList, "…and " + remaining + " earlier session" + (remaining === 1 ? "" : "s") + ".", "", "is-more");
+      }
+    }
+    renderTrendChart(entryChartWrap, entryChartNote, list);
+  }
+
+  var FORMAT_LABEL = { adventure:"Adventure-style (multiple choice)", beacon:"Beacon-style (written answer)" };
+  var SUBJECT_LABEL = { english:"English", maths:"Maths" };
+
+  function renderCoverageAndAccuracy(){
+    var stats = loadItemStats();
+    var seen = Object.keys(stats).length;
+    var bankSize = loadBankSize();
+    if (!seen){
+      coverageText.textContent = "No questions answered yet.";
+    } else if (bankSize){
+      coverageText.textContent = seen + " of " + bankSize + " questions seen at least once (" +
+        Math.round((seen / bankSize) * 100) + "%).";
+    } else {
+      coverageText.textContent = seen + " question" + (seen === 1 ? "" : "s") + " seen at least once.";
+    }
+
+    var subjectStats = loadSubjectStats();
+    accuracyList.innerHTML = "";
+    var any = false;
+    ["english", "maths"].forEach(function(k){
+      var b = subjectStats.bySubject[k];
+      if (b.attempted){
+        any = true;
+        appendHistoryRow(accuracyList, SUBJECT_LABEL[k], b.correct + "/" + b.attempted + " (" + Math.round((b.correct/b.attempted)*100) + "%)");
+      }
+    });
+    ["adventure", "beacon"].forEach(function(k){
+      var b = subjectStats.byFormat[k];
+      if (b.attempted){
+        any = true;
+        appendHistoryRow(accuracyList, FORMAT_LABEL[k], b.correct + "/" + b.attempted + " (" + Math.round((b.correct/b.attempted)*100) + "%)");
+      }
+    });
+    if (!any){
+      appendHistoryRow(accuracyList, "No questions answered yet.", "");
+    }
+  }
+
+  var WEAK_SPOT_SHOWN = 15;
+  function renderWeakSpotList(){
+    var stats = loadItemStats();
+    var missed = Object.keys(stats)
+      .map(function(id){ return stats[id]; })
+      .filter(function(rec){ return rec && typeof rec === "object" && rec.outcome === "incorrect"; })
+      .sort(function(a, b){ return new Date(b.lastSeen) - new Date(a.lastSeen); });
+    weakSpotList.innerHTML = "";
+    if (!missed.length){
+      weakSpotNote.hidden = false;
+      weakSpotNote.textContent = "None right now — nothing currently flagged as recently missed.";
+      return;
+    }
+    weakSpotNote.hidden = true;
+    missed.slice(0, WEAK_SPOT_SHOWN).forEach(function(rec){
+      var tag = (SUBJECT_LABEL[rec.subject] || rec.subject) + " · " + (rec.format === "adventure" ? "Adventure" : "Beacon");
+      appendHistoryRow(weakSpotList, rec.text, tag);
+    });
+    if (missed.length > WEAK_SPOT_SHOWN){
+      appendHistoryRow(weakSpotList, "…and " + (missed.length - WEAK_SPOT_SHOWN) + " more.", "", "is-more");
+    }
+  }
+
+  function daysBetween(a, b){
+    var msPerDay = 86400000;
+    var aMid = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+    var bMid = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+    return Math.round((bMid - aMid) / msPerDay);
+  }
+  function renderExamCountdown(){
+    if (!examDateSettings.date){
+      examCountdownText.textContent = "No exam date set yet.";
+      return;
+    }
+    var target = parseISO(examDateSettings.date);
+    var days = daysBetween(new Date(), target);
+    if (days < 0){
+      examCountdownText.textContent = "That date's in the past.";
+    } else if (days === 0){
+      examCountdownText.textContent = "That's today!";
+    } else {
+      var weeks = Math.floor(days / 7);
+      var text = days + " day" + (days === 1 ? "" : "s") + " to go";
+      if (weeks >= 1) text += " (about " + weeks + " week" + (weeks === 1 ? "" : "s") + ")";
+      examCountdownText.textContent = text + ".";
+    }
+  }
+
+  function renderAll(){
+    if (childName) pageTitle.textContent = childName + "'s Progress";
+    renderLifetimeStats();
+    renderLevels();
+    renderMathsHistory();
+    renderEntryHistory();
+    renderCoverageAndAccuracy();
+    renderWeakSpotList();
+    renderExamCountdown();
+  }
+
+  // ---------- Progress page access ----------
+  // Controlled from the Parents / Admin page. When a parent has turned this
+  // on, this page opens straight into the stats view with no PIN prompt.
+  var STATS_VISIBLE_KEY = "quizAppStatsVisibleToChild_v1";
+  function loadStatsVisible(){
+    try { return window.localStorage.getItem(STATS_VISIBLE_KEY) === "1"; }
+    catch (e){ return false; }
+  }
+
+  function unlock(){
+    lockCard.hidden = true;
+    statsView.hidden = false;
+    renderAll();
+  }
+
+  unlockBtn.addEventListener("click", function(){
+    var storedHash = loadPinHash();
+
+    if (!storedHash){
+      window.alert("No parent PIN has been set up yet. Ask a parent to visit the Parents / Admin page first.");
+      return;
+    }
+
+    var entered = window.prompt("Enter the parent PIN:");
+    if (entered === null) return;
+    hashPin(entered.trim()).then(function(enteredHash){
+      if (enteredHash !== storedHash){
+        window.alert("Incorrect PIN.");
+        return;
+      }
+      unlock();
+    });
+  });
+
+  if (loadStatsVisible()) unlock();
+
+
+  // ---------- Install as an app (optional, safe to fail) ----------
+  if ("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){ /* no sw.js here – fine */ });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

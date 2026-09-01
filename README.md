@@ -2,7 +2,7 @@
 
 Two small practice tools for the same pupil, sharing one repo, one look and one hub page.
 
-- **`index.html`** — the hub/menu. Opens first, offers three options, and links to everything
+- **`index.html`** — the hub/menu. Opens first, offers four options, and links to everything
   else. Nothing to answer here.
 - **`maths-quiz.html`** — a holiday-aware long arithmetic practice tool, built for a Year 6–7
   pupil (age 11–12) at Skipton Parish Church of England Primary School. It checks whether today
@@ -11,8 +11,11 @@ Two small practice tools for the same pupil, sharing one repo, one look and one 
   difficulty to how she's doing along the way.
 - **`entry-test.html`** — practice questions in the style of Skipton Girls' High School's Year 7
   entry test (the Adventure and Beacon papers), for 11+ preparation. See its own section below.
-- **`parents.html`** — one PIN-locked page holding all the settings, history and reset controls
-  for both practice apps.
+- **`stats.html`** — the read-only Progress page: scores, streaks and history for both practice
+  apps. Behind the parent PIN by default, but a parent can turn that off so the child can check
+  her own progress without asking.
+- **`admin.html`** — the PIN-locked settings and reset controls for both practice apps (and for
+  the Progress page's own visibility).
 
 Live at: https://github.com/cmdelee/mathsquiz (GitHub Pages, once enabled)
 
@@ -20,9 +23,9 @@ Live at: https://github.com/cmdelee/mathsquiz (GitHub Pages, once enabled)
 
 The page a browser or home-screen icon opens to. It shows the child's name in the title if one's
 been set, a one-line teaser of the last session for each practice app (once there's history to
-show), and three cards: **Maths quiz** (`maths-quiz.html`), **Practice exam** (`entry-test.html`)
-and **Parents/Admin** (`parents.html`). Nothing here reads or writes any answers — it's just a
-menu.
+show), and four cards: **Maths quiz** (`maths-quiz.html`), **Practice exam** (`entry-test.html`),
+**Progress** (`stats.html`) and **Parents/Admin** (`admin.html`). Nothing here reads or writes any
+answers — it's just a menu.
 
 ## Maths practice (`maths-quiz.html`)
 
@@ -30,7 +33,7 @@ menu.
 
 - **Holiday-aware target**: 10 correct answers on a school holiday, 25 in term time by default,
   based on Skipton Parish School's actual published term dates (not a generic regional calendar).
-  Both numbers can be changed at any time from the parents page.
+  Both numbers can be changed at any time from the admin page.
 - **Four question types**: long multiplication, long division, long subtraction and long
   addition, roughly evenly mixed. Division always divides exactly (no remainders, since that
   hasn't been covered yet). Subtraction can land on a negative answer; addition always stays
@@ -46,13 +49,14 @@ menu.
   the device's native share sheet — no email, no accounts, no data leaves the device at all.
 - **Streak tracking**: a small badge shows how many days or weeks in a row she's kept up her
   practice, and the end-of-session message gets a bit more of a celebration once a streak reaches
-  two or more. How often, and how many sessions in that time, count towards the streak is a
-  parents-page setting (default: 1 session a week) — other families using this app may want a
-  different rhythm, so it isn't fixed in the code.
+  two or more. How often, and how many sessions in that time, count towards the streak is an
+  admin-page setting (default: 1 session a week) — other families using this app may want a
+  different rhythm, so it isn't fixed in the code. The current streak and the best one on record
+  are shown on the Progress page.
 - **Local history**: the page itself shows only the most recent session's score. Full history,
-  targets, difficulty levels, streak settings and resets all live on the parents page, along with
-  a simple chart of recent scores.
-- **Child's name**: optional, set from the parents page. When set, it personalises the page
+  lifetime stats and a chart of recent scores live on the Progress page; targets, streak settings
+  and resets live on the admin page.
+- **Child's name**: optional, set from the admin page. When set, it personalises the page
   title ("Poppy's maths practice") and the end-of-session message, and appears in copied/shared
   reports.
 - **Installable as an app**: a Progressive Web App — "Add to Home Screen" on a phone or tablet
@@ -60,28 +64,40 @@ menu.
 - **Numeric keypad on mobile**: answer fields bring up a compact number pad rather than the
   full keyboard, while still allowing a minus sign for negative answers.
 
-## Parents / Admin (`parents.html`)
+## Progress (`stats.html`)
 
-A single page behind one shared PIN, covering settings and history for **both** practice apps.
-The parent chooses the PIN themselves the first time the page is opened on a device (see below).
-Getting in at all needs the PIN — not just resetting something — so a child can't see or touch
-it. It's split into four sections:
+A read-only page showing scores, streaks and history for **both** practice apps — nothing on it
+can be changed or reset. By default it's behind the same parent PIN as the admin page, but a
+parent can turn that off from the admin page so the child can check her own progress without
+asking each time. Both practice apps link to it as "My progress".
 
-- **Maths practice**: child's name, session targets (term/holiday), streak settings (how often and
-  how many sessions keep the streak going, the current streak and the best one on record), the
-  current difficulty level for each operation alongside its recent accuracy (right/wrong over the
-  last 10 attempts of that type), lifetime totals (sessions and questions answered since the
-  start), full session history with a recent-scores chart, and buttons to reset difficulty to the
-  easiest level or clear the maths history.
-- **Entry test practice**: full session history with a recent-scores chart, how many of the 999
+- **Maths practice**: lifetime totals (sessions and questions answered since the start), the
+  streak goal alongside the current streak and the best one on record, the current difficulty
+  level for each operation alongside its recent accuracy (right/wrong over the last 10 attempts
+  of that type), full session history and a chart of recent scores.
+- **Entry test practice**: full session history and a chart of recent scores, how many of the 999
   questions have been seen at least once, accuracy broken down by subject (English/maths) and by
   paper format (Adventure/Beacon), a list of whichever questions are currently flagged as
-  recently missed, an optional exam date with a countdown, the time limit and question count for
-  the timed "Mock exam" mode, and buttons to clear the history or to clear the page's memory of
-  missed questions (used to weight future sessions — see below).
-- **Backup and reset**: download everything above as one JSON file, restore from a previously
-  downloaded file (replacing whatever's currently on the device), or wipe everything for both
-  apps back to a completely fresh start.
+  recently missed, and a countdown to the exam date if a parent's set one.
+
+## Parents / Admin (`admin.html`)
+
+A single page behind one shared PIN, covering settings and resets for **both** practice apps. The
+parent chooses the PIN themselves the first time the page is opened on a device (see below).
+Getting in at all needs the PIN — not just changing something — so a child can't see or touch it.
+It's split into six sections:
+
+- **Maths practice**: child's name, session targets (term/holiday), streak settings (how often and
+  how many sessions keep the streak going), and buttons to reset difficulty to the easiest level
+  or clear the maths history.
+- **Entry test practice**: an optional exam date (shown as a countdown on the Progress page), the
+  time limit and question count for the timed "Mock exam" mode, and buttons to clear the history
+  or to clear the page's memory of missed questions (used to weight future sessions — see below).
+- **Progress page access**: a single toggle — "Let her open the Progress page without entering
+  the PIN". Off by default, so the Progress page needs the PIN too, same as this one.
+- **Backup and reset**: download everything above (plus the stats shown on the Progress page) as
+  one JSON file, restore from a previously downloaded file (replacing whatever's currently on the
+  device), or wipe everything for both apps back to a completely fresh start.
 - **Parent PIN**: a "Change parent PIN" button (asks for the current PIN first, then the new one
   twice).
 
@@ -93,12 +109,13 @@ or assembled from fragments; `dist/` is just a plain copy of the same files.
 
 | File | Purpose |
 |---|---|
-| `index.html` | The hub/menu page — links to the three pages below. |
+| `index.html` | The hub/menu page — links to the four pages below. |
 | `maths-quiz.html` | The maths practice app — markup, styles and logic in one file. |
 | `entry-test.html` | The Skipton Girls' entry test practice page — same one-file approach. |
-| `parents.html` | The PIN-locked settings/history/admin page for both apps. |
+| `stats.html` | The read-only Progress page — history and stats for both apps, PIN-locked unless a parent's turned that off. |
+| `admin.html` | The PIN-locked settings/reset page for both apps. |
 | `manifest.json` | PWA manifest for the whole hub, so it can be installed to a phone/tablet home screen. |
-| `sw.js` | Service worker — caches the app shell (all four pages) for offline use once installed. |
+| `sw.js` | Service worker — caches the app shell (all five pages) for offline use once installed. |
 | `icon-192.png`, `icon-512.png` | App icons (moss green, Σ mark). |
 | `.gitignore` | Just ignores a stray local test file; nothing app-related. |
 
@@ -123,7 +140,7 @@ clearly flagged in the UI as an estimate. **This will need updating** once the s
 the 2028/29 calendar — replace the `HOLIDAYS` array with the new dates from the school's term
 dates page, following the same "derive from first/last day of term, exclude INSET days" approach.
 
-The 10/25 targets themselves are just defaults — the parents page has a "Targets" section where
+The 10/25 targets themselves are just defaults — the admin page has a "Targets" section where
 either number can be changed (1–200), stored in `localStorage` under `quizAppSettings_v1`. A
 change applies immediately without resetting whatever's already been answered that session.
 
@@ -140,19 +157,19 @@ starts one level below wherever the previous session left off (a gentle warm-up)
 "Adaptive difficulty" section in `maths-quiz.html` for the level tables — what number ranges
 each level uses for each operation.
 
-### History and the parents page
+### History and the Progress page
 
 Session history is saved to `localStorage` under `quizAppHistory_v1` — nothing is sent anywhere,
 ever. `maths-quiz.html` only ever shows the most recent session's date and score; the full list,
-plus a simple chart of recent scores, lives on `parents.html`.
+plus a simple chart of recent scores, lives on `stats.html`.
 
 The streak shown on the maths page isn't stored separately — it's worked out fresh each time from
 that same history list plus a period/threshold setting saved under `quizAppStreakSettings_v1`
-(default: 1 session a week), so it can never drift out of step with the history. Whatever period
-is currently in progress never breaks a streak on its own — it just doesn't count towards it
-until it's met — so a streak only actually ends once a full period has passed with too few
-sessions in it. The parents page also works out the longest streak anywhere in the history, not
-just the current one, the same way.
+(default: 1 session a week, changed from `admin.html`), so it can never drift out of step with
+the history. Whatever period is currently in progress never breaks a streak on its own — it just
+doesn't count towards it until it's met — so a streak only actually ends once a full period has
+passed with too few sessions in it. The Progress page also works out the longest streak anywhere
+in the history, not just the current one, the same way.
 
 Two more things are tracked alongside the session history, both purely additive so nothing needs
 migrating: a short rolling window (last 10) of right/wrong per operation type, under
@@ -162,13 +179,20 @@ totals (sessions completed, questions answered, questions correct) under
 history list itself is capped at 200 entries and would otherwise under-count a lifetime total
 once there's enough history to start dropping the oldest sessions.
 
-`parents.html` sits behind a PIN that the parent sets themselves — the first time it's opened on
+`admin.html` sits behind a PIN that the parent sets themselves — the first time it's opened on
 a device, there's no PIN yet, so it asks you to choose one (typed twice, to catch typos) instead
-of showing any history or settings. Only the PIN's SHA-256 hash is stored, in `localStorage`
-under `quizAppParentPinHash_v1`, never the PIN itself. From then on the same PIN gets back in,
-and a "Change parent PIN" button on the page lets you set a new one (it asks for the current PIN
-first). The same PIN and the same page cover the entry-test app's history too — there's only one
-PIN and one admin page for the whole site.
+of showing any settings. Only the PIN's SHA-256 hash is stored, in `localStorage` under
+`quizAppParentPinHash_v1`, never the PIN itself. From then on the same PIN gets back in, and a
+"Change parent PIN" button on the page lets you set a new one (it asks for the current PIN
+first). The same PIN covers `stats.html` too, unless a parent's turned that off for it (see
+below) — and both apps' history and settings, since there's only one PIN and one admin page for
+the whole site.
+
+`stats.html` uses the same PIN as `admin.html`, but never creates or changes it — if no PIN's
+been set up yet, it just asks that a parent visit the admin page first, rather than offering to
+set one itself. Whether it needs the PIN at all is controlled from `admin.html`'s "Progress page
+access" toggle, stored under `quizAppStatsVisibleToChild_v1` ("1" or "0"); when it's on, the page
+skips the lock screen entirely and opens straight into the stats view.
 
 The child's name, if set, is stored in `localStorage` under `quizAppChildName_v1`, and is read by
 both `maths-quiz.html` and `index.html` (to personalise the hub's title).
@@ -216,42 +240,45 @@ last answered right or wrong (a stable id hashed from its text, in `localStorage
 recently-missed questions over ones never seen, and both over ones already answered correctly.
 Nothing is ever guaranteed or excluded, so sessions still feel fresh, but practice leans towards
 whatever needs it. The same memory (each entry now also carries the question's text, subject and
-paper format) is what lets the parents page show a readable list of whatever's currently being
-missed, rather than just a "clear it" button; that button is still there too. A separate running
-tally, under `entryTestSubjectStats_v1`, tracks overall accuracy by subject (English/maths) and
-by paper format (Adventure/Beacon) for the parents page, and `entryTestBankSize_v1` is written on
-every load so that page can also show how many of the (currently 999) questions have been seen at
-least once, without needing a copy of the item bank itself.
+paper format) is what lets the Progress page show a readable list of whatever's currently being
+missed, rather than just a "clear it" button; that button is still there too, on the admin page. A
+separate running tally, under `entryTestSubjectStats_v1`, tracks overall accuracy by subject
+(English/maths) and by paper format (Adventure/Beacon) for the Progress page, and
+`entryTestBankSize_v1` is written on every load so that page can also show how many of the
+(currently 999) questions have been seen at least once, without needing a copy of the item bank
+itself.
 
 The Mock exam mode is a longer session with a visible countdown timer, both configurable on the
-parents page — by default 20 minutes and 20 questions, but either can be changed independently
+admin page — by default 20 minutes and 20 questions, but either can be changed independently
 (minutes 5–90, questions 5–60), e.g. 20 minutes for 15 questions. If time runs out mid-session, it
 finishes automatically with whatever's been answered so far, the same way a real exam would. The
-parents page also has an optional exam date setting (`entryTestExamDateSettings_v1`), shown there
-as a "days/weeks to go" countdown to help judge when to lean more of her practice towards it.
+admin page also has an optional exam date setting (`entryTestExamDateSettings_v1`), shown on the
+Progress page as a "days/weeks to go" countdown to help judge when to lean more of her practice
+towards it.
 
 Each session is self-marked with immediate feedback, and finishes with a score and a list of any
 missed questions to go over. Short-answer checking is a little forgiving on formatting (e.g.
 `1.70` and `£1.70` are both accepted, as are numerically-equal forms like `5` and `5.0`), but the
 missing letters in a spelling question need to be spelled correctly (case and spacing don't
 matter). The page itself shows only the most recent session's date, paper and score; full
-history and a recent-scores chart (like the maths app) live on `parents.html`, saved to
+history and a recent-scores chart (like the maths app) live on `stats.html`, saved to
 `localStorage` under `entryTestHistory_v1`.
 
-All four pages link to each other from their footers.
+All five pages link to each other from their footers.
 
 ## Backup, restore and full reset
 
 Everything either app knows lives only in that browser's `localStorage` on that one device —
 there's no account and nothing syncs anywhere, which also means there's no automatic recovery if
 the browser's site data is ever cleared or the device is replaced. The "Backup and reset" section
-on `parents.html` covers this:
+on `admin.html` covers this:
 
 - **Backup** downloads a single JSON file containing every setting and history list for both
   apps (session history, streak/difficulty/target settings, lifetime and per-operation maths
-  stats, entry-test weak-question memory, subject accuracy, mock exam and exam date settings, and
-  the parent PIN's hash) — everything except `entryTestBankSize_v1`, which is deliberately left
-  out since `entry-test.html` regenerates it itself on every load.
+  stats, entry-test weak-question memory, subject accuracy, mock exam and exam date settings, the
+  Progress page's visibility setting, and the parent PIN's hash) — everything except
+  `entryTestBankSize_v1`, which is deliberately left out since `entry-test.html` regenerates it
+  itself on every load.
 - **Restore** reads a previously-downloaded backup file back in, after confirming, replacing
   whatever's currently stored on the device and reloading the page.
 - **Reset everything** wipes all of the above (PIN included) back to a completely blank slate,
@@ -259,9 +286,9 @@ on `parents.html` covers this:
 
 ## Making changes
 
-Edit `index.html`, `maths-quiz.html`, `entry-test.html` or `parents.html` directly — each is a
-single, self-contained file (CSS and JS inline, nothing built from anything else), so there's no
-build step to run beyond copying the edited files into `dist/`. After editing, sanity-check it
+Edit `index.html`, `maths-quiz.html`, `entry-test.html`, `stats.html` or `admin.html` directly —
+each is a single, self-contained file (CSS and JS inline, nothing built from anything else), so
+there's no build step to run beyond copying the edited files into `dist/`. After editing, sanity-check it
 locally by opening the file straight in a browser (`file://` works fine for most of the page;
 the service worker registration needs a real HTTPS host to succeed, though the rest of each page
 still works over `file://`).

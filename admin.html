@@ -331,7 +331,7 @@
   <header class="masthead">
     <p class="eyebrow">Skipton · North Yorkshire</p>
     <h1>Parents / Admin</h1>
-    <p class="date-line">Settings, history and resets for both practice apps.</p>
+    <p class="date-line">Settings and resets for both practice apps — full history and stats are on the Progress page.</p>
   </header>
 
   <section class="card lock-card" id="lockCard">
@@ -344,7 +344,7 @@
     <section class="card parents-page">
       <div class="quiz-head">
         <h2>Maths practice</h2>
-        <p class="quiz-sub">Child's name, targets, difficulty levels and session history for the maths app.</p>
+        <p class="quiz-sub">Settings for the maths app — accuracy and history are on the Progress page.</p>
       </div>
 
       <div class="parents-block">
@@ -395,30 +395,6 @@
           <button id="saveStreakBtn" class="btn btn-ghost">Save streak settings</button>
           <p class="settings-note" id="streakNote" hidden></p>
         </div>
-        <p class="quiz-sub" id="streakStatusText" style="margin-top:10px; margin-bottom:0;"></p>
-      </div>
-
-      <div class="parents-block">
-        <h3>Lifetime stats</h3>
-        <p class="quiz-sub" id="lifetimeStatsText">No sessions completed yet.</p>
-      </div>
-
-      <div class="parents-block">
-        <h3>Difficulty levels</h3>
-        <p class="quiz-sub">The level column is what's driving today's questions; the accuracy alongside it is how the last few attempts of that type have gone, which can lag behind a level that's just changed.</p>
-        <ul class="history-list" id="levelList"></ul>
-      </div>
-
-      <div class="parents-block">
-        <h3>Session history</h3>
-        <p class="quiz-sub" id="mathsHistorySummary">No sessions completed yet.</p>
-        <ul class="history-list" id="mathsHistoryList"></ul>
-      </div>
-
-      <div class="parents-block">
-        <h3>Progress</h3>
-        <p class="quiz-sub" id="mathsChartNote">Not enough sessions yet to show a trend.</p>
-        <div class="trend-chart-wrap" id="mathsChartWrap" hidden></div>
       </div>
 
       <div class="quiz-actions">
@@ -430,36 +406,12 @@
     <section class="card parents-page">
       <div class="quiz-head">
         <h2>Entry test practice</h2>
-        <p class="quiz-sub">Session history for the Skipton Girls' entry test practice page.</p>
-      </div>
-
-      <div class="parents-block">
-        <h3>Session history</h3>
-        <p class="quiz-sub" id="entryHistorySummary">No sessions completed yet.</p>
-        <ul class="history-list" id="entryHistoryList"></ul>
-      </div>
-
-      <div class="parents-block">
-        <h3>Progress</h3>
-        <p class="quiz-sub" id="entryChartNote">Not enough sessions yet to show a trend.</p>
-        <div class="trend-chart-wrap" id="entryChartWrap" hidden></div>
-      </div>
-
-      <div class="parents-block">
-        <h3>Coverage and accuracy</h3>
-        <p class="quiz-sub" id="coverageText">No questions answered yet.</p>
-        <ul class="history-list" id="accuracyList"></ul>
-      </div>
-
-      <div class="parents-block">
-        <h3>Questions currently being missed</h3>
-        <p class="quiz-sub" id="weakSpotNote">None right now.</p>
-        <ul class="history-list" id="weakSpotList"></ul>
+        <p class="quiz-sub">Settings for the Skipton Girls' entry test practice page — history and coverage are on the Progress page.</p>
       </div>
 
       <div class="parents-block">
         <h3>Exam date</h3>
-        <p class="quiz-sub">Set the actual 11+ test date, if you know it, for a countdown — handy for judging when to switch more of her practice to the timed Mock exam mode.</p>
+        <p class="quiz-sub">Set the actual 11+ test date, if you know it, for a countdown on the Progress page — handy for judging when to switch more of her practice to the timed Mock exam mode.</p>
         <div class="settings-body">
           <div class="settings-field">
             <label for="examDateInput">Date</label>
@@ -469,7 +421,6 @@
           <button id="clearExamDateBtn" class="btn btn-ghost">Clear</button>
           <p class="settings-note" id="examDateNote" hidden></p>
         </div>
-        <p class="quiz-sub" id="examCountdownText" style="margin-top:10px; margin-bottom:0;"></p>
       </div>
 
       <div class="parents-block">
@@ -492,6 +443,23 @@
       <div class="quiz-actions">
         <button id="clearEntryHistoryBtn" class="btn btn-ghost">Clear entry test history</button>
         <button id="clearWeakSpotBtn" class="btn btn-ghost">Clear weak-question history</button>
+      </div>
+    </section>
+
+    <section class="card parents-page">
+      <div class="quiz-head">
+        <h2>Progress page access</h2>
+        <p class="quiz-sub">The Progress page shows scores, streaks and history for both apps, with none of the settings on this page. By default it needs the parent PIN too, same as here.</p>
+      </div>
+
+      <div class="parents-block">
+        <div class="settings-body">
+          <label class="settings-field" style="flex-direction:row; align-items:center; gap:8px;">
+            <input type="checkbox" id="statsVisibleInput">
+            <span>Let her open the Progress page without entering the PIN</span>
+          </label>
+        </div>
+        <p class="settings-note" id="statsVisibleNote" hidden></p>
       </div>
     </section>
 
@@ -707,128 +675,31 @@
     try { window.localStorage.setItem(STREAK_SETTINGS_KEY, JSON.stringify(s)); } catch (e){ /* ignore */ }
   }
 
-  // Same streak maths as maths-quiz.html – kept in step with it so the
-  // status shown here always matches what the child sees on that page.
-  function streakPeriodKey(d, period){
-    if (period === "day") return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
-    var day = d.getDay();
-    var diffToMonday = (day === 0 ? -6 : 1 - day);
-    var monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMonday);
-    return monday.getFullYear()+"-"+pad(monday.getMonth()+1)+"-"+pad(monday.getDate());
-  }
-  function computeStreak(history, settings, now){
-    var stepDays = settings.period === "day" ? 1 : 7;
-    var counts = {};
-    history.forEach(function(rec){
-      var key = streakPeriodKey(parseISO(rec.date), settings.period);
-      counts[key] = (counts[key] || 0) + 1;
-    });
-    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    var todayKey = streakPeriodKey(today, settings.period);
-    var currentCount = counts[todayKey] || 0;
-    var currentMet = currentCount >= settings.threshold;
-    var streak = currentMet ? 1 : 0;
-    var cursor = new Date(today.getTime());
-    cursor.setDate(cursor.getDate() - stepDays);
-    while (true){
-      var key = streakPeriodKey(cursor, settings.period);
-      if ((counts[key] || 0) >= settings.threshold){
-        streak++;
-        cursor.setDate(cursor.getDate() - stepDays);
-      } else {
-        break;
-      }
-    }
-    return { streak:streak, currentCount:currentCount, currentMet:currentMet };
-  }
-
-  // Longest run of consecutive qualifying periods anywhere in the history,
-  // not just the one still running – so a streak broken months ago doesn't
-  // disappear from view, it just stops being the *current* one.
-  function computeLongestStreak(history, settings){
-    var stepDays = settings.period === "day" ? 1 : 7;
-    var counts = {};
-    history.forEach(function(rec){
-      var key = streakPeriodKey(parseISO(rec.date), settings.period);
-      counts[key] = (counts[key] || 0) + 1;
-    });
-    var qualifying = Object.keys(counts).filter(function(k){ return counts[k] >= settings.threshold; });
-    if (!qualifying.length) return 0;
-    var dates = qualifying.map(parseISO).sort(function(a, b){ return a - b; });
-    var longest = 1, current = 1;
-    for (var i = 1; i < dates.length; i++){
-      var diffDays = Math.round((dates[i] - dates[i-1]) / 86400000);
-      current = (diffDays === stepDays) ? current + 1 : 1;
-      if (current > longest) longest = current;
-    }
-    return longest;
-  }
+  // Note: the streak maths itself (computing the current/longest streak)
+  // now lives only on the Progress page, which is where it's displayed.
+  // This page just edits the settings that feed it.
 
   // ---------- Per-operation accuracy (maths practice) ----------
+  // Recorded by maths-quiz.html, displayed on the Progress page — this page
+  // only needs the key so a backup/restore round-trips it.
   var TYPE_STATS_KEY = "quizAppTypeStats_v1";
-  function loadTypeStats(){
-    var obj = null;
-    try {
-      var raw = window.localStorage.getItem(TYPE_STATS_KEY);
-      obj = raw ? JSON.parse(raw) : null;
-    } catch (e){ obj = null; }
-    if (!obj || typeof obj !== "object") obj = {};
-    DIFF_TYPES.forEach(function(t){ if (!Array.isArray(obj[t])) obj[t] = []; });
-    return obj;
-  }
 
   // ---------- Lifetime stats (maths practice) ----------
+  // Recorded by maths-quiz.html, displayed on the Progress page.
   var LIFETIME_KEY = "quizAppLifetimeStats_v1";
-  function loadLifetimeStats(){
-    var obj = null;
-    try {
-      var raw = window.localStorage.getItem(LIFETIME_KEY);
-      obj = raw ? JSON.parse(raw) : null;
-    } catch (e){ obj = null; }
-    if (!obj || typeof obj !== "object") obj = {};
-    return {
-      sessions: typeof obj.sessions === "number" ? obj.sessions : 0,
-      questionsAnswered: typeof obj.questionsAnswered === "number" ? obj.questionsAnswered : 0,
-      questionsCorrect: typeof obj.questionsCorrect === "number" ? obj.questionsCorrect : 0
-    };
-  }
 
   // ---------- Weak-spot practice stats (entry test) ----------
+  // Recorded by entry-test.html, displayed on the Progress page.
   var ITEM_STATS_KEY = "entryTestItemStats_v1";
-  function loadItemStats(){
-    var obj = null;
-    try {
-      var raw = window.localStorage.getItem(ITEM_STATS_KEY);
-      obj = raw ? JSON.parse(raw) : null;
-    } catch (e){ obj = null; }
-    return (obj && typeof obj === "object") ? obj : {};
-  }
 
   // ---------- Accuracy by subject / paper format (entry test) ----------
+  // Recorded by entry-test.html, displayed on the Progress page.
   var SUBJECT_STATS_KEY = "entryTestSubjectStats_v1";
-  function loadSubjectStats(){
-    var obj = null;
-    try {
-      var raw = window.localStorage.getItem(SUBJECT_STATS_KEY);
-      obj = raw ? JSON.parse(raw) : null;
-    } catch (e){ obj = null; }
-    if (!obj || typeof obj !== "object") obj = {};
-    var blank = function(){ return { correct:0, attempted:0 }; };
-    if (!obj.bySubject || typeof obj.bySubject !== "object") obj.bySubject = {};
-    if (!obj.byFormat || typeof obj.byFormat !== "object") obj.byFormat = {};
-    ["english", "maths"].forEach(function(k){ if (!obj.bySubject[k]) obj.bySubject[k] = blank(); });
-    ["adventure", "beacon"].forEach(function(k){ if (!obj.byFormat[k]) obj.byFormat[k] = blank(); });
-    return obj;
-  }
 
   // ---------- Question bank size (entry test) ----------
-  // Written by entry-test.html on every load; read here only, so this page
-  // never needs its own copy of the item bank just to show coverage.
+  // Written by entry-test.html on every load, read on the Progress page —
+  // deliberately excluded from ALL_DATA_KEYS below, see the reset handler.
   var BANK_SIZE_KEY = "entryTestBankSize_v1";
-  function loadBankSize(){
-    var n = parseInt(window.localStorage.getItem(BANK_SIZE_KEY), 10);
-    return isFinite(n) && n > 0 ? n : null;
-  }
 
   // ---------- Exam date (entry test) ----------
   var EXAM_DATE_KEY = "entryTestExamDateSettings_v1";
@@ -872,93 +743,19 @@
 
   var MATHS_HISTORY_KEY = "quizAppHistory_v1";
   var ENTRY_HISTORY_KEY = "entryTestHistory_v1";
-  var HISTORY_SHOWN = 20;
-  var TREND_CHART_MAX = 15;
 
-  function loadJSONList(key){
-    try {
-      var raw = window.localStorage.getItem(key);
-      var list = raw ? JSON.parse(raw) : [];
-      return Array.isArray(list) ? list : [];
-    } catch (e){ return []; }
-  }
   function saveJSONList(key, list){
     try { window.localStorage.setItem(key, JSON.stringify(list)); } catch (e){ /* ignore */ }
   }
 
-  function pad(n){ return n < 10 ? "0"+n : ""+n; }
-  function parseISO(s){
-    var p = s.split("-");
-    return new Date(parseInt(p[0],10), parseInt(p[1],10)-1, parseInt(p[2],10));
+  // ---------- Progress page access ----------
+  var STATS_VISIBLE_KEY = "quizAppStatsVisibleToChild_v1";
+  function loadStatsVisible(){
+    try { return window.localStorage.getItem(STATS_VISIBLE_KEY) === "1"; }
+    catch (e){ return false; }
   }
-
-  function appendHistoryRow(listEl, left, right, extraClass){
-    var li = document.createElement("li");
-    li.className = "history-row" + (extraClass ? " " + extraClass : "");
-    var l = document.createElement("span");
-    l.className = "history-date";
-    l.textContent = left;
-    var r = document.createElement("span");
-    r.className = "history-score";
-    r.textContent = right;
-    li.appendChild(l);
-    if (right) li.appendChild(r);
-    listEl.appendChild(li);
-  }
-
-  // ---------- Progress trend chart ----------
-  // A small dependency-free inline SVG bar chart of recent scores – no
-  // charting library, so the page keeps working fully offline.
-  var SVG_NS = "http://www.w3.org/2000/svg";
-
-  function buildTrendChart(records){
-    var data = records.slice(0, TREND_CHART_MAX).slice().reverse(); // oldest → newest, left to right
-    var w = 100, h = 40, barGap = 0.6;
-    var barW = w / data.length;
-    var svg = document.createElementNS(SVG_NS, "svg");
-    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
-    svg.setAttribute("preserveAspectRatio", "none");
-    svg.setAttribute("class", "trend-chart");
-    svg.setAttribute("role", "img");
-    svg.setAttribute("aria-label", "Chart of recent session scores");
-    data.forEach(function(rec, i){
-      var pct = Math.max(0, Math.min(100, rec.pct || 0));
-      var barH = Math.max(0.5, (pct / 100) * (h - 4));
-      var rect = document.createElementNS(SVG_NS, "rect");
-      rect.setAttribute("x", (i * barW + barGap / 2).toFixed(2));
-      rect.setAttribute("width", Math.max(0.5, barW - barGap).toFixed(2));
-      rect.setAttribute("y", (h - barH - 2).toFixed(2));
-      rect.setAttribute("height", barH.toFixed(2));
-      rect.setAttribute("class", "trend-bar");
-      var title = document.createElementNS(SVG_NS, "title");
-      title.textContent = pct + "%";
-      rect.appendChild(title);
-      svg.appendChild(rect);
-    });
-    return svg;
-  }
-
-  function renderTrendChart(wrapEl, noteEl, records){
-    wrapEl.innerHTML = "";
-    if (records.length < 2){
-      wrapEl.hidden = true;
-      noteEl.hidden = false;
-      noteEl.textContent = "Not enough sessions yet to show a trend.";
-      return;
-    }
-    noteEl.hidden = true;
-    wrapEl.hidden = false;
-    wrapEl.appendChild(buildTrendChart(records));
-    var shown = Math.min(records.length, TREND_CHART_MAX);
-    var caption = document.createElement("p");
-    caption.className = "trend-chart-caption";
-    var left = document.createElement("span");
-    left.textContent = "Last " + shown + " session" + (shown === 1 ? "" : "s");
-    var right = document.createElement("span");
-    right.textContent = "Tap or hover a bar for its score";
-    caption.appendChild(left);
-    caption.appendChild(right);
-    wrapEl.appendChild(caption);
+  function saveStatsVisible(v){
+    try { window.localStorage.setItem(STATS_VISIBLE_KEY, v ? "1" : "0"); } catch (e){ /* ignore */ }
   }
 
   // ---------- Element refs ----------
@@ -976,12 +773,6 @@
   var saveTargetsBtn = document.getElementById("saveTargetsBtn");
   var targetsNote = document.getElementById("targetsNote");
 
-  var levelList = document.getElementById("levelList");
-  var lifetimeStatsText = document.getElementById("lifetimeStatsText");
-  var mathsHistorySummary = document.getElementById("mathsHistorySummary");
-  var mathsHistoryList = document.getElementById("mathsHistoryList");
-  var mathsChartNote = document.getElementById("mathsChartNote");
-  var mathsChartWrap = document.getElementById("mathsChartWrap");
   var resetDifficultyBtn = document.getElementById("resetDifficultyBtn");
   var clearMathsHistoryBtn = document.getElementById("clearMathsHistoryBtn");
 
@@ -989,21 +780,11 @@
   var streakThresholdInput = document.getElementById("streakThresholdInput");
   var saveStreakBtn = document.getElementById("saveStreakBtn");
   var streakNote = document.getElementById("streakNote");
-  var streakStatusText = document.getElementById("streakStatusText");
 
-  var entryHistorySummary = document.getElementById("entryHistorySummary");
-  var entryHistoryList = document.getElementById("entryHistoryList");
-  var entryChartNote = document.getElementById("entryChartNote");
-  var entryChartWrap = document.getElementById("entryChartWrap");
-  var coverageText = document.getElementById("coverageText");
-  var accuracyList = document.getElementById("accuracyList");
-  var weakSpotNote = document.getElementById("weakSpotNote");
-  var weakSpotList = document.getElementById("weakSpotList");
   var examDateInput = document.getElementById("examDateInput");
   var saveExamDateBtn = document.getElementById("saveExamDateBtn");
   var clearExamDateBtn = document.getElementById("clearExamDateBtn");
   var examDateNote = document.getElementById("examDateNote");
-  var examCountdownText = document.getElementById("examCountdownText");
   var clearEntryHistoryBtn = document.getElementById("clearEntryHistoryBtn");
   var clearWeakSpotBtn = document.getElementById("clearWeakSpotBtn");
 
@@ -1011,6 +792,9 @@
   var mockQuestionsInput = document.getElementById("mockQuestionsInput");
   var saveMockBtn = document.getElementById("saveMockBtn");
   var mockNote = document.getElementById("mockNote");
+
+  var statsVisibleInput = document.getElementById("statsVisibleInput");
+  var statsVisibleNote = document.getElementById("statsVisibleNote");
 
   var backupBtn = document.getElementById("backupBtn");
   var restoreBtn = document.getElementById("restoreBtn");
@@ -1020,15 +804,14 @@
 
   var changePinBtn = document.getElementById("changePinBtn");
 
-  // ---------- Render: maths practice ----------
+  // ---------- Render ----------
   var settings = loadSettings();
   var childName = loadChildName();
   var difficulty = loadDifficulty();
   var streakSettings = loadStreakSettings();
-  var typeStats = loadTypeStats();
-  var lifetimeStats = loadLifetimeStats();
   var mockSettings = loadMockSettings();
   var examDateSettings = loadExamDateSettings();
+  var statsVisible = loadStatsVisible();
 
   function renderChildName(){
     childNameInput.value = childName;
@@ -1039,213 +822,32 @@
     holidayTargetInput.value = settings.holidayTarget;
     targetsNote.hidden = true;
   }
-  function renderLevels(){
-    levelList.innerHTML = "";
-    DIFF_TYPES.forEach(function(t){
-      var attempts = typeStats[t] || [];
-      var right = "Level " + difficulty[t] + " of " + DIFF_MAX_LEVEL;
-      if (attempts.length){
-        var correct = attempts.filter(Boolean).length;
-        right += " · " + correct + "/" + attempts.length + " recently";
-      }
-      appendHistoryRow(levelList, TYPE_LABELS[t], right);
-    });
-  }
-  function renderLifetimeStats(){
-    if (!lifetimeStats.sessions){
-      lifetimeStatsText.textContent = "No sessions completed yet.";
-      return;
-    }
-    var pct = lifetimeStats.questionsAnswered ? Math.round((lifetimeStats.questionsCorrect / lifetimeStats.questionsAnswered) * 100) : 0;
-    lifetimeStatsText.textContent = lifetimeStats.sessions + " session" + (lifetimeStats.sessions === 1 ? "" : "s") +
-      " completed, " + lifetimeStats.questionsAnswered + " question" + (lifetimeStats.questionsAnswered === 1 ? "" : "s") +
-      " answered (" + pct + "% correct) since she started.";
-  }
-  function formatMathsHistoryDate(iso){
-    return parseISO(iso).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
-  }
-  function renderMathsHistory(){
-    var list = loadJSONList(MATHS_HISTORY_KEY);
-    mathsHistoryList.innerHTML = "";
-    if (!list.length){
-      mathsHistorySummary.textContent = "No sessions completed yet.";
-      clearMathsHistoryBtn.hidden = true;
-      renderTrendChart(mathsChartWrap, mathsChartNote, list);
-      renderStreakSettings(list);
-      return;
-    }
-    mathsHistorySummary.textContent = list.length + " session" + (list.length === 1 ? "" : "s") + " completed on this device.";
-    clearMathsHistoryBtn.hidden = false;
-    var shown = list.slice(0, HISTORY_SHOWN);
-    shown.forEach(function(rec){
-      var left = formatMathsHistoryDate(rec.date) + " · " + (rec.status === "holiday" ? "Holidays" : "Term time");
-      var right = rec.correct + "/" + rec.attempted + " (" + rec.pct + "%)";
-      appendHistoryRow(mathsHistoryList, left, right);
-    });
-    var remaining = list.length - shown.length;
-    if (remaining > 0){
-      appendHistoryRow(mathsHistoryList, "…and " + remaining + " earlier session" + (remaining === 1 ? "" : "s") + ".", "", "is-more");
-    }
-    renderTrendChart(mathsChartWrap, mathsChartNote, list);
-    renderStreakSettings(list);
-  }
-
-  function renderStreakStatus(mathsHistory){
-    if (!mathsHistory.length){
-      streakStatusText.textContent = "No maths sessions yet.";
-      return;
-    }
-    var result = computeStreak(mathsHistory, streakSettings, new Date());
-    var longest = computeLongestStreak(mathsHistory, streakSettings);
-    var unit = streakSettings.period === "day" ? "day" : "week";
-    var text = result.streak > 0
-      ? "Current streak: " + result.streak + " " + (result.streak === 1 ? unit : unit + "s") + "."
-      : "No current streak.";
-    if (longest > result.streak){
-      text += " Best so far: " + longest + " " + (longest === 1 ? unit : unit + "s") + ".";
-    }
-    streakStatusText.textContent = text;
-  }
-  function renderStreakSettings(mathsHistory){
+  function renderStreakSettings(){
     streakPeriodInput.value = streakSettings.period;
     streakThresholdInput.value = streakSettings.threshold;
     streakNote.hidden = true;
-    renderStreakStatus(mathsHistory);
-  }
-
-  // ---------- Render: entry test practice ----------
-  var ENTRY_PAPER_LABEL = { adventure:"Adventure paper", beacon:"Beacon paper", mixed:"Mixed practice", mock:"Mock exam" };
-  function formatEntryHistoryDate(iso){
-    return new Date(iso).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
-  }
-  function renderEntryHistory(){
-    var list = loadJSONList(ENTRY_HISTORY_KEY);
-    entryHistoryList.innerHTML = "";
-    if (!list.length){
-      entryHistorySummary.textContent = "No sessions completed yet.";
-      clearEntryHistoryBtn.hidden = true;
-      return;
-    }
-    entryHistorySummary.textContent = list.length + " session" + (list.length === 1 ? "" : "s") + " completed on this device.";
-    clearEntryHistoryBtn.hidden = false;
-    var shown = list.slice(0, HISTORY_SHOWN);
-    shown.forEach(function(rec){
-      var left = formatEntryHistoryDate(rec.date) + " · " + (ENTRY_PAPER_LABEL[rec.paper] || rec.paper);
-      var right = rec.correct + " of " + rec.attempted + " (" + rec.pct + "%)";
-      appendHistoryRow(entryHistoryList, left, right);
-    });
-    var remaining = list.length - shown.length;
-    if (remaining > 0){
-      appendHistoryRow(entryHistoryList, "…and " + remaining + " earlier session" + (remaining === 1 ? "" : "s") + ".", "", "is-more");
-    }
-    renderTrendChart(entryChartWrap, entryChartNote, list);
-  }
-
-  var FORMAT_LABEL = { adventure:"Adventure-style (multiple choice)", beacon:"Beacon-style (written answer)" };
-  var SUBJECT_LABEL = { english:"English", maths:"Maths" };
-
-  function renderCoverageAndAccuracy(){
-    var stats = loadItemStats();
-    var seen = Object.keys(stats).length;
-    var bankSize = loadBankSize();
-    if (!seen){
-      coverageText.textContent = "No questions answered yet.";
-    } else if (bankSize){
-      coverageText.textContent = seen + " of " + bankSize + " questions seen at least once (" +
-        Math.round((seen / bankSize) * 100) + "%).";
-    } else {
-      coverageText.textContent = seen + " question" + (seen === 1 ? "" : "s") + " seen at least once.";
-    }
-
-    var subjectStats = loadSubjectStats();
-    accuracyList.innerHTML = "";
-    var any = false;
-    ["english", "maths"].forEach(function(k){
-      var b = subjectStats.bySubject[k];
-      if (b.attempted){
-        any = true;
-        appendHistoryRow(accuracyList, SUBJECT_LABEL[k], b.correct + "/" + b.attempted + " (" + Math.round((b.correct/b.attempted)*100) + "%)");
-      }
-    });
-    ["adventure", "beacon"].forEach(function(k){
-      var b = subjectStats.byFormat[k];
-      if (b.attempted){
-        any = true;
-        appendHistoryRow(accuracyList, FORMAT_LABEL[k], b.correct + "/" + b.attempted + " (" + Math.round((b.correct/b.attempted)*100) + "%)");
-      }
-    });
-    if (!any){
-      appendHistoryRow(accuracyList, "No questions answered yet.", "");
-    }
-  }
-
-  var WEAK_SPOT_SHOWN = 15;
-  function renderWeakSpotList(){
-    var stats = loadItemStats();
-    var missed = Object.keys(stats)
-      .map(function(id){ return stats[id]; })
-      .filter(function(rec){ return rec && typeof rec === "object" && rec.outcome === "incorrect"; })
-      .sort(function(a, b){ return new Date(b.lastSeen) - new Date(a.lastSeen); });
-    weakSpotList.innerHTML = "";
-    if (!missed.length){
-      weakSpotNote.hidden = false;
-      weakSpotNote.textContent = "None right now — nothing currently flagged as recently missed.";
-      return;
-    }
-    weakSpotNote.hidden = true;
-    missed.slice(0, WEAK_SPOT_SHOWN).forEach(function(rec){
-      var tag = (SUBJECT_LABEL[rec.subject] || rec.subject) + " · " + (rec.format === "adventure" ? "Adventure" : "Beacon");
-      appendHistoryRow(weakSpotList, rec.text, tag);
-    });
-    if (missed.length > WEAK_SPOT_SHOWN){
-      appendHistoryRow(weakSpotList, "…and " + (missed.length - WEAK_SPOT_SHOWN) + " more.", "", "is-more");
-    }
-  }
-
-  function daysBetween(a, b){
-    var msPerDay = 86400000;
-    var aMid = new Date(a.getFullYear(), a.getMonth(), a.getDate());
-    var bMid = new Date(b.getFullYear(), b.getMonth(), b.getDate());
-    return Math.round((bMid - aMid) / msPerDay);
   }
   function renderExamDate(){
     examDateInput.value = examDateSettings.date || "";
     examDateNote.hidden = true;
-    if (!examDateSettings.date){
-      examCountdownText.textContent = "";
-      return;
-    }
-    var target = parseISO(examDateSettings.date);
-    var days = daysBetween(new Date(), target);
-    if (days < 0){
-      examCountdownText.textContent = "That date's in the past.";
-    } else if (days === 0){
-      examCountdownText.textContent = "That's today.";
-    } else {
-      var weeks = Math.floor(days / 7);
-      var text = days + " day" + (days === 1 ? "" : "s") + " to go";
-      if (weeks >= 1) text += " (about " + weeks + " week" + (weeks === 1 ? "" : "s") + ")";
-      examCountdownText.textContent = text + ".";
-    }
   }
-
   function renderMockSettings(){
     mockMinutesInput.value = mockSettings.minutes;
     mockQuestionsInput.value = mockSettings.questions;
     mockNote.hidden = true;
   }
+  function renderStatsVisible(){
+    statsVisibleInput.checked = statsVisible;
+    statsVisibleNote.hidden = true;
+  }
 
   function renderAll(){
     renderChildName();
     renderTargets();
-    renderLevels();
-    renderLifetimeStats();
-    renderMathsHistory();
-    renderEntryHistory();
-    renderCoverageAndAccuracy();
-    renderWeakSpotList();
+    renderStreakSettings();
     renderExamDate();
     renderMockSettings();
+    renderStatsVisible();
   }
 
   // ---------- Handlers ----------
@@ -1298,36 +900,33 @@
     streakNote.textContent = "Saved. Takes effect next time the maths page is opened.";
     streakNote.className = "settings-note is-success";
     streakNote.hidden = false;
-    renderStreakStatus(loadJSONList(MATHS_HISTORY_KEY));
   });
 
   resetDifficultyBtn.addEventListener("click", function(){
     if (window.confirm("Reset difficulty back to the easiest level for every question type? This can't be undone.")){
       DIFF_TYPES.forEach(function(t){ difficulty[t] = DIFF_MIN_LEVEL; });
       saveDifficulty(difficulty);
-      renderLevels();
+      window.alert("Difficulty reset to the easiest level for every question type.");
     }
   });
 
   clearMathsHistoryBtn.addEventListener("click", function(){
     if (window.confirm("Clear all saved maths practice history on this device? This can't be undone.")){
       saveJSONList(MATHS_HISTORY_KEY, []);
-      renderMathsHistory();
+      window.alert("Cleared.");
     }
   });
 
   clearEntryHistoryBtn.addEventListener("click", function(){
     if (window.confirm("Clear all saved entry test history on this device? This can't be undone.")){
       saveJSONList(ENTRY_HISTORY_KEY, []);
-      renderEntryHistory();
+      window.alert("Cleared.");
     }
   });
 
   clearWeakSpotBtn.addEventListener("click", function(){
     if (window.confirm("Clear the practice exam's memory of which questions have been missed before? This can't be undone.")){
       try { window.localStorage.removeItem(ITEM_STATS_KEY); } catch (e){ /* ignore */ }
-      renderCoverageAndAccuracy();
-      renderWeakSpotList();
       window.alert("Cleared.");
     }
   });
@@ -1376,6 +975,16 @@
     mockNote.hidden = false;
   });
 
+  statsVisibleInput.addEventListener("change", function(){
+    statsVisible = statsVisibleInput.checked;
+    saveStatsVisible(statsVisible);
+    statsVisibleNote.textContent = statsVisible
+      ? "Saved. The Progress page now opens without a PIN."
+      : "Saved. The Progress page now needs the PIN again.";
+    statsVisibleNote.className = "settings-note is-success";
+    statsVisibleNote.hidden = false;
+  });
+
   changePinBtn.addEventListener("click", function(){
     var storedHash = loadPinHash();
     if (!storedHash){
@@ -1406,7 +1015,7 @@
   var ALL_DATA_KEYS = [
     DIFF_KEY, SETTINGS_KEY, CHILD_NAME_KEY, STREAK_SETTINGS_KEY, TYPE_STATS_KEY, LIFETIME_KEY,
     MATHS_HISTORY_KEY, ENTRY_HISTORY_KEY, ITEM_STATS_KEY, SUBJECT_STATS_KEY, MOCK_SETTINGS_KEY,
-    EXAM_DATE_KEY, PIN_KEY
+    EXAM_DATE_KEY, PIN_KEY, STATS_VISIBLE_KEY
   ];
 
   backupBtn.addEventListener("click", function(){

@@ -168,6 +168,7 @@
     color:var(--accent);
   }
   .nav-card.is-exam .nav-icon{ background:var(--gold-soft); color:var(--gold); }
+  .nav-card.is-stats .nav-icon{ background:var(--accent-soft); color:var(--accent); }
   .nav-card.is-admin .nav-icon{ background:var(--surface-2); color:var(--ink-soft); }
   .nav-body{ flex:1 1 auto; min-width:0; }
   .nav-name{
@@ -232,11 +233,20 @@
       <span class="nav-arrow">→</span>
     </a>
 
-    <a class="nav-card is-admin" href="parents.html">
+    <a class="nav-card is-stats" href="stats.html">
+      <span class="nav-icon">★</span>
+      <span class="nav-body">
+        <span class="nav-name">Progress</span>
+        <p class="nav-desc">Scores, streaks and history for both apps — PIN protected, unless a parent's turned that off.</p>
+      </span>
+      <span class="nav-arrow">→</span>
+    </a>
+
+    <a class="nav-card is-admin" href="admin.html">
       <span class="nav-icon">⚙</span>
       <span class="nav-body">
         <span class="nav-name">Parents / Admin</span>
-        <p class="nav-desc">Settings, full history and resets for both apps — PIN protected.</p>
+        <p class="nav-desc">Settings and resets for both apps — PIN protected.</p>
       </span>
       <span class="nav-arrow">→</span>
     </a>
