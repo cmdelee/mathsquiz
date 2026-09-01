@@ -92,7 +92,7 @@ separate progress summary on `mythology.html` itself — see below — rather th
 A single page behind one shared PIN, covering settings and resets for all three practice apps. The
 parent chooses the PIN themselves the first time the page is opened on a device (see below).
 Getting in at all needs the PIN — not just changing something — so a child can't see or touch it.
-It's split into six sections:
+It's split into seven sections:
 
 - **Maths practice**: child's name, session targets (term/holiday), streak settings (how often and
   how many sessions keep the streak going), and buttons to reset difficulty to the easiest level
@@ -103,6 +103,10 @@ It's split into six sections:
 - **AI marking**: the provider and API key Trivia's long-answer questions need to be marked (see
   below) — currently only Claude (Anthropic) is offered, saved, tested and cleared here — plus a
   button to clear Trivia's own history and progress across all four of its subjects.
+- **Trivia subjects**: a tick per subject controlling whether it's offered on `mythology.html`'s
+  picker at all — unticking one hides it there without touching its saved history or progress, so
+  it just picks back up if it's ever re-ticked. At least one subject always has to stay ticked; the
+  page refuses to let the last one be unticked rather than leaving an empty picker.
 - **Progress page access**: a single toggle — "Let her open the Progress page without entering
   the PIN". Off by default, so the Progress page needs the PIN too, same as this one.
 - **Backup and reset**: download everything above (plus the stats shown on the Progress page) as
@@ -293,6 +297,14 @@ slow, effortful free-text marking.
 Kept at the `mythology.html` filename/URL even though it's grown beyond just mythology, so any
 existing bookmark or home-screen install still opens it.
 
+Each subject is written true to its own source material's actual tone rather than a softened,
+sanitised version of it — Red Dwarf's questions and model answers reference the show's own running
+jokes and characterisation (its fictional "smeg"/"smeghead" expletive, Lister's curry-and-lager
+habits, Rimmer's romantic failures as a recurring joke) rather than sticking to plot/character
+facts alone, on the basis that a subject only gets added here because she's already watched it. A
+parent can hide any subject entirely from the picker — see "Trivia subjects" under Parents/Admin
+above — for a subject that isn't wanted, rather than the content itself being watered down.
+
 ### Why the long-answer questions are marked differently
 
 Long, free-text answers don't have one single "correct" wording, so they can't be checked by
@@ -395,14 +407,15 @@ commit and push from a local clone with Git/GitHub Desktop.
 
 ## Testing
 
-`tests/` holds a Playwright suite (350+ checks as of the last update) covering the things most
+`tests/` holds a Playwright suite (360+ checks as of the last update) covering the things most
 likely to break silently: the PIN gate on `admin.html` and `stats.html`, the streak maths,
 backup/restore round-tripping every setting, the mock exam configuration, the Progress-page
-visibility toggle, and Trivia's subject picker, 25-question mixed-kind session builder (at least
-one of each kind, never more than 5 long-answer), GCSE-style marks-based scoring for long-answer
-questions, instant local marking for multiple-choice/quick-answer questions, and per-subject
-progress tracking (every call to Anthropic's API is intercepted with a mocked route, so the suite
-never makes a real network request or spends real API credit). It's plain Node with no bundler —
+visibility toggle, and Trivia's subject picker (including per-subject enable/disable, with a guard
+against hiding every subject at once), 25-question mixed-kind session builder (at least one of each
+kind, never more than 5 long-answer), GCSE-style marks-based scoring for long-answer questions,
+instant local marking for multiple-choice/quick-answer questions, and per-subject progress tracking
+(every call to Anthropic's API is intercepted with a mocked route, so the suite never makes a real
+network request or spends real API credit). It's plain Node with no bundler —
 see `tests/README.md` for how to install Playwright and run it locally, and
 `.github/workflows/test.yml` runs the same suite on every push and pull request.
 

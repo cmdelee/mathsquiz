@@ -529,7 +529,7 @@
     <section class="card parents-page">
       <div class="quiz-head">
         <h2>AI marking</h2>
-        <p class="quiz-sub">Some question types are free-text, with no single right wording, so they can't be marked by matching against a list of accepted answers. Setting this up lets them be marked by AI instead. It currently powers the standalone <strong>Trivia</strong> page (Greek Mythology, Harry Potter and Stranger Things), and is written to cover any future AI-marked subject the same way — until a key's set up here, those questions simply stay unavailable.</p>
+        <p class="quiz-sub">Some question types are free-text, with no single right wording, so they can't be marked by matching against a list of accepted answers. Setting this up lets them be marked by AI instead. It currently powers the long-answer questions on the standalone <strong>Trivia</strong> page (Greek Mythology, Harry Potter, Stranger Things and Red Dwarf — the page's multiple-choice/quick-answer questions don't need this at all), and is written to cover any future AI-marked subject the same way — until a key's set up here, those long-answer questions simply stay unavailable.</p>
       </div>
 
       <div class="parents-block">
@@ -557,7 +557,26 @@
 
       <div class="parents-block">
         <h3>Trivia</h3>
-        <p class="quiz-sub">A standalone page of AI-marked long-answer questions across three subjects — Greek Mythology, Harry Potter and Stranger Things — just for fun, not linked to the 11+ entry test practice. Its own history and progress live only on that page, separate from the Progress page.</p>
+        <p class="quiz-sub">25-question sessions across four subjects — Greek Mythology, Harry Potter, Stranger Things and Red Dwarf — just for fun, not linked to the 11+ entry test practice. Its own history and progress live only on that page, separate from the Progress page. Untick a subject to hide it from the picker there.</p>
+        <div class="settings-body">
+          <label class="settings-field" style="flex-direction:row; align-items:center; gap:8px;">
+            <input type="checkbox" class="trivia-subject-input" data-subject="mythology">
+            <span>Greek Mythology</span>
+          </label>
+          <label class="settings-field" style="flex-direction:row; align-items:center; gap:8px;">
+            <input type="checkbox" class="trivia-subject-input" data-subject="harry-potter">
+            <span>Harry Potter</span>
+          </label>
+          <label class="settings-field" style="flex-direction:row; align-items:center; gap:8px;">
+            <input type="checkbox" class="trivia-subject-input" data-subject="stranger-things">
+            <span>Stranger Things</span>
+          </label>
+          <label class="settings-field" style="flex-direction:row; align-items:center; gap:8px;">
+            <input type="checkbox" class="trivia-subject-input" data-subject="red-dwarf">
+            <span>Red Dwarf</span>
+          </label>
+        </div>
+        <p class="settings-note" id="triviaSubjectsNote" hidden></p>
         <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none; justify-content:flex-start;">
           <button id="clearTriviaHistoryBtn" class="btn btn-ghost">Clear Trivia history</button>
         </div>
@@ -915,6 +934,26 @@
     try { window.localStorage.setItem(AI_MARKING_SETTINGS_KEY, JSON.stringify(s)); } catch (e){ /* ignore */ }
   }
 
+  // Which Trivia subjects show on mythology.html's subject picker. Stored
+  // as {subjectKey: false} for anything switched off — a subject with no
+  // entry here is enabled by default, so a fresh install, or a future
+  // subject added later, doesn't need switching on by hand.
+  var TRIVIA_ENABLED_SUBJECTS_KEY = "triviaEnabledSubjects_v1";
+  function loadTriviaEnabledSubjects(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(TRIVIA_ENABLED_SUBJECTS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    return (obj && typeof obj === "object") ? obj : {};
+  }
+  function saveTriviaEnabledSubjects(map){
+    try { window.localStorage.setItem(TRIVIA_ENABLED_SUBJECTS_KEY, JSON.stringify(map)); } catch (e){ /* ignore */ }
+  }
+  function isTriviaSubjectEnabled(map, subjectKey){
+    return map[subjectKey] !== false;
+  }
+
   var MATHS_HISTORY_KEY = "quizAppHistory_v1";
   var ENTRY_HISTORY_KEY = "entryTestHistory_v1";
 
@@ -982,6 +1021,9 @@
   var clearAiMarkingBtn = document.getElementById("clearAiMarkingBtn");
   var aiMarkingNote = document.getElementById("aiMarkingNote");
 
+  var triviaSubjectInputs = Array.prototype.slice.call(document.querySelectorAll(".trivia-subject-input"));
+  var triviaSubjectsNote = document.getElementById("triviaSubjectsNote");
+
   var statsVisibleInput = document.getElementById("statsVisibleInput");
   var statsVisibleNote = document.getElementById("statsVisibleNote");
 
@@ -1002,6 +1044,7 @@
   var sessionSizeSettings = loadSessionSizeSettings();
   var examDateSettings = loadExamDateSettings();
   var aiMarkingSettings = loadAiMarkingSettings();
+  var triviaEnabledSubjects = loadTriviaEnabledSubjects();
   var statsVisible = loadStatsVisible();
 
   function renderChildName(){
@@ -1044,6 +1087,13 @@
     aiMarkingNote.hidden = true;
   }
 
+  function renderTriviaSubjects(){
+    triviaSubjectInputs.forEach(function(input){
+      input.checked = isTriviaSubjectEnabled(triviaEnabledSubjects, input.getAttribute("data-subject"));
+    });
+    triviaSubjectsNote.hidden = true;
+  }
+
   function renderAll(){
     renderChildName();
     renderTargets();
@@ -1052,6 +1102,7 @@
     renderMockSettings();
     renderSessionSizeSettings();
     renderAiMarkingSettings();
+    renderTriviaSubjects();
     renderStatsVisible();
   }
 
@@ -1141,7 +1192,7 @@
   });
 
   clearTriviaHistoryBtn.addEventListener("click", function(){
-    if (window.confirm("Clear all Trivia history and progress on this device (Greek Mythology, Harry Potter and Stranger Things)? This can't be undone.")){
+    if (window.confirm("Clear all Trivia history and progress on this device (Greek Mythology, Harry Potter, Stranger Things and Red Dwarf)? This can't be undone.")){
       [TRIVIA_HISTORY_KEY, TRIVIA_ITEM_STATS_KEY, TRIVIA_TOTALS_KEY].forEach(function(key){
         try { window.localStorage.removeItem(key); } catch (e){ /* ignore */ }
       });
@@ -1150,6 +1201,28 @@
       });
       window.alert("Cleared.");
     }
+  });
+
+  // Saved immediately on change, same as the Progress-page-access toggle
+  // below, rather than needing a separate Save button.
+  triviaSubjectInputs.forEach(function(input){
+    input.addEventListener("change", function(){
+      var subjectKey = input.getAttribute("data-subject");
+      if (!triviaSubjectInputs.some(function(inp){ return inp.checked; })){
+        // Refuse to leave every subject switched off — there'd be nothing
+        // left to play, and no obvious way back in from mythology.html itself.
+        input.checked = true;
+        triviaSubjectsNote.textContent = "At least one subject needs to stay enabled.";
+        triviaSubjectsNote.className = "settings-note is-error";
+        triviaSubjectsNote.hidden = false;
+        return;
+      }
+      triviaEnabledSubjects[subjectKey] = input.checked;
+      saveTriviaEnabledSubjects(triviaEnabledSubjects);
+      triviaSubjectsNote.textContent = "Saved.";
+      triviaSubjectsNote.className = "settings-note is-success";
+      triviaSubjectsNote.hidden = false;
+    });
   });
 
   saveExamDateBtn.addEventListener("click", function(){
@@ -1344,7 +1417,8 @@
     DIFF_KEY, SETTINGS_KEY, CHILD_NAME_KEY, STREAK_SETTINGS_KEY, TYPE_STATS_KEY, LIFETIME_KEY,
     MATHS_HISTORY_KEY, ENTRY_HISTORY_KEY, ITEM_STATS_KEY, SUBJECT_STATS_KEY, MOCK_SETTINGS_KEY,
     SESSION_SIZE_SETTINGS_KEY, EXAM_DATE_KEY, PIN_KEY, STATS_VISIBLE_KEY, AI_MARKING_SETTINGS_KEY,
-    AI_DISCLOSURE_SEEN_KEY, TRIVIA_HISTORY_KEY, TRIVIA_ITEM_STATS_KEY, TRIVIA_TOTALS_KEY
+    AI_DISCLOSURE_SEEN_KEY, TRIVIA_HISTORY_KEY, TRIVIA_ITEM_STATS_KEY, TRIVIA_TOTALS_KEY,
+    TRIVIA_ENABLED_SUBJECTS_KEY
   ];
 
   // AI_MARKING_SETTINGS_KEY holds the AI marking API key in plain text – it

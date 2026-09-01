@@ -851,6 +851,106 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.close();
   }
 
+  // ---- admin.html: enable/disable Trivia subjects ----
+  {
+    const TRIVIA_ENABLED_SUBJECTS_KEY = "triviaEnabledSubjects_v1";
+    const page = await browser.newPage();
+    attachDialogHandler(page);
+    await page.goto(baseUrl + "/admin.html");
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.click("#unlockBtn");
+    await page.waitForTimeout(300);
+
+    check("admin.html: all four Trivia subjects are offered, all enabled by default",
+      await page.locator(".trivia-subject-input").count() === 4 &&
+      (await page.locator(".trivia-subject-input").evaluateAll((els) => els.every((el) => el.checked))));
+
+    await page.uncheck('.trivia-subject-input[data-subject="red-dwarf"]');
+    await page.waitForTimeout(100);
+    const afterUncheck = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) || "{}"), TRIVIA_ENABLED_SUBJECTS_KEY);
+    check("admin.html: unchecking a subject saves it as disabled", afterUncheck["red-dwarf"] === false);
+    check("admin.html: unchecking a subject confirms it saved",
+      (await page.locator("#triviaSubjectsNote").textContent()) === "Saved.");
+
+    // Can't disable every subject — the last one left refuses and snaps back.
+    await page.uncheck('.trivia-subject-input[data-subject="mythology"]');
+    await page.waitForTimeout(50);
+    await page.uncheck('.trivia-subject-input[data-subject="harry-potter"]');
+    await page.waitForTimeout(50);
+    // Use a plain click here, not uncheck() — the guard reverts the box
+    // synchronously in the change handler, and uncheck() asserts the box
+    // ends up unchecked, which would never be true for this one.
+    await page.click('.trivia-subject-input[data-subject="stranger-things"]');
+    await page.waitForTimeout(100);
+    check("admin.html: disabling the last remaining subject is refused and the checkbox snaps back",
+      await page.locator('.trivia-subject-input[data-subject="stranger-things"]').isChecked());
+    check("admin.html: refusing to disable the last subject explains why",
+      (await page.locator("#triviaSubjectsNote").textContent()).indexOf("At least one subject") !== -1);
+    const afterRefusal = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) || "{}"), TRIVIA_ENABLED_SUBJECTS_KEY);
+    check("admin.html: the refused change wasn't saved", afterRefusal["stranger-things"] !== false);
+
+    // Re-enabling persists too, and the setting survives a reload.
+    await page.check('.trivia-subject-input[data-subject="red-dwarf"]');
+    await page.waitForTimeout(100);
+    await page.reload();
+    await page.click("#unlockBtn");
+    await page.waitForTimeout(300);
+    check("admin.html: a re-enabled subject stays checked after a reload",
+      await page.locator('.trivia-subject-input[data-subject="red-dwarf"]').isChecked());
+
+    await page.close();
+  }
+
+  // ---- mythology.html: disabled subjects are hidden from the picker ----
+  {
+    const TRIVIA_ENABLED_SUBJECTS_KEY = "triviaEnabledSubjects_v1";
+    const page = await browser.newPage();
+    await page.goto(baseUrl + "/mythology.html");
+    await page.evaluate((keys) => {
+      localStorage.clear();
+      localStorage.setItem(keys.settings, JSON.stringify({ provider: "claude", apiKey: "sk-ant-test-key" }));
+      localStorage.setItem(keys.enabled, JSON.stringify({ "red-dwarf": false }));
+    }, { settings: AI_SETTINGS_KEY, enabled: TRIVIA_ENABLED_SUBJECTS_KEY });
+    await page.reload();
+    await page.waitForTimeout(150);
+
+    check("mythology.html: a disabled subject's button doesn't show on the picker",
+      await page.locator('[data-subject="red-dwarf"]').isHidden());
+    check("mythology.html: the other three subjects still show",
+      await page.locator('[data-subject="mythology"]').isVisible() &&
+      await page.locator('[data-subject="harry-potter"]').isVisible() &&
+      await page.locator('[data-subject="stranger-things"]').isVisible());
+
+    // Re-enabling it (as if a parent flipped it back on admin.html in
+    // another tab) brings it back the next time the picker is shown.
+    await page.evaluate((keys) => {
+      localStorage.setItem(keys.enabled, JSON.stringify({ "red-dwarf": true }));
+    }, { enabled: TRIVIA_ENABLED_SUBJECTS_KEY });
+    await page.click("#quitBtn").catch(() => {}); // no-op if a session isn't open; showLanding() re-checks either way
+    await page.evaluate(() => { if (typeof window.__mythologyCurrentSubject === "function") { /* just re-render via reload below */ } });
+    await page.reload();
+    await page.waitForTimeout(150);
+    check("mythology.html: a re-enabled subject's button reappears",
+      await page.locator('[data-subject="red-dwarf"]').isVisible());
+
+    // Defensive fallback: if a hand-edited/restored value somehow disables
+    // every subject (admin.html itself refuses to let that happen), the
+    // picker shows all of them rather than being empty.
+    await page.evaluate((keys) => {
+      localStorage.setItem(keys.enabled, JSON.stringify({
+        mythology: false, "harry-potter": false, "stranger-things": false, "red-dwarf": false
+      }));
+    }, { enabled: TRIVIA_ENABLED_SUBJECTS_KEY });
+    await page.reload();
+    await page.waitForTimeout(150);
+    check("mythology.html: if every subject is somehow disabled, the picker falls back to showing all of them",
+      await page.locator(".subject-btn").count() === 4 &&
+      (await page.locator(".subject-btn").evaluateAll((els) => els.every((el) => !el.hidden))));
+
+    await page.close();
+  }
+
   // ---- admin.html: "Clear Trivia history" removes only its own keys, across all subjects ----
   {
     const page = await browser.newPage();
