@@ -480,6 +480,31 @@
         </div>
       </div>
 
+      <div class="parents-block">
+        <h3>Questions per section</h3>
+        <p class="quiz-sub">How many questions each session draws (Mock exam is set above instead). "Focus practice" is the session that targets whichever subject needs it most.</p>
+        <div class="settings-body">
+          <div class="settings-field">
+            <label for="adventureSizeInput">Adventure paper</label>
+            <input type="number" id="adventureSizeInput" min="4" max="40" step="1" inputmode="numeric">
+          </div>
+          <div class="settings-field">
+            <label for="beaconSizeInput">Beacon paper</label>
+            <input type="number" id="beaconSizeInput" min="4" max="40" step="1" inputmode="numeric">
+          </div>
+          <div class="settings-field">
+            <label for="mixedSizeInput">Mixed practice</label>
+            <input type="number" id="mixedSizeInput" min="4" max="40" step="1" inputmode="numeric">
+          </div>
+          <div class="settings-field">
+            <label for="focusSizeInput">Focus practice</label>
+            <input type="number" id="focusSizeInput" min="4" max="40" step="1" inputmode="numeric">
+          </div>
+          <button id="saveSessionSizeBtn" class="btn btn-ghost">Save</button>
+          <p class="settings-note" id="sessionSizeNote" hidden></p>
+        </div>
+      </div>
+
       <div class="quiz-actions">
         <button id="clearEntryHistoryBtn" class="btn btn-ghost">Clear entry test history</button>
         <button id="clearWeakSpotBtn" class="btn btn-ghost">Clear weak-question history</button>
@@ -781,6 +806,29 @@
     try { window.localStorage.setItem(MOCK_SETTINGS_KEY, JSON.stringify(s)); } catch (e){ /* ignore */ }
   }
 
+  // ---------- Questions-per-section settings (entry test) ----------
+  var SESSION_SIZE_SETTINGS_KEY = "entryTestSessionSizeSettings_v1";
+  var DEFAULT_SESSION_SIZE = { adventure:10, beacon:10, mixed:15, focus:10 };
+  var SESSION_SIZE_MIN = 4;
+  var SESSION_SIZE_MAX = 40;
+  function loadSessionSizeSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(SESSION_SIZE_SETTINGS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    var out = {};
+    Object.keys(DEFAULT_SESSION_SIZE).forEach(function(key){
+      var n = parseInt(obj[key], 10);
+      out[key] = (isFinite(n) && n >= SESSION_SIZE_MIN && n <= SESSION_SIZE_MAX) ? n : DEFAULT_SESSION_SIZE[key];
+    });
+    return out;
+  }
+  function saveSessionSizeSettingsToStorage(s){
+    try { window.localStorage.setItem(SESSION_SIZE_SETTINGS_KEY, JSON.stringify(s)); } catch (e){ /* ignore */ }
+  }
+
   var MATHS_HISTORY_KEY = "quizAppHistory_v1";
   var ENTRY_HISTORY_KEY = "entryTestHistory_v1";
 
@@ -833,6 +881,13 @@
   var saveMockBtn = document.getElementById("saveMockBtn");
   var mockNote = document.getElementById("mockNote");
 
+  var adventureSizeInput = document.getElementById("adventureSizeInput");
+  var beaconSizeInput = document.getElementById("beaconSizeInput");
+  var mixedSizeInput = document.getElementById("mixedSizeInput");
+  var focusSizeInput = document.getElementById("focusSizeInput");
+  var saveSessionSizeBtn = document.getElementById("saveSessionSizeBtn");
+  var sessionSizeNote = document.getElementById("sessionSizeNote");
+
   var statsVisibleInput = document.getElementById("statsVisibleInput");
   var statsVisibleNote = document.getElementById("statsVisibleNote");
 
@@ -850,6 +905,7 @@
   var difficulty = loadDifficulty();
   var streakSettings = loadStreakSettings();
   var mockSettings = loadMockSettings();
+  var sessionSizeSettings = loadSessionSizeSettings();
   var examDateSettings = loadExamDateSettings();
   var statsVisible = loadStatsVisible();
 
@@ -876,6 +932,13 @@
     mockQuestionsInput.value = mockSettings.questions;
     mockNote.hidden = true;
   }
+  function renderSessionSizeSettings(){
+    adventureSizeInput.value = sessionSizeSettings.adventure;
+    beaconSizeInput.value = sessionSizeSettings.beacon;
+    mixedSizeInput.value = sessionSizeSettings.mixed;
+    focusSizeInput.value = sessionSizeSettings.focus;
+    sessionSizeNote.hidden = true;
+  }
   function renderStatsVisible(){
     statsVisibleInput.checked = statsVisible;
     statsVisibleNote.hidden = true;
@@ -887,6 +950,7 @@
     renderStreakSettings();
     renderExamDate();
     renderMockSettings();
+    renderSessionSizeSettings();
     renderStatsVisible();
   }
 
@@ -1015,6 +1079,35 @@
     mockNote.hidden = false;
   });
 
+  saveSessionSizeBtn.addEventListener("click", function(){
+    var fields = [
+      { input: adventureSizeInput, key: "adventure" },
+      { input: beaconSizeInput, key: "beacon" },
+      { input: mixedSizeInput, key: "mixed" },
+      { input: focusSizeInput, key: "focus" }
+    ];
+    var next = {};
+    var allValid = true;
+    fields.forEach(function(f){
+      var raw = f.input.value;
+      var num = parseInt(raw, 10);
+      var valid = raw !== "" && isFinite(num) && num >= SESSION_SIZE_MIN && num <= SESSION_SIZE_MAX;
+      if (!valid) allValid = false;
+      next[f.key] = num;
+    });
+    if (!allValid){
+      sessionSizeNote.textContent = "Enter a whole number between " + SESSION_SIZE_MIN + " and " + SESSION_SIZE_MAX + " for each.";
+      sessionSizeNote.className = "settings-note is-error";
+      sessionSizeNote.hidden = false;
+      return;
+    }
+    sessionSizeSettings = next;
+    saveSessionSizeSettingsToStorage(sessionSizeSettings);
+    sessionSizeNote.textContent = "Saved. Takes effect next time each session is started.";
+    sessionSizeNote.className = "settings-note is-success";
+    sessionSizeNote.hidden = false;
+  });
+
   statsVisibleInput.addEventListener("change", function(){
     statsVisible = statsVisibleInput.checked;
     saveStatsVisible(statsVisible);
@@ -1055,7 +1148,7 @@
   var ALL_DATA_KEYS = [
     DIFF_KEY, SETTINGS_KEY, CHILD_NAME_KEY, STREAK_SETTINGS_KEY, TYPE_STATS_KEY, LIFETIME_KEY,
     MATHS_HISTORY_KEY, ENTRY_HISTORY_KEY, ITEM_STATS_KEY, SUBJECT_STATS_KEY, MOCK_SETTINGS_KEY,
-    EXAM_DATE_KEY, PIN_KEY, STATS_VISIBLE_KEY
+    SESSION_SIZE_SETTINGS_KEY, EXAM_DATE_KEY, PIN_KEY, STATS_VISIBLE_KEY
   ];
 
   backupBtn.addEventListener("click", function(){

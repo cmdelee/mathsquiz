@@ -291,6 +291,7 @@
     flex-wrap:wrap;
   }
   .btn{
+    display:inline-block;
     font:inherit;
     font-weight:600;
     font-size:0.92rem;
@@ -298,9 +299,12 @@
     border-radius:7px;
     border:1px solid transparent;
     cursor:pointer;
+    text-decoration:none;
+    white-space:nowrap;
     transition:filter 0.12s ease, background-color 0.12s ease;
   }
   .btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .btn[hidden]{ display:none; }
   .btn-primary{
     background:var(--accent);
     color:var(--accent-ink);
@@ -444,6 +448,12 @@
         <h3>What you've covered</h3>
         <p class="quiz-sub" id="coverageText">No questions answered yet.</p>
         <ul class="history-list" id="accuracyList"></ul>
+      </div>
+
+      <div class="parents-block">
+        <h3>Where to focus next</h3>
+        <p class="quiz-sub" id="focusAreaNote">Not enough answers yet to tell — a session or two on the Practice exam page first.</p>
+        <ul class="history-list" id="focusAreaList"></ul>
       </div>
 
       <div class="parents-block">
@@ -816,6 +826,8 @@
   var entryChartWrap = document.getElementById("entryChartWrap");
   var coverageText = document.getElementById("coverageText");
   var accuracyList = document.getElementById("accuracyList");
+  var focusAreaNote = document.getElementById("focusAreaNote");
+  var focusAreaList = document.getElementById("focusAreaList");
   var weakSpotNote = document.getElementById("weakSpotNote");
   var weakSpotList = document.getElementById("weakSpotList");
   var weakSpotLockedNote = document.getElementById("weakSpotLockedNote");
@@ -960,6 +972,43 @@
     }
   }
 
+  function renderFocusAreas(){
+    var subjectStats = loadSubjectStats();
+    focusAreaList.innerHTML = "";
+    var rows = ["maths", "english"].map(function(k){
+      var b = subjectStats.bySubject[k];
+      return {
+        key: k,
+        label: SUBJECT_LABEL[k],
+        attempted: b.attempted,
+        correct: b.correct,
+        pct: b.attempted ? Math.round((b.correct / b.attempted) * 100) : null
+      };
+    }).filter(function(r){ return r.attempted > 0; });
+
+    if (!rows.length){
+      focusAreaNote.hidden = false;
+      return;
+    }
+    focusAreaNote.hidden = true;
+
+    rows.sort(function(a, b){ return a.pct - b.pct; }); // weakest first
+    rows.forEach(function(r){
+      var li = document.createElement("li");
+      li.className = "history-row";
+      var left = document.createElement("span");
+      left.className = "history-date";
+      left.textContent = r.label + " — " + r.correct + "/" + r.attempted + " (" + r.pct + "%)";
+      var link = document.createElement("a");
+      link.className = "btn btn-ghost";
+      link.href = "entry-test.html?focus=" + r.key;
+      link.textContent = "Practice this →";
+      li.appendChild(left);
+      li.appendChild(link);
+      focusAreaList.appendChild(li);
+    });
+  }
+
   var WEAK_SPOT_SHOWN = 15;
   function renderWeakSpotList(){
     // The actual question text here is the one thing on this page that
@@ -1028,6 +1077,7 @@
     renderMathsHistory();
     renderEntryHistory();
     renderCoverageAndAccuracy();
+    renderFocusAreas();
     renderWeakSpotList();
     renderExamCountdown();
   }

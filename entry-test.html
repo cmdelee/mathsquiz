@@ -587,6 +587,10 @@
           <span class="paper-name">Mixed practice</span>
           <span class="paper-desc">A blend of both papers in one longer session</span>
         </button>
+        <button class="paper-btn" data-paper="focus">
+          <span class="paper-name">Focus practice</span>
+          <span class="paper-desc" id="focusPaperDesc">A mix of questions, weighted toward whatever's been trickiest lately.</span>
+        </button>
         <button class="paper-btn" data-paper="mock">
           <span class="paper-name">Mock exam</span>
           <span class="paper-desc">A longer, timed session against the clock — Adventure and Beacon together</span>
@@ -3749,12 +3753,36 @@ var AMARA_PASSAGE =
 
   // Mock exam doesn't have a fixed size here – its question count is a
   // parents-page setting (see mockSettings below), since it's configured
-  // alongside the time limit.
-  var SESSION_SIZE = { adventure:10, beacon:10, mixed:15 };
+  // alongside the time limit. The other sessions' sizes are also a parents
+  // page setting (see sessionSizeSettings below) – these are just the
+  // fallback defaults if nothing's been saved yet.
+  var DEFAULT_SESSION_SIZE = { adventure:10, beacon:10, mixed:15, focus:10 };
+  var SESSION_SIZE_MIN = 4;
+  var SESSION_SIZE_MAX = 40;
   var TAG_LABEL = {
     adventure:"Adventure paper",
     beacon:"Beacon paper"
   };
+
+  // ---------- Questions-per-section settings ----------
+  // Set from the Parents / Admin page. Read only here – admin.html owns
+  // saving it.
+  var SESSION_SIZE_SETTINGS_KEY = "entryTestSessionSizeSettings_v1";
+  function loadSessionSizeSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(SESSION_SIZE_SETTINGS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    var out = {};
+    Object.keys(DEFAULT_SESSION_SIZE).forEach(function(key){
+      var n = parseInt(obj[key], 10);
+      out[key] = (isFinite(n) && n >= SESSION_SIZE_MIN && n <= SESSION_SIZE_MAX) ? n : DEFAULT_SESSION_SIZE[key];
+    });
+    return out;
+  }
+  var sessionSizeSettings = loadSessionSizeSettings();
 
   // ---------- Weak-spot practice ----------
   // Remembers, per question, whether it was last answered right or wrong,
@@ -3929,7 +3957,7 @@ var AMARA_PASSAGE =
     renderLastSession();
   }
 
-  var PAPER_LABEL = { adventure:"Adventure paper", beacon:"Beacon paper", mixed:"Mixed practice", mock:"Mock exam" };
+  var PAPER_LABEL = { adventure:"Adventure paper", beacon:"Beacon paper", mixed:"Mixed practice", mock:"Mock exam", focus:"Focus practice" };
 
   // ---------- Mock exam time limit ----------
   // Configurable from the parents page (default 20 minutes) – other
@@ -4044,11 +4072,50 @@ var AMARA_PASSAGE =
     mockTimerInterval = window.setInterval(updateMockTimerDisplay, 1000);
   }
 
+  // ---------- Focus practice ----------
+  // Whichever of the two subjects currently has the lower accuracy, based
+  // on the same running totals the Progress page shows – with a minimum
+  // number of attempts first, so this isn't decided from a handful of
+  // early answers. Returns null (meaning: draw from everything, still
+  // weighted toward individually-missed questions) when there isn't a
+  // clear answer yet.
+  var FOCUS_MIN_ATTEMPTED = 5;
+  function weakerSubject(){
+    var m = subjectStats.bySubject.maths;
+    var e = subjectStats.bySubject.english;
+    if (m.attempted < FOCUS_MIN_ATTEMPTED || e.attempted < FOCUS_MIN_ATTEMPTED) return null;
+    var mRate = m.correct / m.attempted;
+    var eRate = e.correct / e.attempted;
+    if (mRate === eRate) return null;
+    return mRate < eRate ? "maths" : "english";
+  }
+
+  // Set from a "?focus=maths" / "?focus=english" link (the Progress page's
+  // per-subject "Practice this" buttons) – overrides the auto-detected
+  // weaker subject so that link always targets what it says it will,
+  // rather than whatever's weakest overall at the time.
+  var focusSubjectOverride = null;
+  (function(){
+    try {
+      var requested = new URLSearchParams(window.location.search).get("focus");
+      if (requested === "maths" || requested === "english") focusSubjectOverride = requested;
+    } catch (e){ /* ignore */ }
+  })();
+
   function buildQueue(paper){
-    var pool = paper === "adventure" ? ADVENTURE_ITEMS :
-      paper === "beacon" ? BEACON_ITEMS :
-      ADVENTURE_ITEMS.concat(BEACON_ITEMS);
-    var size = paper === "mock" ? mockSettings.questions : SESSION_SIZE[paper];
+    var pool;
+    if (paper === "adventure"){
+      pool = ADVENTURE_ITEMS;
+    } else if (paper === "beacon"){
+      pool = BEACON_ITEMS;
+    } else if (paper === "focus"){
+      var all = ADVENTURE_ITEMS.concat(BEACON_ITEMS);
+      var target = focusSubjectOverride || weakerSubject();
+      pool = target ? all.filter(function(item){ return item.subject === target; }) : all;
+    } else {
+      pool = ADVENTURE_ITEMS.concat(BEACON_ITEMS);
+    }
+    var size = paper === "mock" ? mockSettings.questions : sessionSizeSettings[paper];
     return weightedSampleWithoutReplacement(pool, itemWeight, size);
   }
 
@@ -4060,13 +4127,20 @@ var AMARA_PASSAGE =
     attemptedCount = 0;
     missed = [];
     quizTitle.textContent = PAPER_LABEL[paper];
-    quizSub.textContent = paper === "mock"
-      ? "A timed mix of Adventure and Beacon style questions — the session ends automatically when time runs out."
-      : (paper === "mixed"
-          ? "A mix of Adventure and Beacon style questions."
-          : (paper === "adventure"
-              ? "Multiple choice — pick the best answer."
-              : "Type your answer into the box."));
+    if (paper === "focus"){
+      var focusedOn = focusSubjectOverride || weakerSubject();
+      quizSub.textContent = focusedOn
+        ? "Extra practice on " + (focusedOn === "maths" ? "maths" : "English") + " — currently the weaker of the two."
+        : "A mix of questions, weighted toward whatever's been trickiest lately.";
+    } else {
+      quizSub.textContent = paper === "mock"
+        ? "A timed mix of Adventure and Beacon style questions — the session ends automatically when time runs out."
+        : (paper === "mixed"
+            ? "A mix of Adventure and Beacon style questions."
+            : (paper === "adventure"
+                ? "Multiple choice — pick the best answer."
+                : "Type your answer into the box."));
+    }
     pickerView.hidden = true;
     quizSection.hidden = false;
     completionPanel.hidden = true;
@@ -4092,7 +4166,7 @@ var AMARA_PASSAGE =
 
   function itemTag(item){
     var subjectLabel = item.subject === "maths" ? "Maths" : "English";
-    if (currentPaper === "mixed" || currentPaper === "mock"){
+    if (currentPaper === "mixed" || currentPaper === "mock" || currentPaper === "focus"){
       return (item.kind === "mcq" ? "Adventure" : "Beacon") + " · " + subjectLabel;
     }
     return TAG_LABEL[currentPaper] + " · " + subjectLabel;
@@ -4390,6 +4464,21 @@ var AMARA_PASSAGE =
   });
 
   renderLastSession();
+
+  // Say up front, before it's even tapped, which subject "Focus practice"
+  // will actually give more of right now.
+  (function(){
+    var focusPaperDesc = document.getElementById("focusPaperDesc");
+    if (!focusPaperDesc) return;
+    var target = weakerSubject();
+    focusPaperDesc.textContent = target
+      ? "Extra " + (target === "maths" ? "maths" : "English") + " questions — currently the weaker of the two."
+      : "A mix of questions, weighted toward whatever's been trickiest lately.";
+  })();
+
+  // A "?focus=maths"/"?focus=english" link (from the Progress page) jumps
+  // straight into a focused session rather than landing on the picker.
+  if (focusSubjectOverride) startSession("focus");
 
   // ---------- Update available banner ----------
   // sw.js activates a new version immediately (skipWaiting + clients.claim),
