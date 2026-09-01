@@ -1110,15 +1110,19 @@
   });
 
   clearMathsHistoryBtn.addEventListener("click", function(){
-    if (window.confirm("Clear all saved maths practice history on this device? This can't be undone.")){
+    if (window.confirm("Clear all saved maths practice history and accuracy stats on this device? This can't be undone.")){
       saveJSONList(MATHS_HISTORY_KEY, []);
+      [TYPE_STATS_KEY, LIFETIME_KEY].forEach(function(key){
+        try { window.localStorage.removeItem(key); } catch (e){ /* ignore */ }
+      });
       window.alert("Cleared.");
     }
   });
 
   clearEntryHistoryBtn.addEventListener("click", function(){
-    if (window.confirm("Clear all saved entry test history on this device? This can't be undone.")){
+    if (window.confirm("Clear all saved entry test history and accuracy stats on this device? This can't be undone.")){
       saveJSONList(ENTRY_HISTORY_KEY, []);
+      try { window.localStorage.removeItem(SUBJECT_STATS_KEY); } catch (e){ /* ignore */ }
       window.alert("Cleared.");
     }
   });
@@ -1156,6 +1160,7 @@
   });
 
   clearExamDateBtn.addEventListener("click", function(){
+    if (!window.confirm("Clear the saved exam date? The countdown on the Progress page will disappear until a new date's set.")) return;
     examDateSettings = { date: null };
     saveExamDateSettings(examDateSettings);
     examDateNote.hidden = true;
@@ -1229,6 +1234,7 @@
   });
 
   clearAiMarkingBtn.addEventListener("click", function(){
+    if (!window.confirm("Clear the saved AI marking provider and API key? Greek Mythology (and any future AI-marked page) will be unavailable until a key's set up again.")) return;
     aiMarkingSettings = { provider: "", apiKey: "" };
     saveAiMarkingSettingsToStorage(aiMarkingSettings);
     renderAiMarkingSettings();
@@ -1374,7 +1380,7 @@
         restoreNote.hidden = false;
         return;
       }
-      if (!parsed || typeof parsed !== "object" || !parsed.data || typeof parsed.data !== "object"){
+      if (!parsed || typeof parsed !== "object" || parsed.app !== "quiz-app-backup" || !parsed.data || typeof parsed.data !== "object"){
         restoreNote.textContent = "That doesn't look like a quiz app backup file.";
         restoreNote.className = "settings-note is-error";
         restoreNote.hidden = false;

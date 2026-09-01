@@ -911,7 +911,7 @@
   }
 
   // ---------- Render: entry test practice ----------
-  var ENTRY_PAPER_LABEL = { adventure:"Adventure paper", beacon:"Beacon paper", mixed:"Mixed practice", mock:"Mock exam" };
+  var ENTRY_PAPER_LABEL = { adventure:"Adventure paper", beacon:"Beacon paper", mixed:"Mixed practice", mock:"Mock exam", focus:"Focus practice", review:"Spaced review", nvr:"NVR practice" };
   function formatEntryHistoryDate(iso){
     return new Date(iso).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
   }
@@ -939,7 +939,7 @@
   var FORMAT_LABEL = { adventure:"Adventure-style (multiple choice)", beacon:"Beacon-style (written answer)", nvr:"NVR" };
   var SUBJECT_LABEL = { english:"English", maths:"Maths", nvr:"NVR" };
 
-  function renderCoverageAndAccuracy(){
+  function renderCoverageAndAccuracy(subjectStats){
     var stats = loadItemStats();
     var seen = Object.keys(stats).length;
     var bankSize = loadBankSize();
@@ -952,7 +952,7 @@
       coverageText.textContent = "You've tried " + seen + " question" + (seen === 1 ? "" : "s") + " so far.";
     }
 
-    var subjectStats = loadSubjectStats();
+    subjectStats = subjectStats || loadSubjectStats();
     accuracyList.innerHTML = "";
     var any = false;
     ["english", "maths", "nvr"].forEach(function(k){
@@ -974,8 +974,8 @@
     }
   }
 
-  function renderFocusAreas(){
-    var subjectStats = loadSubjectStats();
+  function renderFocusAreas(subjectStats){
+    subjectStats = subjectStats || loadSubjectStats();
     focusAreaList.innerHTML = "";
     var rows = ["maths", "english"].map(function(k){
       var b = subjectStats.bySubject[k];
@@ -1091,8 +1091,9 @@
     renderLevels();
     renderMathsHistory();
     renderEntryHistory();
-    renderCoverageAndAccuracy();
-    renderFocusAreas();
+    var subjectStatsForRender = loadSubjectStats();
+    renderCoverageAndAccuracy(subjectStatsForRender);
+    renderFocusAreas(subjectStatsForRender);
     renderWeakSpotList();
     renderExamCountdown();
   }

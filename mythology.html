@@ -173,6 +173,7 @@
     gap:14px;
     margin-bottom:20px;
   }
+  .progress-row[hidden]{ display:none; }
   .progress-track{
     flex:1 1 auto;
     height:10px;
@@ -456,7 +457,7 @@
       <p class="quiz-sub">Write as much as you know — there's no single "correct" wording, so partial credit is fine.</p>
     </div>
 
-    <div class="progress-row">
+    <div class="progress-row" id="progressRow">
       <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
       <span class="progress-text" id="progressText">0 of 0</span>
     </div>
@@ -665,10 +666,21 @@
       }
       return res.json();
     }).then(function(data){
-      var raw = (data && data.content && data.content[0] && data.content[0].text) || "";
+      var blocks = (data && Array.isArray(data.content)) ? data.content : [];
+      var textBlock = blocks.filter(function(b){ return b && b.type === "text" && typeof b.text === "string"; })[0];
+      var raw = textBlock ? textBlock.text : "";
       var cleaned = raw.trim().replace(/^```(json)?/i, "").replace(/```$/, "").trim();
       var parsed;
       try { parsed = JSON.parse(cleaned); } catch (e){ parsed = null; }
+      if (!parsed){
+        // Claude occasionally adds a stray word or sentence around the JSON
+        // despite the prompt asking for only that — fall back to whatever
+        // looks like the outermost {...} object anywhere in the reply.
+        var match = cleaned.match(/\{[\s\S]*\}/);
+        if (match){
+          try { parsed = JSON.parse(match[0]); } catch (e2){ parsed = null; }
+        }
+      }
       if (!parsed || ["correct", "partial", "incorrect"].indexOf(parsed.verdict) === -1){
         throw new Error("unexpected response from the AI");
       }
@@ -767,6 +779,7 @@
   var aiDisclosureContinueBtn = document.getElementById("aiDisclosureContinueBtn");
   var aiDisclosureBackBtn = document.getElementById("aiDisclosureBackBtn");
   var quizSection = document.getElementById("quizSection");
+  var progressRow = document.getElementById("progressRow");
   var progressFill = document.getElementById("progressFill");
   var progressText = document.getElementById("progressText");
   var questionCard = document.getElementById("questionCard");
@@ -793,6 +806,12 @@
   var attemptedCount = 0;
   var checked = false;
   var missed = [];
+  // Bumped every time a session starts (including a retry). A marking
+  // request in flight when the session changes — quitting or starting a new
+  // one before Claude replies — captures the token at request time, so a
+  // late reply that arrives after the session's moved on is recognised as
+  // stale and ignored rather than mutating whatever's on screen now.
+  var sessionToken = 0;
 
   function renderProgressSummary(){
     var hist = loadHistory();
@@ -837,6 +856,7 @@
   }
 
   function beginSession(){
+    sessionToken++;
     queue = shuffle(MYTHOLOGY_ITEMS);
     qIndex = 0;
     correctCount = 0;
@@ -848,6 +868,7 @@
     quizSection.hidden = false;
     completionPanel.hidden = true;
     questionCard.hidden = false;
+    progressRow.hidden = false;
     quitRow.hidden = false;
     updateProgress();
     loadQuestion();
@@ -897,6 +918,7 @@
   // end-of-session review (so the model answer shows), but shown and
   // coloured distinctly from a straightforward "incorrect".
   function renderQuestion(item){
+    var myToken = sessionToken;
     var wrap = document.createElement("div");
     wrap.className = "q-answer-long";
     var textarea = document.createElement("textarea");
@@ -911,6 +933,10 @@
     checkBtn.textContent = "Mark my answer";
 
     function applyResult(result){
+      // The session may have moved on (quit, or a new one started) while
+      // this was in flight — a late reply for an abandoned question must
+      // not mutate whatever's on screen now.
+      if (myToken !== sessionToken) return;
       checkBtn.hidden = true;
       var isCorrect = recordOutcome(item, result);
       var isPartial = result.verdict === "partial";
@@ -943,6 +969,9 @@
       checkBtn.disabled = true;
       checkBtn.textContent = "Marking…";
       markLongAnswerWithAi(item, answerText).then(applyResult).catch(function(err){
+        // Same staleness guard as applyResult — don't roll back a question
+        // that isn't the live one any more.
+        if (myToken !== sessionToken) return;
         // Roll back to an answerable state rather than leaving it stuck —
         // most likely cause is a missing/invalid key or no connection.
         checked = false;
@@ -967,6 +996,7 @@
 
   function finishSession(){
     questionCard.hidden = true;
+    progressRow.hidden = true;
     quitRow.hidden = true;
     completionPanel.hidden = false;
     var pct = attemptedCount ? Math.round((correctCount / attemptedCount) * 100) : 0;
