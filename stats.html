@@ -244,6 +244,8 @@
   }
   .history-row:first-child{ border-top:none; }
   .history-row.is-more{ color:var(--ink-faint); font-size:0.82rem; }
+  .history-row.is-regressed{ border-left:2px solid var(--error); padding-left:8px; }
+  .history-row.is-regressed .history-score{ color:var(--error); }
   .history-date{ color:var(--ink-soft); }
   .history-score{
     font-family:"IBM Plex Mono", ui-monospace, monospace;
@@ -1028,17 +1030,29 @@
     var missed = Object.keys(stats)
       .map(function(id){ return stats[id]; })
       .filter(function(rec){ return rec && typeof rec === "object" && rec.outcome === "incorrect"; })
-      .sort(function(a, b){ return new Date(b.lastSeen) - new Date(a.lastSeen); });
+      // Slipping-back questions (previously solid, now missed again) first,
+      // then most-recently-missed within each group.
+      .sort(function(a, b){
+        if (!!a.regressed !== !!b.regressed) return a.regressed ? -1 : 1;
+        return new Date(b.lastSeen) - new Date(a.lastSeen);
+      });
     weakSpotList.innerHTML = "";
     if (!missed.length){
       weakSpotNote.hidden = false;
       weakSpotNote.textContent = "Nothing to practice again right now — nice work!";
       return;
     }
-    weakSpotNote.hidden = true;
+    var regressedCount = missed.filter(function(rec){ return rec.regressed; }).length;
+    weakSpotNote.hidden = !regressedCount;
+    if (regressedCount){
+      weakSpotNote.textContent = regressedCount === 1
+        ? "1 of these had been solidly correct before and is now slipping (marked below) — the rest are still being worked on for the first time."
+        : regressedCount + " of these had been solidly correct before and are now slipping (marked below) — the rest are still being worked on for the first time.";
+    }
     missed.slice(0, WEAK_SPOT_SHOWN).forEach(function(rec){
       var tag = (SUBJECT_LABEL[rec.subject] || rec.subject) + " · " + (rec.format === "adventure" ? "Adventure" : "Beacon");
-      appendHistoryRow(weakSpotList, rec.text, tag);
+      if (rec.regressed) tag += " · Slipping back";
+      appendHistoryRow(weakSpotList, rec.text, tag, rec.regressed ? "is-regressed" : null);
     });
     if (missed.length > WEAK_SPOT_SHOWN){
       appendHistoryRow(weakSpotList, "…and " + (missed.length - WEAK_SPOT_SHOWN) + " more.", "", "is-more");
