@@ -307,6 +307,12 @@
     border-color:var(--border);
   }
   .btn-ghost:hover{ background:var(--surface-2); }
+  .btn-danger{
+    background:transparent;
+    color:var(--error);
+    border-color:var(--error);
+  }
+  .btn-danger:hover{ background:var(--error-bg); }
 
   .foot{
     font-size:0.78rem;
@@ -393,7 +399,13 @@
       </div>
 
       <div class="parents-block">
+        <h3>Lifetime stats</h3>
+        <p class="quiz-sub" id="lifetimeStatsText">No sessions completed yet.</p>
+      </div>
+
+      <div class="parents-block">
         <h3>Difficulty levels</h3>
+        <p class="quiz-sub">The level column is what's driving today's questions; the accuracy alongside it is how the last few attempts of that type have gone, which can lag behind a level that's just changed.</p>
         <ul class="history-list" id="levelList"></ul>
       </div>
 
@@ -434,6 +446,33 @@
       </div>
 
       <div class="parents-block">
+        <h3>Coverage and accuracy</h3>
+        <p class="quiz-sub" id="coverageText">No questions answered yet.</p>
+        <ul class="history-list" id="accuracyList"></ul>
+      </div>
+
+      <div class="parents-block">
+        <h3>Questions currently being missed</h3>
+        <p class="quiz-sub" id="weakSpotNote">None right now.</p>
+        <ul class="history-list" id="weakSpotList"></ul>
+      </div>
+
+      <div class="parents-block">
+        <h3>Exam date</h3>
+        <p class="quiz-sub">Set the actual 11+ test date, if you know it, for a countdown — handy for judging when to switch more of her practice to the timed Mock exam mode.</p>
+        <div class="settings-body">
+          <div class="settings-field">
+            <label for="examDateInput">Date</label>
+            <input type="date" id="examDateInput">
+          </div>
+          <button id="saveExamDateBtn" class="btn btn-ghost">Save date</button>
+          <button id="clearExamDateBtn" class="btn btn-ghost">Clear</button>
+          <p class="settings-note" id="examDateNote" hidden></p>
+        </div>
+        <p class="quiz-sub" id="examCountdownText" style="margin-top:10px; margin-bottom:0;"></p>
+      </div>
+
+      <div class="parents-block">
         <h3>Mock exam time limit</h3>
         <p class="quiz-sub">How long the timed "Mock exam" mode gives, in minutes.</p>
         <div class="settings-body">
@@ -449,6 +488,39 @@
       <div class="quiz-actions">
         <button id="clearEntryHistoryBtn" class="btn btn-ghost">Clear entry test history</button>
         <button id="clearWeakSpotBtn" class="btn btn-ghost">Clear weak-question history</button>
+      </div>
+    </section>
+
+    <section class="card parents-page">
+      <div class="quiz-head">
+        <h2>Backup and reset</h2>
+        <p class="quiz-sub">Everything on this page lives only in this browser, on this device — there's no account and nothing syncs anywhere. A backup file is the only way to move it to a new device, or get it back if this device's storage is ever cleared.</p>
+      </div>
+
+      <div class="parents-block">
+        <h3>Backup</h3>
+        <p class="quiz-sub">Downloads everything — names, targets, streak settings and history for both apps — as one file you can keep somewhere safe.</p>
+        <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none; justify-content:flex-start;">
+          <button id="backupBtn" class="btn btn-ghost">Download backup</button>
+        </div>
+      </div>
+
+      <div class="parents-block">
+        <h3>Restore</h3>
+        <p class="quiz-sub">Replaces everything currently on this device with what's in the chosen backup file.</p>
+        <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none; justify-content:flex-start;">
+          <button id="restoreBtn" class="btn btn-ghost">Restore from backup…</button>
+          <input type="file" id="restoreFileInput" accept="application/json" hidden>
+        </div>
+        <p class="settings-note" id="restoreNote" hidden></p>
+      </div>
+
+      <div class="parents-block">
+        <h3>Reset everything</h3>
+        <p class="quiz-sub">Wipes all settings and history for both apps on this device, back to a completely fresh start. This can't be undone — take a backup first if there's any chance you'll want any of it back.</p>
+        <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none; justify-content:flex-start;">
+          <button id="resetAllBtn" class="btn btn-danger">Reset everything</button>
+        </div>
       </div>
     </section>
 
@@ -666,8 +738,108 @@
     return { streak:streak, currentCount:currentCount, currentMet:currentMet };
   }
 
+  // Longest run of consecutive qualifying periods anywhere in the history,
+  // not just the one still running – so a streak broken months ago doesn't
+  // disappear from view, it just stops being the *current* one.
+  function computeLongestStreak(history, settings){
+    var stepDays = settings.period === "day" ? 1 : 7;
+    var counts = {};
+    history.forEach(function(rec){
+      var key = streakPeriodKey(parseISO(rec.date), settings.period);
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    var qualifying = Object.keys(counts).filter(function(k){ return counts[k] >= settings.threshold; });
+    if (!qualifying.length) return 0;
+    var dates = qualifying.map(parseISO).sort(function(a, b){ return a - b; });
+    var longest = 1, current = 1;
+    for (var i = 1; i < dates.length; i++){
+      var diffDays = Math.round((dates[i] - dates[i-1]) / 86400000);
+      current = (diffDays === stepDays) ? current + 1 : 1;
+      if (current > longest) longest = current;
+    }
+    return longest;
+  }
+
+  // ---------- Per-operation accuracy (maths practice) ----------
+  var TYPE_STATS_KEY = "quizAppTypeStats_v1";
+  function loadTypeStats(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(TYPE_STATS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    DIFF_TYPES.forEach(function(t){ if (!Array.isArray(obj[t])) obj[t] = []; });
+    return obj;
+  }
+
+  // ---------- Lifetime stats (maths practice) ----------
+  var LIFETIME_KEY = "quizAppLifetimeStats_v1";
+  function loadLifetimeStats(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(LIFETIME_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return {
+      sessions: typeof obj.sessions === "number" ? obj.sessions : 0,
+      questionsAnswered: typeof obj.questionsAnswered === "number" ? obj.questionsAnswered : 0,
+      questionsCorrect: typeof obj.questionsCorrect === "number" ? obj.questionsCorrect : 0
+    };
+  }
+
   // ---------- Weak-spot practice stats (entry test) ----------
   var ITEM_STATS_KEY = "entryTestItemStats_v1";
+  function loadItemStats(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(ITEM_STATS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    return (obj && typeof obj === "object") ? obj : {};
+  }
+
+  // ---------- Accuracy by subject / paper format (entry test) ----------
+  var SUBJECT_STATS_KEY = "entryTestSubjectStats_v1";
+  function loadSubjectStats(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(SUBJECT_STATS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    var blank = function(){ return { correct:0, attempted:0 }; };
+    if (!obj.bySubject || typeof obj.bySubject !== "object") obj.bySubject = {};
+    if (!obj.byFormat || typeof obj.byFormat !== "object") obj.byFormat = {};
+    ["english", "maths"].forEach(function(k){ if (!obj.bySubject[k]) obj.bySubject[k] = blank(); });
+    ["adventure", "beacon"].forEach(function(k){ if (!obj.byFormat[k]) obj.byFormat[k] = blank(); });
+    return obj;
+  }
+
+  // ---------- Question bank size (entry test) ----------
+  // Written by entry-test.html on every load; read here only, so this page
+  // never needs its own copy of the item bank just to show coverage.
+  var BANK_SIZE_KEY = "entryTestBankSize_v1";
+  function loadBankSize(){
+    var n = parseInt(window.localStorage.getItem(BANK_SIZE_KEY), 10);
+    return isFinite(n) && n > 0 ? n : null;
+  }
+
+  // ---------- Exam date (entry test) ----------
+  var EXAM_DATE_KEY = "entryTestExamDateSettings_v1";
+  function loadExamDateSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(EXAM_DATE_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return { date: typeof obj.date === "string" ? obj.date : null };
+  }
+  function saveExamDateSettings(s){
+    try { window.localStorage.setItem(EXAM_DATE_KEY, JSON.stringify(s)); } catch (e){ /* ignore */ }
+  }
 
   // ---------- Mock exam time limit (entry test) ----------
   var MOCK_SETTINGS_KEY = "entryTestMockSettings_v1";
@@ -796,6 +968,7 @@
   var targetsNote = document.getElementById("targetsNote");
 
   var levelList = document.getElementById("levelList");
+  var lifetimeStatsText = document.getElementById("lifetimeStatsText");
   var mathsHistorySummary = document.getElementById("mathsHistorySummary");
   var mathsHistoryList = document.getElementById("mathsHistoryList");
   var mathsChartNote = document.getElementById("mathsChartNote");
@@ -813,12 +986,27 @@
   var entryHistoryList = document.getElementById("entryHistoryList");
   var entryChartNote = document.getElementById("entryChartNote");
   var entryChartWrap = document.getElementById("entryChartWrap");
+  var coverageText = document.getElementById("coverageText");
+  var accuracyList = document.getElementById("accuracyList");
+  var weakSpotNote = document.getElementById("weakSpotNote");
+  var weakSpotList = document.getElementById("weakSpotList");
+  var examDateInput = document.getElementById("examDateInput");
+  var saveExamDateBtn = document.getElementById("saveExamDateBtn");
+  var clearExamDateBtn = document.getElementById("clearExamDateBtn");
+  var examDateNote = document.getElementById("examDateNote");
+  var examCountdownText = document.getElementById("examCountdownText");
   var clearEntryHistoryBtn = document.getElementById("clearEntryHistoryBtn");
   var clearWeakSpotBtn = document.getElementById("clearWeakSpotBtn");
 
   var mockMinutesInput = document.getElementById("mockMinutesInput");
   var saveMockBtn = document.getElementById("saveMockBtn");
   var mockNote = document.getElementById("mockNote");
+
+  var backupBtn = document.getElementById("backupBtn");
+  var restoreBtn = document.getElementById("restoreBtn");
+  var restoreFileInput = document.getElementById("restoreFileInput");
+  var restoreNote = document.getElementById("restoreNote");
+  var resetAllBtn = document.getElementById("resetAllBtn");
 
   var changePinBtn = document.getElementById("changePinBtn");
 
@@ -827,7 +1015,10 @@
   var childName = loadChildName();
   var difficulty = loadDifficulty();
   var streakSettings = loadStreakSettings();
+  var typeStats = loadTypeStats();
+  var lifetimeStats = loadLifetimeStats();
   var mockSettings = loadMockSettings();
+  var examDateSettings = loadExamDateSettings();
 
   function renderChildName(){
     childNameInput.value = childName;
@@ -841,8 +1032,24 @@
   function renderLevels(){
     levelList.innerHTML = "";
     DIFF_TYPES.forEach(function(t){
-      appendHistoryRow(levelList, TYPE_LABELS[t], "Level " + difficulty[t] + " of " + DIFF_MAX_LEVEL);
+      var attempts = typeStats[t] || [];
+      var right = "Level " + difficulty[t] + " of " + DIFF_MAX_LEVEL;
+      if (attempts.length){
+        var correct = attempts.filter(Boolean).length;
+        right += " · " + correct + "/" + attempts.length + " recently";
+      }
+      appendHistoryRow(levelList, TYPE_LABELS[t], right);
     });
+  }
+  function renderLifetimeStats(){
+    if (!lifetimeStats.sessions){
+      lifetimeStatsText.textContent = "No sessions completed yet.";
+      return;
+    }
+    var pct = lifetimeStats.questionsAnswered ? Math.round((lifetimeStats.questionsCorrect / lifetimeStats.questionsAnswered) * 100) : 0;
+    lifetimeStatsText.textContent = lifetimeStats.sessions + " session" + (lifetimeStats.sessions === 1 ? "" : "s") +
+      " completed, " + lifetimeStats.questionsAnswered + " question" + (lifetimeStats.questionsAnswered === 1 ? "" : "s") +
+      " answered (" + pct + "% correct) since she started.";
   }
   function formatMathsHistoryDate(iso){
     return parseISO(iso).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
@@ -877,13 +1084,15 @@
       return;
     }
     var result = computeStreak(mathsHistory, streakSettings, new Date());
+    var longest = computeLongestStreak(mathsHistory, streakSettings);
     var unit = streakSettings.period === "day" ? "day" : "week";
-    if (result.streak > 0){
-      streakStatusText.textContent = "Current streak: " + result.streak + " " +
-        (result.streak === 1 ? unit : unit + "s") + ".";
-    } else {
-      streakStatusText.textContent = "No current streak.";
+    var text = result.streak > 0
+      ? "Current streak: " + result.streak + " " + (result.streak === 1 ? unit : unit + "s") + "."
+      : "No current streak.";
+    if (longest > result.streak){
+      text += " Best so far: " + longest + " " + (longest === 1 ? unit : unit + "s") + ".";
     }
+    streakStatusText.textContent = text;
   }
   function renderStreakSettings(mathsHistory){
     streakPeriodInput.value = streakSettings.period;
@@ -893,7 +1102,7 @@
   }
 
   // ---------- Render: entry test practice ----------
-  var ENTRY_PAPER_LABEL = { adventure:"Adventure paper", beacon:"Beacon paper", mixed:"Mixed practice" };
+  var ENTRY_PAPER_LABEL = { adventure:"Adventure paper", beacon:"Beacon paper", mixed:"Mixed practice", mock:"Mock exam" };
   function formatEntryHistoryDate(iso){
     return new Date(iso).toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" });
   }
@@ -920,6 +1129,94 @@
     renderTrendChart(entryChartWrap, entryChartNote, list);
   }
 
+  var FORMAT_LABEL = { adventure:"Adventure-style (multiple choice)", beacon:"Beacon-style (written answer)" };
+  var SUBJECT_LABEL = { english:"English", maths:"Maths" };
+
+  function renderCoverageAndAccuracy(){
+    var stats = loadItemStats();
+    var seen = Object.keys(stats).length;
+    var bankSize = loadBankSize();
+    if (!seen){
+      coverageText.textContent = "No questions answered yet.";
+    } else if (bankSize){
+      coverageText.textContent = seen + " of " + bankSize + " questions seen at least once (" +
+        Math.round((seen / bankSize) * 100) + "%).";
+    } else {
+      coverageText.textContent = seen + " question" + (seen === 1 ? "" : "s") + " seen at least once.";
+    }
+
+    var subjectStats = loadSubjectStats();
+    accuracyList.innerHTML = "";
+    var any = false;
+    ["english", "maths"].forEach(function(k){
+      var b = subjectStats.bySubject[k];
+      if (b.attempted){
+        any = true;
+        appendHistoryRow(accuracyList, SUBJECT_LABEL[k], b.correct + "/" + b.attempted + " (" + Math.round((b.correct/b.attempted)*100) + "%)");
+      }
+    });
+    ["adventure", "beacon"].forEach(function(k){
+      var b = subjectStats.byFormat[k];
+      if (b.attempted){
+        any = true;
+        appendHistoryRow(accuracyList, FORMAT_LABEL[k], b.correct + "/" + b.attempted + " (" + Math.round((b.correct/b.attempted)*100) + "%)");
+      }
+    });
+    if (!any){
+      appendHistoryRow(accuracyList, "No questions answered yet.", "");
+    }
+  }
+
+  var WEAK_SPOT_SHOWN = 15;
+  function renderWeakSpotList(){
+    var stats = loadItemStats();
+    var missed = Object.keys(stats)
+      .map(function(id){ return stats[id]; })
+      .filter(function(rec){ return rec && typeof rec === "object" && rec.outcome === "incorrect"; })
+      .sort(function(a, b){ return new Date(b.lastSeen) - new Date(a.lastSeen); });
+    weakSpotList.innerHTML = "";
+    if (!missed.length){
+      weakSpotNote.hidden = false;
+      weakSpotNote.textContent = "None right now — nothing currently flagged as recently missed.";
+      return;
+    }
+    weakSpotNote.hidden = true;
+    missed.slice(0, WEAK_SPOT_SHOWN).forEach(function(rec){
+      var tag = (SUBJECT_LABEL[rec.subject] || rec.subject) + " · " + (rec.format === "adventure" ? "Adventure" : "Beacon");
+      appendHistoryRow(weakSpotList, rec.text, tag);
+    });
+    if (missed.length > WEAK_SPOT_SHOWN){
+      appendHistoryRow(weakSpotList, "…and " + (missed.length - WEAK_SPOT_SHOWN) + " more.", "", "is-more");
+    }
+  }
+
+  function daysBetween(a, b){
+    var msPerDay = 86400000;
+    var aMid = new Date(a.getFullYear(), a.getMonth(), a.getDate());
+    var bMid = new Date(b.getFullYear(), b.getMonth(), b.getDate());
+    return Math.round((bMid - aMid) / msPerDay);
+  }
+  function renderExamDate(){
+    examDateInput.value = examDateSettings.date || "";
+    examDateNote.hidden = true;
+    if (!examDateSettings.date){
+      examCountdownText.textContent = "";
+      return;
+    }
+    var target = parseISO(examDateSettings.date);
+    var days = daysBetween(new Date(), target);
+    if (days < 0){
+      examCountdownText.textContent = "That date's in the past.";
+    } else if (days === 0){
+      examCountdownText.textContent = "That's today.";
+    } else {
+      var weeks = Math.floor(days / 7);
+      var text = days + " day" + (days === 1 ? "" : "s") + " to go";
+      if (weeks >= 1) text += " (about " + weeks + " week" + (weeks === 1 ? "" : "s") + ")";
+      examCountdownText.textContent = text + ".";
+    }
+  }
+
   function renderMockSettings(){
     mockMinutesInput.value = mockSettings.minutes;
     mockNote.hidden = true;
@@ -929,8 +1226,12 @@
     renderChildName();
     renderTargets();
     renderLevels();
+    renderLifetimeStats();
     renderMathsHistory();
     renderEntryHistory();
+    renderCoverageAndAccuracy();
+    renderWeakSpotList();
+    renderExamDate();
     renderMockSettings();
   }
 
@@ -1012,8 +1313,33 @@
   clearWeakSpotBtn.addEventListener("click", function(){
     if (window.confirm("Clear the practice exam's memory of which questions have been missed before? This can't be undone.")){
       try { window.localStorage.removeItem(ITEM_STATS_KEY); } catch (e){ /* ignore */ }
+      renderCoverageAndAccuracy();
+      renderWeakSpotList();
       window.alert("Cleared.");
     }
+  });
+
+  saveExamDateBtn.addEventListener("click", function(){
+    var val = examDateInput.value;
+    if (!val){
+      examDateNote.textContent = "Choose a date first.";
+      examDateNote.className = "settings-note is-error";
+      examDateNote.hidden = false;
+      return;
+    }
+    examDateSettings = { date: val };
+    saveExamDateSettings(examDateSettings);
+    examDateNote.textContent = "Saved.";
+    examDateNote.className = "settings-note is-success";
+    examDateNote.hidden = false;
+    renderExamDate();
+  });
+
+  clearExamDateBtn.addEventListener("click", function(){
+    examDateSettings = { date: null };
+    saveExamDateSettings(examDateSettings);
+    examDateNote.hidden = true;
+    renderExamDate();
   });
 
   saveMockBtn.addEventListener("click", function(){
@@ -1052,6 +1378,90 @@
         if (didSet) window.alert("Parent PIN updated.");
       });
     });
+  });
+
+  // ---------- Backup, restore and reset ----------
+  // Everything lives only in this browser's localStorage, so this is the
+  // only way to move it to a new device or get it back after the browser's
+  // site data is cleared. entryTestBankSize_v1 is deliberately left out –
+  // it's regenerated automatically by entry-test.html on every load, so
+  // backing it up would only risk restoring a stale number.
+  var ALL_DATA_KEYS = [
+    DIFF_KEY, SETTINGS_KEY, CHILD_NAME_KEY, STREAK_SETTINGS_KEY, TYPE_STATS_KEY, LIFETIME_KEY,
+    MATHS_HISTORY_KEY, ENTRY_HISTORY_KEY, ITEM_STATS_KEY, SUBJECT_STATS_KEY, MOCK_SETTINGS_KEY,
+    EXAM_DATE_KEY, PIN_KEY
+  ];
+
+  backupBtn.addEventListener("click", function(){
+    var data = {};
+    ALL_DATA_KEYS.forEach(function(key){
+      var raw = null;
+      try { raw = window.localStorage.getItem(key); } catch (e){ /* ignore */ }
+      if (raw !== null) data[key] = raw;
+    });
+    var payload = { app:"quiz-app-backup", version:1, exportedAt: new Date().toISOString(), data:data };
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "quiz-app-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  });
+
+  restoreBtn.addEventListener("click", function(){
+    restoreFileInput.value = "";
+    restoreFileInput.click();
+  });
+
+  restoreFileInput.addEventListener("change", function(){
+    var file = restoreFileInput.files && restoreFileInput.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      var parsed;
+      try { parsed = JSON.parse(reader.result); }
+      catch (e){
+        restoreNote.textContent = "That doesn't look like a valid backup file.";
+        restoreNote.className = "settings-note is-error";
+        restoreNote.hidden = false;
+        return;
+      }
+      if (!parsed || typeof parsed !== "object" || !parsed.data || typeof parsed.data !== "object"){
+        restoreNote.textContent = "That doesn't look like a quiz app backup file.";
+        restoreNote.className = "settings-note is-error";
+        restoreNote.hidden = false;
+        return;
+      }
+      if (!window.confirm("This replaces everything currently saved on this device with the contents of this backup file. Continue?")) return;
+      ALL_DATA_KEYS.forEach(function(key){
+        try { window.localStorage.removeItem(key); } catch (e){ /* ignore */ }
+      });
+      Object.keys(parsed.data).forEach(function(key){
+        if (ALL_DATA_KEYS.indexOf(key) === -1) return; // ignore anything unexpected
+        try { window.localStorage.setItem(key, parsed.data[key]); } catch (e){ /* ignore */ }
+      });
+      window.alert("Restored. The page will now reload.");
+      window.location.reload();
+    };
+    reader.onerror = function(){
+      restoreNote.textContent = "Couldn't read that file.";
+      restoreNote.className = "settings-note is-error";
+      restoreNote.hidden = false;
+    };
+    reader.readAsText(file);
+  });
+
+  resetAllBtn.addEventListener("click", function(){
+    if (!window.confirm("Reset EVERYTHING on this device? This wipes all settings and history for both apps, including the parent PIN, and can't be undone.")) return;
+    if (!window.confirm("Really sure? There's no undo, and this only helps if you've already taken a backup.")) return;
+    ALL_DATA_KEYS.forEach(function(key){
+      try { window.localStorage.removeItem(key); } catch (e){ /* ignore */ }
+    });
+    try { window.localStorage.removeItem(BANK_SIZE_KEY); } catch (e){ /* ignore */ }
+    window.location.reload();
   });
 
   // ---------- Unlock flow ----------

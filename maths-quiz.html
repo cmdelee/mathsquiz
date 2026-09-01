@@ -938,6 +938,63 @@
     }
   }
 
+  // ---------- Per-operation accuracy (recent) ----------
+  // A short rolling window of right/wrong per operation, kept separately
+  // from the difficulty level (which only cares about the current run) so
+  // the parents page can show something closer to "how's she actually
+  // doing lately" rather than just which level she's settled at.
+  var TYPE_STATS_KEY = "quizAppTypeStats_v1";
+  var TYPE_STATS_WINDOW = 10;
+
+  function loadTypeStats(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(TYPE_STATS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    DIFF_TYPES.forEach(function(t){
+      if (!Array.isArray(obj[t])) obj[t] = [];
+    });
+    return obj;
+  }
+  function saveTypeStats(){
+    try { window.localStorage.setItem(TYPE_STATS_KEY, JSON.stringify(typeStats)); } catch (e){ /* ignore */ }
+  }
+  var typeStats = loadTypeStats();
+
+  function recordTypeStat(type, isCorrect){
+    typeStats[type].push(isCorrect);
+    if (typeStats[type].length > TYPE_STATS_WINDOW) typeStats[type].shift();
+    saveTypeStats();
+  }
+
+  // ---------- Lifetime stats ----------
+  // Session history is capped (see HISTORY_MAX) so it stays a reasonable
+  // size forever, but that means it can't be relied on for an accurate
+  // "since the beginning" total once there's enough history to start
+  // trimming the oldest entries – so these running totals are kept
+  // separately and never trimmed.
+  var LIFETIME_KEY = "quizAppLifetimeStats_v1";
+
+  function loadLifetimeStats(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(LIFETIME_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return {
+      sessions: typeof obj.sessions === "number" ? obj.sessions : 0,
+      questionsAnswered: typeof obj.questionsAnswered === "number" ? obj.questionsAnswered : 0,
+      questionsCorrect: typeof obj.questionsCorrect === "number" ? obj.questionsCorrect : 0
+    };
+  }
+  function saveLifetimeStats(){
+    try { window.localStorage.setItem(LIFETIME_KEY, JSON.stringify(lifetimeStats)); } catch (e){ /* ignore */ }
+  }
+  var lifetimeStats = loadLifetimeStats();
+
   function warmUpDifficultyForSession(){
     DIFF_TYPES.forEach(function(t){
       difficulty[t] = Math.max(DIFF_MIN_LEVEL, difficulty[t] - 1);
@@ -1222,6 +1279,7 @@
     attemptedCount++;
     sessionLog.push({ type:q.type, tag:q.tag, equation:q.equation, correctText:correctText, isCorrect:isCorrect });
     recordAnswerForDifficulty(q.type, isCorrect);
+    recordTypeStat(q.type, isCorrect);
     if (isCorrect){
       correctCount++;
       questionCard.classList.add("is-correct");
@@ -1262,6 +1320,11 @@
       correct: correctCount,
       pct: pct
     });
+
+    lifetimeStats.sessions++;
+    lifetimeStats.questionsAnswered += attemptedCount;
+    lifetimeStats.questionsCorrect += correctCount;
+    saveLifetimeStats();
 
     // A slightly bigger celebration once a session has just extended (or
     // started) a real streak – addHistoryRecord above already refreshed

@@ -3724,6 +3724,17 @@ var AMARA_PASSAGE =
     return hashText(key);
   }
 
+  // A short, readable version of any item, for places (like the parents
+  // page) that want to show *which* question something refers to without
+  // needing the whole item bank on hand.
+  function itemDisplayText(item){
+    if (item.kind === "spell"){
+      var parts = item.sentence.split("{{blank}}");
+      return parts[0] + item.word.toUpperCase() + (parts[1] || "");
+    }
+    return item.prompt;
+  }
+
   var ITEM_STATS_KEY = "entryTestItemStats_v1";
   function loadItemStats(){
     var obj = null;
@@ -3738,8 +3749,17 @@ var AMARA_PASSAGE =
   }
   var itemStats = loadItemStats();
 
+  // Records more than just right/wrong – enough (question text, subject,
+  // format) for the parents page to show a readable "questions currently
+  // being missed" list without needing the item bank itself.
   function recordItemOutcome(item, isCorrect){
-    itemStats[itemId(item)] = isCorrect ? "correct" : "incorrect";
+    itemStats[itemId(item)] = {
+      outcome: isCorrect ? "correct" : "incorrect",
+      text: itemDisplayText(item),
+      subject: item.subject,
+      format: item.kind === "mcq" ? "adventure" : "beacon",
+      lastSeen: new Date().toISOString()
+    };
     saveItemStats();
   }
 
@@ -3748,11 +3768,62 @@ var AMARA_PASSAGE =
   // ones already answered correctly – so a session still mostly feels
   // fresh, but leans toward whatever needs more practice.
   function itemWeight(item){
-    var outcome = itemStats[itemId(item)];
+    var rec = itemStats[itemId(item)];
+    // rec may still be the old plain-string format ("correct"/"incorrect")
+    // from before this was expanded to an object – both are handled here
+    // so nobody's existing weak-spot memory is lost by the upgrade.
+    var outcome = rec && typeof rec === "object" ? rec.outcome : rec;
     if (outcome === "incorrect") return 4;
     if (outcome === "correct") return 1;
     return 2;
   }
+
+  // ---------- Accuracy by subject / paper format ----------
+  // Separate from the per-item memory above (which only keeps the *last*
+  // outcome, for weighting) – this keeps a running right/attempted count
+  // so the parents page can show overall accuracy trends.
+  var SUBJECT_STATS_KEY = "entryTestSubjectStats_v1";
+  function loadSubjectStats(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(SUBJECT_STATS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    var blank = function(){ return { correct:0, attempted:0 }; };
+    if (!obj.bySubject || typeof obj.bySubject !== "object") obj.bySubject = {};
+    if (!obj.byFormat || typeof obj.byFormat !== "object") obj.byFormat = {};
+    ["english", "maths"].forEach(function(k){
+      if (!obj.bySubject[k]) obj.bySubject[k] = blank();
+    });
+    ["adventure", "beacon"].forEach(function(k){
+      if (!obj.byFormat[k]) obj.byFormat[k] = blank();
+    });
+    return obj;
+  }
+  function saveSubjectStats(){
+    try { window.localStorage.setItem(SUBJECT_STATS_KEY, JSON.stringify(subjectStats)); } catch (e){ /* ignore */ }
+  }
+  var subjectStats = loadSubjectStats();
+
+  function recordSubjectStat(item, isCorrect){
+    var subjectBucket = subjectStats.bySubject[item.subject];
+    var formatBucket = subjectStats.byFormat[item.kind === "mcq" ? "adventure" : "beacon"];
+    [subjectBucket, formatBucket].forEach(function(bucket){
+      if (!bucket) return;
+      bucket.attempted++;
+      if (isCorrect) bucket.correct++;
+    });
+    saveSubjectStats();
+  }
+
+  // ---------- Question bank size ----------
+  // Written on every load so the parents page can show "N of M questions
+  // seen" without duplicating the item bank – M always reflects however
+  // large the bank actually is, rather than a number that could go stale.
+  try {
+    window.localStorage.setItem("entryTestBankSize_v1", String(ADVENTURE_ITEMS.length + BEACON_ITEMS.length));
+  } catch (e){ /* ignore */ }
 
   // ---------- Answer checking ----------
   function normalize(s){
@@ -4042,6 +4113,7 @@ var AMARA_PASSAGE =
         var allBtns = wrap.querySelectorAll(".mcq-option");
         allBtns.forEach(function(b){ b.disabled = true; });
         recordItemOutcome(item, opt.isCorrect);
+        recordSubjectStat(item, opt.isCorrect);
         if (opt.isCorrect){
           correctCount++;
           btn.classList.add("is-correct");
@@ -4090,6 +4162,7 @@ var AMARA_PASSAGE =
       checkBtn.hidden = true;
       var isCorrect = shortAnswerCorrect(item, input.value);
       recordItemOutcome(item, isCorrect);
+      recordSubjectStat(item, isCorrect);
       if (isCorrect){
         correctCount++;
         questionCard.classList.add("is-correct");
@@ -4166,6 +4239,7 @@ var AMARA_PASSAGE =
       checkBtn.hidden = true;
       var isCorrect = normalize(input.value) === normalize(middle);
       recordItemOutcome(item, isCorrect);
+      recordSubjectStat(item, isCorrect);
       var fullWord = item.word.toUpperCase();
       if (isCorrect){
         correctCount++;

@@ -65,15 +65,23 @@ menu.
 A single page behind one shared PIN, covering settings and history for **both** practice apps.
 The parent chooses the PIN themselves the first time the page is opened on a device (see below).
 Getting in at all needs the PIN — not just resetting something — so a child can't see or touch
-it. It's split into three sections:
+it. It's split into four sections:
 
 - **Maths practice**: child's name, session targets (term/holiday), streak settings (how often and
-  how many sessions keep the streak going, plus the current streak), current difficulty level for
-  each operation, full session history with a recent-scores chart, and buttons to reset difficulty
-  to the easiest level or clear the maths history.
-- **Entry test practice**: full session history with a recent-scores chart, the time limit for the
-  timed "Mock exam" mode, and buttons to clear the history or to clear the page's memory of which
-  questions have been missed before (used to weight future sessions — see below).
+  how many sessions keep the streak going, the current streak and the best one on record), the
+  current difficulty level for each operation alongside its recent accuracy (right/wrong over the
+  last 10 attempts of that type), lifetime totals (sessions and questions answered since the
+  start), full session history with a recent-scores chart, and buttons to reset difficulty to the
+  easiest level or clear the maths history.
+- **Entry test practice**: full session history with a recent-scores chart, how many of the 999
+  questions have been seen at least once, accuracy broken down by subject (English/maths) and by
+  paper format (Adventure/Beacon), a list of whichever questions are currently flagged as
+  recently missed, an optional exam date with a countdown, the time limit for the timed "Mock
+  exam" mode, and buttons to clear the history or to clear the page's memory of missed questions
+  (used to weight future sessions — see below).
+- **Backup and reset**: download everything above as one JSON file, restore from a previously
+  downloaded file (replacing whatever's currently on the device), or wipe everything for both
+  apps back to a completely fresh start.
 - **Parent PIN**: a "Change parent PIN" button (asks for the current PIN first, then the new one
   twice).
 
@@ -143,7 +151,16 @@ that same history list plus a period/threshold setting saved under `quizAppStrea
 (default: 1 session a week), so it can never drift out of step with the history. Whatever period
 is currently in progress never breaks a streak on its own — it just doesn't count towards it
 until it's met — so a streak only actually ends once a full period has passed with too few
-sessions in it.
+sessions in it. The parents page also works out the longest streak anywhere in the history, not
+just the current one, the same way.
+
+Two more things are tracked alongside the session history, both purely additive so nothing needs
+migrating: a short rolling window (last 10) of right/wrong per operation type, under
+`quizAppTypeStats_v1`, shown next to each operation's difficulty level; and running lifetime
+totals (sessions completed, questions answered, questions correct) under
+`quizAppLifetimeStats_v1`, which — unlike the session history — are never trimmed, since the
+history list itself is capped at 200 entries and would otherwise under-count a lifetime total
+once there's enough history to start dropping the oldest sessions.
 
 `parents.html` sits behind a PIN that the parent sets themselves — the first time it's opened on
 a device, there's no PIN yet, so it asks you to choose one (typed twice, to catch typos) instead
@@ -198,11 +215,19 @@ last answered right or wrong (a stable id hashed from its text, in `localStorage
 `entryTestItemStats_v1` — no changes needed to the item bank itself), and a weighted draw favours
 recently-missed questions over ones never seen, and both over ones already answered correctly.
 Nothing is ever guaranteed or excluded, so sessions still feel fresh, but practice leans towards
-whatever needs it. The parents page can clear this memory if wanted.
+whatever needs it. The same memory (each entry now also carries the question's text, subject and
+paper format) is what lets the parents page show a readable list of whatever's currently being
+missed, rather than just a "clear it" button; that button is still there too. A separate running
+tally, under `entryTestSubjectStats_v1`, tracks overall accuracy by subject (English/maths) and
+by paper format (Adventure/Beacon) for the parents page, and `entryTestBankSize_v1` is written on
+every load so that page can also show how many of the (currently 999) questions have been seen at
+least once, without needing a copy of the item bank itself.
 
 The Mock exam mode is a longer 20-question session with a visible countdown timer (default 20
 minutes, changeable on the parents page from 5 to 90 minutes) — if time runs out mid-session, it
-finishes automatically with whatever's been answered so far, the same way a real exam would.
+finishes automatically with whatever's been answered so far, the same way a real exam would. The
+parents page also has an optional exam date setting (`entryTestExamDateSettings_v1`), shown there
+as a "days/weeks to go" countdown to help judge when to lean more of her practice towards it.
 
 Each session is self-marked with immediate feedback, and finishes with a score and a list of any
 missed questions to go over. Short-answer checking is a little forgiving on formatting (e.g.
@@ -213,6 +238,23 @@ history and a recent-scores chart (like the maths app) live on `parents.html`, s
 `localStorage` under `entryTestHistory_v1`.
 
 All four pages link to each other from their footers.
+
+## Backup, restore and full reset
+
+Everything either app knows lives only in that browser's `localStorage` on that one device —
+there's no account and nothing syncs anywhere, which also means there's no automatic recovery if
+the browser's site data is ever cleared or the device is replaced. The "Backup and reset" section
+on `parents.html` covers this:
+
+- **Backup** downloads a single JSON file containing every setting and history list for both
+  apps (session history, streak/difficulty/target settings, lifetime and per-operation maths
+  stats, entry-test weak-question memory, subject accuracy, mock exam and exam date settings, and
+  the parent PIN's hash) — everything except `entryTestBankSize_v1`, which is deliberately left
+  out since `entry-test.html` regenerates it itself on every load.
+- **Restore** reads a previously-downloaded backup file back in, after confirming, replacing
+  whatever's currently stored on the device and reloading the page.
+- **Reset everything** wipes all of the above (PIN included) back to a completely blank slate,
+  after two separate confirmations, since there's no undo.
 
 ## Making changes
 
