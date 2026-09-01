@@ -322,6 +322,19 @@
   }
   .foot a{ color:var(--ink-soft); }
   .foot a:hover{ color:var(--accent); }
+  .foot-refresh-btn{
+    background:none;
+    border:none;
+    padding:0;
+    margin:0;
+    font:inherit;
+    font-size:0.78rem;
+    color:var(--ink-faint);
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  .foot-refresh-btn:hover{ color:var(--accent); }
+  .foot-refresh-btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
 
   .update-banner{
     position:fixed;
@@ -576,6 +589,7 @@
 
   <footer class="foot">
     <p><a href="index.html">← Back to menu</a></p>
+    <p><button type="button" class="foot-refresh-btn" id="refreshAppBtn">↻ Refresh app / check for updates</button></p>
   </footer>
 
 </div>
@@ -1273,6 +1287,27 @@
         window.location.reload();
       });
     }
+  }
+
+  // ---------- Manual "refresh app" button ----------
+  // A deliberate, always-available way to force a fresh check for updates,
+  // rather than waiting for the browser to notice on its own (which can lag
+  // behind a new deployment). Behind a confirmation so a stray tap can't
+  // trigger it.
+  var refreshAppBtn = document.getElementById("refreshAppBtn");
+  if (refreshAppBtn){
+    refreshAppBtn.addEventListener("click", function(){
+      if (!window.confirm("This will refresh the app and check for the latest updates. Continue?")) return;
+      if ("serviceWorker" in navigator){
+        navigator.serviceWorker.getRegistration().then(function(reg){
+          return reg ? reg.update() : null;
+        }).catch(function(){}).then(function(){
+          window.location.reload();
+        });
+      } else {
+        window.location.reload();
+      }
+    });
   }
 
   // ---------- Install as an app (optional, safe to fail) ----------
