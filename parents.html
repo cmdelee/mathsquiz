@@ -198,7 +198,8 @@
     color:var(--ink-soft);
   }
   .settings-field input[type="number"],
-  .settings-field input[type="text"]{
+  .settings-field input[type="text"],
+  .settings-field select{
     font:inherit;
     font-size:0.9rem;
     padding:6px 8px;
@@ -209,6 +210,7 @@
   }
   .settings-field input[type="number"]{ width:5.5em; }
   .settings-field input[type="text"]{ width:14em; max-width:100%; }
+  .settings-field select{ width:auto; }
   .settings-note{
     flex-basis:100%;
     margin:2px 0 0;
@@ -248,6 +250,29 @@
   .history-note{
     margin:14px 0 0;
     font-size:0.78rem;
+    color:var(--ink-faint);
+  }
+
+  .trend-chart-wrap{
+    padding:14px 16px 10px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+  }
+  .trend-chart-wrap[hidden]{ display:none; }
+  .trend-chart{
+    width:100%;
+    height:64px;
+    display:block;
+  }
+  .trend-bar{ fill:var(--accent); }
+  .trend-bar:hover{ filter:brightness(1.15); }
+  .trend-chart-caption{
+    margin:8px 0 0;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    font-size:0.76rem;
     color:var(--ink-faint);
   }
 
@@ -347,6 +372,27 @@
       </div>
 
       <div class="parents-block">
+        <h3>Streak</h3>
+        <p class="quiz-sub">How often, and how many sessions in that time, keep the streak going. Other families using this app may want a different rhythm, so it's not fixed.</p>
+        <div class="settings-body">
+          <div class="settings-field">
+            <label for="streakPeriodInput">Period</label>
+            <select id="streakPeriodInput">
+              <option value="day">Per day</option>
+              <option value="week">Per week</option>
+            </select>
+          </div>
+          <div class="settings-field">
+            <label for="streakThresholdInput">Sessions needed</label>
+            <input type="number" id="streakThresholdInput" min="1" max="20" step="1" inputmode="numeric">
+          </div>
+          <button id="saveStreakBtn" class="btn btn-ghost">Save streak settings</button>
+          <p class="settings-note" id="streakNote" hidden></p>
+        </div>
+        <p class="quiz-sub" id="streakStatusText" style="margin-top:10px; margin-bottom:0;"></p>
+      </div>
+
+      <div class="parents-block">
         <h3>Difficulty levels</h3>
         <ul class="history-list" id="levelList"></ul>
       </div>
@@ -355,6 +401,12 @@
         <h3>Session history</h3>
         <p class="quiz-sub" id="mathsHistorySummary">No sessions completed yet.</p>
         <ul class="history-list" id="mathsHistoryList"></ul>
+      </div>
+
+      <div class="parents-block">
+        <h3>Progress</h3>
+        <p class="quiz-sub" id="mathsChartNote">Not enough sessions yet to show a trend.</p>
+        <div class="trend-chart-wrap" id="mathsChartWrap" hidden></div>
       </div>
 
       <div class="quiz-actions">
@@ -375,8 +427,28 @@
         <ul class="history-list" id="entryHistoryList"></ul>
       </div>
 
+      <div class="parents-block">
+        <h3>Progress</h3>
+        <p class="quiz-sub" id="entryChartNote">Not enough sessions yet to show a trend.</p>
+        <div class="trend-chart-wrap" id="entryChartWrap" hidden></div>
+      </div>
+
+      <div class="parents-block">
+        <h3>Mock exam time limit</h3>
+        <p class="quiz-sub">How long the timed "Mock exam" mode gives, in minutes.</p>
+        <div class="settings-body">
+          <div class="settings-field">
+            <label for="mockMinutesInput">Minutes</label>
+            <input type="number" id="mockMinutesInput" min="5" max="90" step="1" inputmode="numeric">
+          </div>
+          <button id="saveMockBtn" class="btn btn-ghost">Save time limit</button>
+          <p class="settings-note" id="mockNote" hidden></p>
+        </div>
+      </div>
+
       <div class="quiz-actions">
         <button id="clearEntryHistoryBtn" class="btn btn-ghost">Clear entry test history</button>
+        <button id="clearWeakSpotBtn" class="btn btn-ghost">Clear weak-question history</button>
       </div>
     </section>
 
@@ -528,9 +600,99 @@
     try { window.localStorage.setItem(CHILD_NAME_KEY, name); } catch (e){ /* ignore */ }
   }
 
+  // ---------- Streak settings (maths practice) ----------
+  var STREAK_SETTINGS_KEY = "quizAppStreakSettings_v1";
+  var STREAK_PERIODS = ["day", "week"];
+  var DEFAULT_STREAK_PERIOD = "week";
+  var DEFAULT_STREAK_THRESHOLD = 1;
+  var STREAK_THRESHOLD_MIN = 1;
+  var STREAK_THRESHOLD_MAX = 20;
+
+  function clampStreakThreshold(v, fallback){
+    v = parseInt(v, 10);
+    if (!isFinite(v) || isNaN(v)) return fallback;
+    if (v < STREAK_THRESHOLD_MIN) return STREAK_THRESHOLD_MIN;
+    if (v > STREAK_THRESHOLD_MAX) return STREAK_THRESHOLD_MAX;
+    return v;
+  }
+  function loadStreakSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(STREAK_SETTINGS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return {
+      period: STREAK_PERIODS.indexOf(obj.period) !== -1 ? obj.period : DEFAULT_STREAK_PERIOD,
+      threshold: clampStreakThreshold(obj.threshold, DEFAULT_STREAK_THRESHOLD)
+    };
+  }
+  function saveStreakSettingsToStorage(s){
+    try { window.localStorage.setItem(STREAK_SETTINGS_KEY, JSON.stringify(s)); } catch (e){ /* ignore */ }
+  }
+
+  // Same streak maths as maths-quiz.html – kept in step with it so the
+  // status shown here always matches what the child sees on that page.
+  function streakPeriodKey(d, period){
+    if (period === "day") return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+    var day = d.getDay();
+    var diffToMonday = (day === 0 ? -6 : 1 - day);
+    var monday = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMonday);
+    return monday.getFullYear()+"-"+pad(monday.getMonth()+1)+"-"+pad(monday.getDate());
+  }
+  function computeStreak(history, settings, now){
+    var stepDays = settings.period === "day" ? 1 : 7;
+    var counts = {};
+    history.forEach(function(rec){
+      var key = streakPeriodKey(parseISO(rec.date), settings.period);
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var todayKey = streakPeriodKey(today, settings.period);
+    var currentCount = counts[todayKey] || 0;
+    var currentMet = currentCount >= settings.threshold;
+    var streak = currentMet ? 1 : 0;
+    var cursor = new Date(today.getTime());
+    cursor.setDate(cursor.getDate() - stepDays);
+    while (true){
+      var key = streakPeriodKey(cursor, settings.period);
+      if ((counts[key] || 0) >= settings.threshold){
+        streak++;
+        cursor.setDate(cursor.getDate() - stepDays);
+      } else {
+        break;
+      }
+    }
+    return { streak:streak, currentCount:currentCount, currentMet:currentMet };
+  }
+
+  // ---------- Weak-spot practice stats (entry test) ----------
+  var ITEM_STATS_KEY = "entryTestItemStats_v1";
+
+  // ---------- Mock exam time limit (entry test) ----------
+  var MOCK_SETTINGS_KEY = "entryTestMockSettings_v1";
+  var DEFAULT_MOCK_MINUTES = 20;
+  var MOCK_MINUTES_MIN = 5;
+  var MOCK_MINUTES_MAX = 90;
+  function loadMockSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(MOCK_SETTINGS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    var m = parseInt(obj.minutes, 10);
+    if (!isFinite(m) || isNaN(m) || m < MOCK_MINUTES_MIN || m > MOCK_MINUTES_MAX) m = DEFAULT_MOCK_MINUTES;
+    return { minutes: m };
+  }
+  function saveMockSettingsToStorage(s){
+    try { window.localStorage.setItem(MOCK_SETTINGS_KEY, JSON.stringify(s)); } catch (e){ /* ignore */ }
+  }
+
   var MATHS_HISTORY_KEY = "quizAppHistory_v1";
   var ENTRY_HISTORY_KEY = "entryTestHistory_v1";
   var HISTORY_SHOWN = 20;
+  var TREND_CHART_MAX = 15;
 
   function loadJSONList(key){
     try {
@@ -563,6 +725,61 @@
     listEl.appendChild(li);
   }
 
+  // ---------- Progress trend chart ----------
+  // A small dependency-free inline SVG bar chart of recent scores – no
+  // charting library, so the page keeps working fully offline.
+  var SVG_NS = "http://www.w3.org/2000/svg";
+
+  function buildTrendChart(records){
+    var data = records.slice(0, TREND_CHART_MAX).slice().reverse(); // oldest → newest, left to right
+    var w = 100, h = 40, barGap = 0.6;
+    var barW = w / data.length;
+    var svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + w + " " + h);
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("class", "trend-chart");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "Chart of recent session scores");
+    data.forEach(function(rec, i){
+      var pct = Math.max(0, Math.min(100, rec.pct || 0));
+      var barH = Math.max(0.5, (pct / 100) * (h - 4));
+      var rect = document.createElementNS(SVG_NS, "rect");
+      rect.setAttribute("x", (i * barW + barGap / 2).toFixed(2));
+      rect.setAttribute("width", Math.max(0.5, barW - barGap).toFixed(2));
+      rect.setAttribute("y", (h - barH - 2).toFixed(2));
+      rect.setAttribute("height", barH.toFixed(2));
+      rect.setAttribute("class", "trend-bar");
+      var title = document.createElementNS(SVG_NS, "title");
+      title.textContent = pct + "%";
+      rect.appendChild(title);
+      svg.appendChild(rect);
+    });
+    return svg;
+  }
+
+  function renderTrendChart(wrapEl, noteEl, records){
+    wrapEl.innerHTML = "";
+    if (records.length < 2){
+      wrapEl.hidden = true;
+      noteEl.hidden = false;
+      noteEl.textContent = "Not enough sessions yet to show a trend.";
+      return;
+    }
+    noteEl.hidden = true;
+    wrapEl.hidden = false;
+    wrapEl.appendChild(buildTrendChart(records));
+    var shown = Math.min(records.length, TREND_CHART_MAX);
+    var caption = document.createElement("p");
+    caption.className = "trend-chart-caption";
+    var left = document.createElement("span");
+    left.textContent = "Last " + shown + " session" + (shown === 1 ? "" : "s");
+    var right = document.createElement("span");
+    right.textContent = "Tap or hover a bar for its score";
+    caption.appendChild(left);
+    caption.appendChild(right);
+    wrapEl.appendChild(caption);
+  }
+
   // ---------- Element refs ----------
   var lockCard = document.getElementById("lockCard");
   var lockText = document.getElementById("lockText");
@@ -581,12 +798,27 @@
   var levelList = document.getElementById("levelList");
   var mathsHistorySummary = document.getElementById("mathsHistorySummary");
   var mathsHistoryList = document.getElementById("mathsHistoryList");
+  var mathsChartNote = document.getElementById("mathsChartNote");
+  var mathsChartWrap = document.getElementById("mathsChartWrap");
   var resetDifficultyBtn = document.getElementById("resetDifficultyBtn");
   var clearMathsHistoryBtn = document.getElementById("clearMathsHistoryBtn");
 
+  var streakPeriodInput = document.getElementById("streakPeriodInput");
+  var streakThresholdInput = document.getElementById("streakThresholdInput");
+  var saveStreakBtn = document.getElementById("saveStreakBtn");
+  var streakNote = document.getElementById("streakNote");
+  var streakStatusText = document.getElementById("streakStatusText");
+
   var entryHistorySummary = document.getElementById("entryHistorySummary");
   var entryHistoryList = document.getElementById("entryHistoryList");
+  var entryChartNote = document.getElementById("entryChartNote");
+  var entryChartWrap = document.getElementById("entryChartWrap");
   var clearEntryHistoryBtn = document.getElementById("clearEntryHistoryBtn");
+  var clearWeakSpotBtn = document.getElementById("clearWeakSpotBtn");
+
+  var mockMinutesInput = document.getElementById("mockMinutesInput");
+  var saveMockBtn = document.getElementById("saveMockBtn");
+  var mockNote = document.getElementById("mockNote");
 
   var changePinBtn = document.getElementById("changePinBtn");
 
@@ -594,6 +826,8 @@
   var settings = loadSettings();
   var childName = loadChildName();
   var difficulty = loadDifficulty();
+  var streakSettings = loadStreakSettings();
+  var mockSettings = loadMockSettings();
 
   function renderChildName(){
     childNameInput.value = childName;
@@ -633,6 +867,29 @@
     if (remaining > 0){
       appendHistoryRow(mathsHistoryList, "…and " + remaining + " earlier session" + (remaining === 1 ? "" : "s") + ".", "", "is-more");
     }
+    renderTrendChart(mathsChartWrap, mathsChartNote, list);
+    renderStreakSettings(list);
+  }
+
+  function renderStreakStatus(mathsHistory){
+    if (!mathsHistory.length){
+      streakStatusText.textContent = "No maths sessions yet.";
+      return;
+    }
+    var result = computeStreak(mathsHistory, streakSettings, new Date());
+    var unit = streakSettings.period === "day" ? "day" : "week";
+    if (result.streak > 0){
+      streakStatusText.textContent = "Current streak: " + result.streak + " " +
+        (result.streak === 1 ? unit : unit + "s") + ".";
+    } else {
+      streakStatusText.textContent = "No current streak.";
+    }
+  }
+  function renderStreakSettings(mathsHistory){
+    streakPeriodInput.value = streakSettings.period;
+    streakThresholdInput.value = streakSettings.threshold;
+    streakNote.hidden = true;
+    renderStreakStatus(mathsHistory);
   }
 
   // ---------- Render: entry test practice ----------
@@ -660,6 +917,12 @@
     if (remaining > 0){
       appendHistoryRow(entryHistoryList, "…and " + remaining + " earlier session" + (remaining === 1 ? "" : "s") + ".", "", "is-more");
     }
+    renderTrendChart(entryChartWrap, entryChartNote, list);
+  }
+
+  function renderMockSettings(){
+    mockMinutesInput.value = mockSettings.minutes;
+    mockNote.hidden = true;
   }
 
   function renderAll(){
@@ -668,6 +931,7 @@
     renderLevels();
     renderMathsHistory();
     renderEntryHistory();
+    renderMockSettings();
   }
 
   // ---------- Handlers ----------
@@ -703,6 +967,26 @@
     targetsNote.hidden = false;
   });
 
+  saveStreakBtn.addEventListener("click", function(){
+    var period = streakPeriodInput.value;
+    var raw = streakThresholdInput.value;
+    var num = parseInt(raw, 10);
+    var isValid = STREAK_PERIODS.indexOf(period) !== -1 && raw !== "" &&
+      isFinite(num) && num >= STREAK_THRESHOLD_MIN && num <= STREAK_THRESHOLD_MAX;
+    if (!isValid){
+      streakNote.textContent = "Enter a whole number between " + STREAK_THRESHOLD_MIN + " and " + STREAK_THRESHOLD_MAX + ".";
+      streakNote.className = "settings-note is-error";
+      streakNote.hidden = false;
+      return;
+    }
+    streakSettings = { period: period, threshold: num };
+    saveStreakSettingsToStorage(streakSettings);
+    streakNote.textContent = "Saved. Takes effect next time the maths page is opened.";
+    streakNote.className = "settings-note is-success";
+    streakNote.hidden = false;
+    renderStreakStatus(loadJSONList(MATHS_HISTORY_KEY));
+  });
+
   resetDifficultyBtn.addEventListener("click", function(){
     if (window.confirm("Reset difficulty back to the easiest level for every question type? This can't be undone.")){
       DIFF_TYPES.forEach(function(t){ difficulty[t] = DIFF_MIN_LEVEL; });
@@ -723,6 +1007,30 @@
       saveJSONList(ENTRY_HISTORY_KEY, []);
       renderEntryHistory();
     }
+  });
+
+  clearWeakSpotBtn.addEventListener("click", function(){
+    if (window.confirm("Clear the practice exam's memory of which questions have been missed before? This can't be undone.")){
+      try { window.localStorage.removeItem(ITEM_STATS_KEY); } catch (e){ /* ignore */ }
+      window.alert("Cleared.");
+    }
+  });
+
+  saveMockBtn.addEventListener("click", function(){
+    var raw = mockMinutesInput.value;
+    var num = parseInt(raw, 10);
+    var isValid = raw !== "" && isFinite(num) && num >= MOCK_MINUTES_MIN && num <= MOCK_MINUTES_MAX;
+    if (!isValid){
+      mockNote.textContent = "Enter a whole number between " + MOCK_MINUTES_MIN + " and " + MOCK_MINUTES_MAX + ".";
+      mockNote.className = "settings-note is-error";
+      mockNote.hidden = false;
+      return;
+    }
+    mockSettings = { minutes: num };
+    saveMockSettingsToStorage(mockSettings);
+    mockNote.textContent = "Saved. Takes effect next time a mock exam is started.";
+    mockNote.className = "settings-note is-success";
+    mockNote.hidden = false;
   });
 
   changePinBtn.addEventListener("click", function(){

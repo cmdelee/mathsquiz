@@ -44,8 +44,14 @@ menu.
   met.
 - **Reports**: at the end of a session, the score can be copied to the clipboard or shared via
   the device's native share sheet — no email, no accounts, no data leaves the device at all.
+- **Streak tracking**: a small badge shows how many days or weeks in a row she's kept up her
+  practice, and the end-of-session message gets a bit more of a celebration once a streak reaches
+  two or more. How often, and how many sessions in that time, count towards the streak is a
+  parents-page setting (default: 1 session a week) — other families using this app may want a
+  different rhythm, so it isn't fixed in the code.
 - **Local history**: the page itself shows only the most recent session's score. Full history,
-  targets, difficulty levels and resets all live on the parents page.
+  targets, difficulty levels, streak settings and resets all live on the parents page, along with
+  a simple chart of recent scores.
 - **Child's name**: optional, set from the parents page. When set, it personalises the page
   title ("Poppy's maths practice") and the end-of-session message, and appears in copied/shared
   reports.
@@ -61,11 +67,13 @@ The parent chooses the PIN themselves the first time the page is opened on a dev
 Getting in at all needs the PIN — not just resetting something — so a child can't see or touch
 it. It's split into three sections:
 
-- **Maths practice**: child's name, session targets (term/holiday), current difficulty level for
-  each operation, full session history, and buttons to reset difficulty to the easiest level or
-  clear the maths history.
-- **Entry test practice**: full session history for the entry-test page, and a button to clear
-  it.
+- **Maths practice**: child's name, session targets (term/holiday), streak settings (how often and
+  how many sessions keep the streak going, plus the current streak), current difficulty level for
+  each operation, full session history with a recent-scores chart, and buttons to reset difficulty
+  to the easiest level or clear the maths history.
+- **Entry test practice**: full session history with a recent-scores chart, the time limit for the
+  timed "Mock exam" mode, and buttons to clear the history or to clear the page's memory of which
+  questions have been missed before (used to weight future sessions — see below).
 - **Parent PIN**: a "Change parent PIN" button (asks for the current PIN first, then the new one
   twice).
 
@@ -127,8 +135,15 @@ each level uses for each operation.
 ### History and the parents page
 
 Session history is saved to `localStorage` under `quizAppHistory_v1` — nothing is sent anywhere,
-ever. `maths-quiz.html` only ever shows the most recent session's date and score; the full list
-lives on `parents.html`.
+ever. `maths-quiz.html` only ever shows the most recent session's date and score; the full list,
+plus a simple chart of recent scores, lives on `parents.html`.
+
+The streak shown on the maths page isn't stored separately — it's worked out fresh each time from
+that same history list plus a period/threshold setting saved under `quizAppStreakSettings_v1`
+(default: 1 session a week), so it can never drift out of step with the history. Whatever period
+is currently in progress never breaks a streak on its own — it just doesn't count towards it
+until it's met — so a streak only actually ends once a full period has passed with too few
+sessions in it.
 
 `parents.html` sits behind a PIN that the parent sets themselves — the first time it's opened on
 a device, there's no PIN yet, so it asks you to choose one (typed twice, to catch typos) instead
@@ -165,25 +180,37 @@ test, which is run by an external provider called FSCE and used by several gramm
   for "compass", and the child only has to type the missing letters) and maths (multi-step word
   problems: money, angles, time, decimals, reading a data table, cost comparisons, area).
 
-The page has three practice modes — Adventure only, Beacon only, or Mixed (a longer session
-blending both) — each drawing a fresh, shuffled set of questions from a bank of original
-questions written for this page (see `ADVENTURE_ITEMS` and `BEACON_ITEMS` in `entry-test.html`).
-The bank currently holds 999 items: 560 in `ADVENTURE_ITEMS` (30 reading passages with 4
-comprehension questions each, 200 vocabulary questions, 240 maths reasoning questions) and 439 in
-`BEACON_ITEMS` (199 spelling-scaffold questions, 240 maths word problems) — roughly ten times the
-original size, so a session (10–15 questions) very rarely repeats the same question across many
-sittings. **These are not the real FSCE questions** — those stay confidential to FSCE and are
-only ever seen in the school's own familiarisation guide (linked from the page, and from Skipton
-Girls' [admissions page](https://www.sghs.org.uk/our-school/admissions)) — this page just
-practises the same two formats and the same style/difficulty of question, written from scratch.
+The page has four practice modes — Adventure only, Beacon only, Mixed (a longer session blending
+both), or Mock exam (a timed session, also blending both, that ends automatically when the clock
+runs out) — each drawing a fresh set of questions from a bank of original questions written for
+this page (see `ADVENTURE_ITEMS` and `BEACON_ITEMS` in `entry-test.html`). The bank currently
+holds 999 items: 560 in `ADVENTURE_ITEMS` (30 reading passages with 4 comprehension questions
+each, 200 vocabulary questions, 240 maths reasoning questions) and 439 in `BEACON_ITEMS` (199
+spelling-scaffold questions, 240 maths word problems) — roughly ten times the original size, so a
+session very rarely repeats the same question across many sittings. **These are not the real
+FSCE questions** — those stay confidential to FSCE and are only ever seen in the school's own
+familiarisation guide (linked from the page, and from Skipton Girls'
+[admissions page](https://www.sghs.org.uk/our-school/admissions)) — this page just practises the
+same two formats and the same style/difficulty of question, written from scratch.
+
+Sessions aren't a plain random shuffle: each question the page has seen before is remembered as
+last answered right or wrong (a stable id hashed from its text, in `localStorage` under
+`entryTestItemStats_v1` — no changes needed to the item bank itself), and a weighted draw favours
+recently-missed questions over ones never seen, and both over ones already answered correctly.
+Nothing is ever guaranteed or excluded, so sessions still feel fresh, but practice leans towards
+whatever needs it. The parents page can clear this memory if wanted.
+
+The Mock exam mode is a longer 20-question session with a visible countdown timer (default 20
+minutes, changeable on the parents page from 5 to 90 minutes) — if time runs out mid-session, it
+finishes automatically with whatever's been answered so far, the same way a real exam would.
 
 Each session is self-marked with immediate feedback, and finishes with a score and a list of any
 missed questions to go over. Short-answer checking is a little forgiving on formatting (e.g.
 `1.70` and `£1.70` are both accepted, as are numerically-equal forms like `5` and `5.0`), but the
 missing letters in a spelling question need to be spelled correctly (case and spacing don't
 matter). The page itself shows only the most recent session's date, paper and score; full
-history (like the maths app) lives on `parents.html`, saved to `localStorage` under
-`entryTestHistory_v1`.
+history and a recent-scores chart (like the maths app) live on `parents.html`, saved to
+`localStorage` under `entryTestHistory_v1`.
 
 All four pages link to each other from their footers.
 

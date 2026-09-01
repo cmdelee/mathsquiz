@@ -191,6 +191,31 @@
   }
   .paper-desc{ font-size:0.85rem; color:var(--ink-soft); }
 
+  .timer-badge{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 14px;
+    margin-bottom:14px;
+    border-radius:8px;
+    background:var(--gold-soft);
+    border:1px solid var(--gold);
+  }
+  .timer-badge[hidden]{ display:none; }
+  .timer-label{
+    font-size:0.8rem;
+    color:var(--ink-soft);
+  }
+  .timer-clock{
+    font-family:"IBM Plex Mono", ui-monospace, monospace;
+    font-weight:600;
+    font-size:1.15rem;
+    font-variant-numeric:tabular-nums;
+    color:var(--gold);
+  }
+  .timer-badge.is-urgent{ background:var(--error-bg); border-color:var(--error); }
+  .timer-badge.is-urgent .timer-clock{ color:var(--error); }
+
   .progress-row{
     display:flex;
     align-items:center;
@@ -522,6 +547,10 @@
           <span class="paper-name">Mixed practice</span>
           <span class="paper-desc">A blend of both papers in one longer session</span>
         </button>
+        <button class="paper-btn" data-paper="mock">
+          <span class="paper-name">Mock exam</span>
+          <span class="paper-desc">A longer, timed session against the clock — Adventure and Beacon together</span>
+        </button>
       </div>
     </section>
   </div>
@@ -530,6 +559,11 @@
     <div class="quiz-head">
       <h2 id="quizTitle">Practice</h2>
       <p class="quiz-sub" id="quizSub"></p>
+    </div>
+
+    <div class="timer-badge" id="timerBadge" hidden>
+      <span class="timer-label">Time left</span>
+      <span class="timer-clock" id="timerClock">–:–</span>
     </div>
 
     <div class="progress-row">
@@ -590,6 +624,19 @@
       var t = a[i]; a[i] = a[j]; a[j] = t;
     }
     return a;
+  }
+
+  // Weighted sample of n items without replacement (Efraimidis–Spirakis
+  // A-Res algorithm): give every item a random key raised to the inverse of
+  // its weight, then take the n items with the largest keys. Heavier items
+  // are more likely to be picked, but nothing is guaranteed or repeated.
+  function weightedSampleWithoutReplacement(items, weightFn, n){
+    var scored = items.map(function(it){
+      var w = Math.max(0.0001, weightFn(it));
+      return { it:it, key: Math.pow(Math.random(), 1 / w) };
+    });
+    scored.sort(function(a, b){ return b.key - a.key; });
+    return scored.slice(0, n).map(function(s){ return s.it; });
   }
 
   // ---------- Question banks ----------
@@ -3654,11 +3701,58 @@ var AMARA_PASSAGE =
   answers:["30.00","£30.00","30"], hint:"Give your answer in pounds and pence, e.g. 30.00" }
   ];
 
-  var SESSION_SIZE = { adventure:10, beacon:10, mixed:15 };
+  var SESSION_SIZE = { adventure:10, beacon:10, mixed:15, mock:20 };
   var TAG_LABEL = {
     adventure:"Adventure paper",
     beacon:"Beacon paper"
   };
+
+  // ---------- Weak-spot practice ----------
+  // Remembers, per question, whether it was last answered right or wrong,
+  // so future sessions draw more often from whatever's currently being
+  // missed. Items don't have their own ids, so a stable one is hashed from
+  // their text instead — this needs no changes to the item banks at all.
+  function hashText(s){
+    var hash = 5381;
+    for (var i = 0; i < s.length; i++){
+      hash = (((hash << 5) + hash) + s.charCodeAt(i)) & 0xFFFFFFFF;
+    }
+    return (hash >>> 0).toString(36);
+  }
+  function itemId(item){
+    var key = item.kind === "spell" ? (item.sentence + "|" + item.word) : item.prompt;
+    return hashText(key);
+  }
+
+  var ITEM_STATS_KEY = "entryTestItemStats_v1";
+  function loadItemStats(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(ITEM_STATS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    return (obj && typeof obj === "object") ? obj : {};
+  }
+  function saveItemStats(){
+    try { window.localStorage.setItem(ITEM_STATS_KEY, JSON.stringify(itemStats)); } catch (e){ /* ignore */ }
+  }
+  var itemStats = loadItemStats();
+
+  function recordItemOutcome(item, isCorrect){
+    itemStats[itemId(item)] = isCorrect ? "correct" : "incorrect";
+    saveItemStats();
+  }
+
+  // Recently-missed questions come up about four times as often as ones
+  // that have never been seen, and unseen questions about twice as often as
+  // ones already answered correctly – so a session still mostly feels
+  // fresh, but leans toward whatever needs more practice.
+  function itemWeight(item){
+    var outcome = itemStats[itemId(item)];
+    if (outcome === "incorrect") return 4;
+    if (outcome === "correct") return 1;
+    return 2;
+  }
 
   // ---------- Answer checking ----------
   function normalize(s){
@@ -3703,7 +3797,27 @@ var AMARA_PASSAGE =
     renderLastSession();
   }
 
-  var PAPER_LABEL = { adventure:"Adventure paper", beacon:"Beacon paper", mixed:"Mixed practice" };
+  var PAPER_LABEL = { adventure:"Adventure paper", beacon:"Beacon paper", mixed:"Mixed practice", mock:"Mock exam" };
+
+  // ---------- Mock exam time limit ----------
+  // Configurable from the parents page (default 20 minutes) – other
+  // families using this page may want a longer or shorter mock session.
+  var MOCK_SETTINGS_KEY = "entryTestMockSettings_v1";
+  var DEFAULT_MOCK_MINUTES = 20;
+  var MOCK_MINUTES_MIN = 5;
+  var MOCK_MINUTES_MAX = 90;
+  function loadMockSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(MOCK_SETTINGS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    var m = parseInt(obj.minutes, 10);
+    if (!isFinite(m) || isNaN(m) || m < MOCK_MINUTES_MIN || m > MOCK_MINUTES_MAX) m = DEFAULT_MOCK_MINUTES;
+    return { minutes: m };
+  }
+  var mockSettings = loadMockSettings();
 
   function formatDate(iso){
     var d = new Date(iso);
@@ -3726,6 +3840,8 @@ var AMARA_PASSAGE =
   var quizSection = document.getElementById("quizSection");
   var quizTitle = document.getElementById("quizTitle");
   var quizSub = document.getElementById("quizSub");
+  var timerBadge = document.getElementById("timerBadge");
+  var timerClock = document.getElementById("timerClock");
   var progressFill = document.getElementById("progressFill");
   var progressText = document.getElementById("progressText");
   var questionCard = document.getElementById("questionCard");
@@ -3737,6 +3853,7 @@ var AMARA_PASSAGE =
   var checkBtn = document.getElementById("checkBtn");
   var nextBtn = document.getElementById("nextBtn");
   var completionPanel = document.getElementById("completionPanel");
+  var completionTitle = document.getElementById("completionTitle");
   var completionStats = document.getElementById("completionStats");
   var reviewList = document.getElementById("reviewList");
   var retryBtn = document.getElementById("retryBtn");
@@ -3753,11 +3870,48 @@ var AMARA_PASSAGE =
   var attemptedCount = 0;
   var checked = false;
   var missed = [];
+  var mockTimerInterval = null;
+  var mockDeadline = null;
+
+  function clearMockTimer(){
+    if (mockTimerInterval){ window.clearInterval(mockTimerInterval); mockTimerInterval = null; }
+    mockDeadline = null;
+    timerBadge.classList.remove("is-urgent");
+  }
+
+  function updateMockTimerDisplay(){
+    if (!mockDeadline) return;
+    var remainingMs = mockDeadline - Date.now();
+    if (remainingMs <= 0){
+      timerClock.textContent = "0:00";
+      timerBadge.classList.add("is-urgent");
+      clearMockTimer();
+      // Only auto-finish if a session is genuinely still in progress —
+      // guards against the interval firing just as the session finished by
+      // itself (last question answered right as the clock ran out).
+      if (!quizSection.hidden && completionPanel.hidden){
+        finishSession(true);
+      }
+      return;
+    }
+    var totalSec = Math.ceil(remainingMs / 1000);
+    var m = Math.floor(totalSec / 60), s = totalSec % 60;
+    timerClock.textContent = m + ":" + (s < 10 ? "0" : "") + s;
+    timerBadge.classList.toggle("is-urgent", totalSec <= 60);
+  }
+
+  function startMockTimer(minutes){
+    clearMockTimer();
+    mockDeadline = Date.now() + minutes * 60000;
+    updateMockTimerDisplay();
+    mockTimerInterval = window.setInterval(updateMockTimerDisplay, 1000);
+  }
 
   function buildQueue(paper){
-    if (paper === "adventure") return shuffle(ADVENTURE_ITEMS).slice(0, SESSION_SIZE.adventure);
-    if (paper === "beacon") return shuffle(BEACON_ITEMS).slice(0, SESSION_SIZE.beacon);
-    return shuffle(ADVENTURE_ITEMS.concat(BEACON_ITEMS)).slice(0, SESSION_SIZE.mixed);
+    var pool = paper === "adventure" ? ADVENTURE_ITEMS :
+      paper === "beacon" ? BEACON_ITEMS :
+      ADVENTURE_ITEMS.concat(BEACON_ITEMS);
+    return weightedSampleWithoutReplacement(pool, itemWeight, SESSION_SIZE[paper]);
   }
 
   function startSession(paper){
@@ -3768,16 +3922,25 @@ var AMARA_PASSAGE =
     attemptedCount = 0;
     missed = [];
     quizTitle.textContent = PAPER_LABEL[paper];
-    quizSub.textContent = paper === "mixed"
-      ? "A mix of Adventure and Beacon style questions."
-      : (paper === "adventure"
-          ? "Multiple choice — pick the best answer."
-          : "Type your answer into the box.");
+    quizSub.textContent = paper === "mock"
+      ? "A timed mix of Adventure and Beacon style questions — the session ends automatically when time runs out."
+      : (paper === "mixed"
+          ? "A mix of Adventure and Beacon style questions."
+          : (paper === "adventure"
+              ? "Multiple choice — pick the best answer."
+              : "Type your answer into the box."));
     pickerView.hidden = true;
     quizSection.hidden = false;
     completionPanel.hidden = true;
     questionCard.hidden = false;
     quitRow.hidden = false;
+    clearMockTimer();
+    if (paper === "mock"){
+      timerBadge.hidden = false;
+      startMockTimer(mockSettings.minutes);
+    } else {
+      timerBadge.hidden = true;
+    }
     updateProgress();
     loadQuestion();
   }
@@ -3791,7 +3954,7 @@ var AMARA_PASSAGE =
 
   function itemTag(item){
     var subjectLabel = item.subject === "maths" ? "Maths" : "English";
-    if (currentPaper === "mixed"){
+    if (currentPaper === "mixed" || currentPaper === "mock"){
       return (item.kind === "mcq" ? "Adventure" : "Beacon") + " · " + subjectLabel;
     }
     return TAG_LABEL[currentPaper] + " · " + subjectLabel;
@@ -3878,6 +4041,7 @@ var AMARA_PASSAGE =
         attemptedCount++;
         var allBtns = wrap.querySelectorAll(".mcq-option");
         allBtns.forEach(function(b){ b.disabled = true; });
+        recordItemOutcome(item, opt.isCorrect);
         if (opt.isCorrect){
           correctCount++;
           btn.classList.add("is-correct");
@@ -3925,6 +4089,7 @@ var AMARA_PASSAGE =
       input.disabled = true;
       checkBtn.hidden = true;
       var isCorrect = shortAnswerCorrect(item, input.value);
+      recordItemOutcome(item, isCorrect);
       if (isCorrect){
         correctCount++;
         questionCard.classList.add("is-correct");
@@ -4000,6 +4165,7 @@ var AMARA_PASSAGE =
       input.disabled = true;
       checkBtn.hidden = true;
       var isCorrect = normalize(input.value) === normalize(middle);
+      recordItemOutcome(item, isCorrect);
       var fullWord = item.word.toUpperCase();
       if (isCorrect){
         correctCount++;
@@ -4029,11 +4195,14 @@ var AMARA_PASSAGE =
     loadQuestion();
   });
 
-  function finishSession(){
+  function finishSession(timedOut){
+    clearMockTimer();
+    timerBadge.hidden = true;
     questionCard.hidden = true;
     quitRow.hidden = true;
     completionPanel.hidden = false;
     var pct = attemptedCount ? Math.round((correctCount / attemptedCount) * 100) : 0;
+    completionTitle.textContent = timedOut ? "Time's up!" : "Session complete!";
     completionStats.textContent = "You answered " + attemptedCount + " question" + (attemptedCount === 1 ? "" : "s") +
       " and got " + correctCount + " right (" + pct + "%).";
     if (missed.length){
@@ -4067,6 +4236,8 @@ var AMARA_PASSAGE =
   quitBtn.addEventListener("click", showPicker);
 
   function showPicker(){
+    clearMockTimer();
+    timerBadge.hidden = true;
     quizSection.hidden = true;
     pickerView.hidden = false;
   }

@@ -187,6 +187,21 @@
     border:1px solid var(--border);
     min-width:110px;
   }
+
+  .streak-card{
+    padding:12px 18px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-left:5px solid var(--gold);
+    border-radius:10px;
+    box-shadow:var(--shadow);
+  }
+  .streak-card[hidden]{ display:none; }
+  .streak-text{
+    margin:0;
+    font-size:0.9rem;
+    color:var(--ink-soft);
+  }
   .count-number{
     display:block;
     font-family:"IBM Plex Mono", ui-monospace, monospace;
@@ -387,6 +402,11 @@
     font-size:1.5rem;
     color:var(--ink);
   }
+  .completion-panel.is-streak{
+    border:1px solid var(--gold);
+    box-shadow:0 0 0 3px var(--gold-soft);
+  }
+  .completion-panel.is-streak h3{ font-size:1.75rem; }
   .completion-panel p{
     margin:0 0 18px;
     color:var(--ink-soft);
@@ -513,6 +533,10 @@
       <span class="count-number" id="countNumber">–</span>
       <span class="count-label">correct to finish</span>
     </div>
+  </section>
+
+  <section class="streak-card" id="streakCard" hidden>
+    <p class="streak-text" id="streakText"></p>
   </section>
 
   <details class="date-check">
@@ -808,6 +832,112 @@
     pageTitle.textContent = childName ? childName + "'s maths practice" : "Today's maths practice";
   }
 
+  // ---------- Streak ----------
+  // Configurable from the parents page: how often (day/week) and how many
+  // sessions in that period count as "keeping the streak going" – different
+  // families may want a different rhythm. Deliberately not stored as its
+  // own counter, so it's always derived fresh from the session history and
+  // can never drift out of sync with it.
+  var STREAK_SETTINGS_KEY = "quizAppStreakSettings_v1";
+  var STREAK_PERIODS = ["day", "week"];
+  var DEFAULT_STREAK_PERIOD = "week";
+  var DEFAULT_STREAK_THRESHOLD = 1;
+  var STREAK_THRESHOLD_MIN = 1;
+  var STREAK_THRESHOLD_MAX = 20;
+
+  function clampStreakThreshold(v, fallback){
+    v = parseInt(v, 10);
+    if (!isFinite(v) || isNaN(v)) return fallback;
+    if (v < STREAK_THRESHOLD_MIN) return STREAK_THRESHOLD_MIN;
+    if (v > STREAK_THRESHOLD_MAX) return STREAK_THRESHOLD_MAX;
+    return v;
+  }
+
+  function loadStreakSettings(){
+    var obj = null;
+    try {
+      var raw = window.localStorage.getItem(STREAK_SETTINGS_KEY);
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    if (!obj || typeof obj !== "object") obj = {};
+    return {
+      period: STREAK_PERIODS.indexOf(obj.period) !== -1 ? obj.period : DEFAULT_STREAK_PERIOD,
+      threshold: clampStreakThreshold(obj.threshold, DEFAULT_STREAK_THRESHOLD)
+    };
+  }
+
+  var streakSettings = loadStreakSettings();
+
+  // Monday-start week key for "week" mode (matches how a school week is
+  // usually thought of); the date itself for "day" mode.
+  function streakPeriodKey(d, period){
+    if (period === "day") return toISO(d);
+    var day = d.getDay(); // 0 = Sunday … 6 = Saturday
+    var diffToMonday = (day === 0 ? -6 : 1 - day);
+    var monday = addDays(new Date(d.getFullYear(), d.getMonth(), d.getDate()), diffToMonday);
+    return toISO(monday);
+  }
+
+  // Counts consecutive qualifying periods working back from today. The
+  // still-open current period never breaks the streak on its own – if it
+  // hasn't yet hit the threshold, it's just not counted yet, rather than
+  // ending the streak early.
+  function computeStreak(history, settings, now){
+    var stepDays = settings.period === "day" ? 1 : 7;
+    var counts = {};
+    history.forEach(function(rec){
+      var key = streakPeriodKey(parseISO(rec.date), settings.period);
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var todayKey = streakPeriodKey(today, settings.period);
+    var currentCount = counts[todayKey] || 0;
+    var currentMet = currentCount >= settings.threshold;
+    var streak = currentMet ? 1 : 0;
+    var cursor = addDays(today, -stepDays);
+    while (true){
+      var key = streakPeriodKey(cursor, settings.period);
+      if ((counts[key] || 0) >= settings.threshold){
+        streak++;
+        cursor = addDays(cursor, -stepDays);
+      } else {
+        break;
+      }
+    }
+    return { streak:streak, currentCount:currentCount, currentMet:currentMet };
+  }
+
+  var streakCard = document.getElementById("streakCard");
+  var streakTextEl = document.getElementById("streakText");
+  var lastStreakResult = { streak:0, currentCount:0, currentMet:false };
+
+  function renderStreak(history){
+    lastStreakResult = computeStreak(history, streakSettings, new Date());
+    if (!history.length){
+      streakCard.hidden = true;
+      return;
+    }
+    streakCard.hidden = false;
+    var unit = streakSettings.period === "day" ? "day" : "week";
+    var sessionsWord = streakSettings.threshold === 1 ? "session" : "sessions";
+    if (lastStreakResult.streak > 0){
+      var extra;
+      if (lastStreakResult.currentMet){
+        extra = " Keep it up!";
+      } else {
+        var need = streakSettings.threshold - lastStreakResult.currentCount;
+        extra = " Do " + need + " more " + (need === 1 ? "session" : "sessions") +
+          " this " + unit + " to keep it going.";
+      }
+      // "N-week streak", not "N-weeks streak" – the unit stays singular in
+      // this hyphenated compound adjective however big N is.
+      streakTextEl.textContent = lastStreakResult.streak + "-" + unit + " streak." + extra;
+    } else {
+      streakTextEl.textContent = "No streak yet — do " + streakSettings.threshold + " " + sessionsWord +
+        " this " + unit + " to start one.";
+    }
+  }
+
   function warmUpDifficultyForSession(){
     DIFF_TYPES.forEach(function(t){
       difficulty[t] = Math.max(DIFF_MIN_LEVEL, difficulty[t] - 1);
@@ -1010,7 +1140,9 @@
   }
 
   function renderHistory(){
-    renderLastSession(loadHistory());
+    var list = loadHistory();
+    renderLastSession(list);
+    renderStreak(list === null ? [] : list);
   }
 
   function handleEnter(e){
@@ -1117,7 +1249,7 @@
     completionPanel.hidden = false;
     completionTitle.textContent = childName ? "Well done, " + childName + "!" : "Target reached!";
     var pct = Math.round((correctCount/attemptedCount)*100);
-    completionStats.textContent = "You answered " + attemptedCount + " question" + (attemptedCount===1 ? "" : "s") +
+    var statsText = "You answered " + attemptedCount + " question" + (attemptedCount===1 ? "" : "s") +
       " and got " + correctCount + " right (" + pct + "%) to reach today's target of " + target + ".";
     restartBtnMain.focus();
 
@@ -1130,6 +1262,18 @@
       correct: correctCount,
       pct: pct
     });
+
+    // A slightly bigger celebration once a session has just extended (or
+    // started) a real streak – addHistoryRecord above already refreshed
+    // lastStreakResult via renderStreak().
+    completionPanel.classList.remove("is-streak");
+    if (lastStreakResult.currentMet && lastStreakResult.streak >= 2){
+      completionPanel.classList.add("is-streak");
+      var unit = streakSettings.period === "day" ? "day" : "week";
+      var unitWord = lastStreakResult.streak === 1 ? unit : unit + "s";
+      statsText += " That's " + lastStreakResult.streak + " " + unitWord + " in a row — brilliant!";
+    }
+    completionStats.textContent = statsText;
   }
 
   function startPractice(){
