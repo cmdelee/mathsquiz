@@ -257,6 +257,17 @@
     letter-spacing:0.03em;
     text-transform:uppercase;
   }
+  .marks-badge{
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:999px;
+    background:var(--accent-soft);
+    color:var(--accent);
+    font-size:0.68rem;
+    font-weight:600;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+  }
   .q-prompt{
     margin:0;
     font-size:1.08rem;
@@ -517,7 +528,7 @@
   <section class="card quiz" id="quizSection" hidden>
     <div class="quiz-head">
       <h2 id="quizTitle">Trivia</h2>
-      <p class="quiz-sub">Write as much as you know — there's no single "correct" wording, so partial credit is fine.</p>
+      <p class="quiz-sub">Write as much as you know — each question is worth a few marks, one for each thing a good answer should cover, so partial credit is fine.</p>
     </div>
 
     <div class="progress-row" id="progressRow">
@@ -528,6 +539,7 @@
     <div class="question-card" id="questionCard">
       <div class="q-tag-row">
         <p class="q-tag" id="qTag">Trivia</p>
+        <span class="marks-badge" id="marksBadge">0 marks</span>
         <span class="ai-badge">AI-marked</span>
       </div>
       <p class="q-prompt" id="qPrompt"></p>
@@ -1199,26 +1211,33 @@
   }
 
   // Sends one question/rubric/answer to Claude and resolves to
-  // { verdict: "correct"|"partial"|"incorrect", feedback: "..." }. Rejects
-  // (with a readable message) on a missing key, a network problem, an API
-  // error, or a response that doesn't parse as expected — the caller puts
-  // the question back into an answerable state if this rejects.
+  // { marksAwarded: <integer 0..marksAvailable>, marksAvailable: <integer>,
+  // feedback: "..." }. A GCSE-style scheme rather than a flat right/wrong —
+  // marksAvailable is simply how many things the rubric says a good answer
+  // should cover (item.rubric.length), one mark per point clearly made.
+  // Rejects (with a readable message) on a missing key, a network problem,
+  // an API error, or a response that doesn't parse as expected — the
+  // caller puts the question back into an answerable state if this rejects.
   function markLongAnswerWithAi(item, answerText){
     var settings = loadAiMarkingSettings();
     if (!settings.provider || !settings.apiKey){
       return Promise.reject(new Error("no API key configured"));
     }
     var subjectName = SUBJECT_NAME[item.subject] || "the question";
+    var marksAvailable = item.rubric.length;
+    var marksWord = marksAvailable === 1 ? "mark" : "marks";
     var rubricText = item.rubric.map(function(r, i){ return (i + 1) + ". " + r; }).join("\n");
-    var systemPrompt = "You are marking a UK Year 6 pupil's written answer to a trivia question about " + subjectName + ". " +
-      "Judge it against the rubric below on meaning, not exact wording - synonyms, different phrasing and " +
-      "minor spelling mistakes are all fine as long as the facts are right. Reply with ONLY a JSON object of " +
-      "exactly this shape and nothing else (no markdown, no extra text): " +
-      "{\"verdict\":\"correct\"|\"partial\"|\"incorrect\",\"feedback\":\"...\"}. Use \"correct\" when the answer " +
-      "covers the rubric well, \"partial\" when it's on the right track but missing something notable, and " +
-      "\"incorrect\" when it's wrong, off-topic or barely attempted. \"feedback\" should be one short, " +
-      "encouraging sentence written directly to a ten or eleven year old.";
-    var userContent = "Question: " + item.prompt + "\n\nWhat a good answer should cover:\n" + rubricText +
+    var systemPrompt = "You are marking a UK Year 6 pupil's written answer to a trivia question about " + subjectName +
+      ", using a GCSE-style marking scheme worth " + marksAvailable + " " + marksWord + " in total - one mark for " +
+      "each point below that the answer clearly covers. Judge each point on meaning, not exact wording - " +
+      "synonyms, different phrasing and minor spelling mistakes are all fine as long as the fact is right, and " +
+      "a point can be mixed in with other information and still earn its mark. Don't award a mark for something " +
+      "vague, guessed or missing entirely. Reply with ONLY a JSON object of exactly this shape and nothing else " +
+      "(no markdown, no extra text): {\"marksAwarded\":<integer 0 to " + marksAvailable + ">,\"feedback\":\"...\"}. " +
+      "\"feedback\" should be one short, encouraging sentence written directly to a ten or eleven year old, " +
+      "naming what would have earned any dropped mark(s).";
+    var userContent = "Question (worth " + marksAvailable + " " + marksWord + "): " + item.prompt +
+      "\n\nOne mark is available for each of the following:\n" + rubricText +
       "\n\nPupil's answer:\n" + (answerText || "(no answer given)");
 
     return fetch("https://api.anthropic.com/v1/messages", {
@@ -1263,10 +1282,15 @@
           try { parsed = JSON.parse(match[0]); } catch (e2){ parsed = null; }
         }
       }
-      if (!parsed || ["correct", "partial", "incorrect"].indexOf(parsed.verdict) === -1){
+      var marksAwarded = parsed ? Math.round(Number(parsed.marksAwarded)) : NaN;
+      if (!parsed || isNaN(marksAwarded)){
         throw new Error("unexpected response from the AI");
       }
-      return { verdict: parsed.verdict, feedback: String(parsed.feedback || "").slice(0, 400) };
+      // Clamp defensively — Claude occasionally drifts outside the range
+      // it was given, and a negative or over-the-limit score would look
+      // broken rather than just wrong.
+      marksAwarded = Math.max(0, Math.min(marksAvailable, marksAwarded));
+      return { marksAwarded: marksAwarded, marksAvailable: marksAvailable, feedback: String(parsed.feedback || "").slice(0, 400) };
     });
   }
 
@@ -1288,11 +1312,11 @@
     var transcript = answers.map(function(a, i){
       return (i + 1) + ". Question: " + a.prompt +
         "\n   Her answer: " + (a.answerText || "(no answer given)") +
-        "\n   Marked: " + a.verdict + " - " + (a.feedback || "");
+        "\n   Marked: " + a.marksAwarded + "/" + a.marksAvailable + " marks - " + (a.feedback || "");
     }).join("\n\n");
     var systemPrompt = "You are looking back over a UK Year 6 pupil's just-finished practice session of " +
-      answers.length + " long-answer trivia questions about " + subjectName + ", each already marked " +
-      "correct, partial or incorrect with its own feedback. Read all of them together and look for ONE " +
+      answers.length + " long-answer trivia questions about " + subjectName + ", each already marked out of " +
+      "its own number of GCSE-style marks, with feedback. Read all of them together and look for ONE " +
       "clear, recurring pattern in how she could do better next time - for example leaving out specific " +
       "names, dates or numbers, answering too briefly, not fully addressing what the question actually " +
       "asks, or mixing up similar people or events. Reply with ONLY that one tip: a single short, " +
@@ -1417,22 +1441,35 @@
   function saveAllTotals(all){
     try { window.localStorage.setItem(TOTALS_KEY, JSON.stringify(all)); } catch (e){ /* ignore */ }
   }
+  // Marks-based, like everything else here — the fields are named for what
+  // they now hold (marksEarned/marksAvailable) rather than reusing the old
+  // question-count "correct"/"attempted" names with a new meaning behind
+  // them. A subject with only pre-marks-scheme totals stored (no
+  // marksEarned/marksAvailable yet) just starts this running total fresh
+  // from zero rather than guessing at a conversion — nothing's lost, since
+  // the individual session history and item stats are untouched, and
+  // render with their own fallback for the old shape (see
+  // renderProgressSummary).
   function loadTotals(subjectKey){
     var t = loadAllTotals()[subjectKey];
     if (!t || typeof t !== "object") t = {};
     return {
-      correct: typeof t.correct === "number" ? t.correct : 0,
-      attempted: typeof t.attempted === "number" ? t.attempted : 0
+      marksEarned: typeof t.marksEarned === "number" ? t.marksEarned : 0,
+      marksAvailable: typeof t.marksAvailable === "number" ? t.marksAvailable : 0
     };
   }
 
+  // Returns whether the answer earned full marks (used to drive the
+  // question card's colour and whether the session counts as a clean
+  // sweep for the end-of-session tip — see finishSession).
   function recordOutcome(subjectKey, item, result){
-    var isCorrect = result.verdict === "correct";
+    var isFullMarks = result.marksAwarded === result.marksAvailable;
 
     var allItemStats = loadAllItemStats();
     var subjectItemStats = (allItemStats[subjectKey] && typeof allItemStats[subjectKey] === "object") ? allItemStats[subjectKey] : {};
     subjectItemStats[itemId(item)] = {
-      verdict: result.verdict,
+      marksAwarded: result.marksAwarded,
+      marksAvailable: result.marksAvailable,
       feedback: result.feedback,
       text: item.prompt,
       lastSeen: new Date().toISOString()
@@ -1442,12 +1479,12 @@
 
     var allTotals = loadAllTotals();
     var t = loadTotals(subjectKey);
-    t.attempted++;
-    if (isCorrect) t.correct++;
+    t.marksEarned += result.marksAwarded;
+    t.marksAvailable += result.marksAvailable;
     allTotals[subjectKey] = t;
     saveAllTotals(allTotals);
 
-    return isCorrect;
+    return isFullMarks;
   }
 
   function formatDate(iso){
@@ -1479,6 +1516,7 @@
   var progressText = document.getElementById("progressText");
   var questionCard = document.getElementById("questionCard");
   var qTagEl = document.getElementById("qTag");
+  var marksBadgeEl = document.getElementById("marksBadge");
   var qPromptEl = document.getElementById("qPrompt");
   var qBody = document.getElementById("qBody");
   var qFeedbackEl = document.getElementById("qFeedback");
@@ -1500,8 +1538,10 @@
   // ---------- Session state ----------
   var queue = [];
   var qIndex = 0;
-  var correctCount = 0;
+  var correctCount = 0; // count of questions that scored full marks
   var attemptedCount = 0;
+  var sessionMarksEarned = 0;
+  var sessionMarksAvailable = 0;
   var checked = false;
   var missed = [];
   // Every question answered this session (right, wrong or partial), with
@@ -1520,9 +1560,20 @@
   // stale and ignored rather than mutating whatever's on screen now.
   var sessionToken = 0;
 
+  // A history entry from before this marks-based scheme (an older
+  // "correct"/"attempted" question-count record) is rendered in its
+  // original shape rather than as "undefined/undefined marks" — nothing's
+  // lost, it just reads in whichever format it was actually recorded in.
+  function formatSessionScore(rec){
+    if (typeof rec.marksEarned === "number" && typeof rec.marksAvailable === "number"){
+      return rec.marksEarned + "/" + rec.marksAvailable + " marks (" + rec.pct + "%)";
+    }
+    return rec.correct + "/" + rec.attempted + " (" + rec.pct + "%)";
+  }
+
   function renderProgressSummary(){
     var anyData = SUBJECTS.some(function(s){
-      return loadHistory(s.key).length > 0 || loadTotals(s.key).attempted > 0;
+      return loadHistory(s.key).length > 0 || loadTotals(s.key).marksAvailable > 0;
     });
     if (!anyData){
       progressSection.hidden = true;
@@ -1537,16 +1588,16 @@
       var strong = document.createElement("strong");
       strong.textContent = s.name;
       li.appendChild(strong);
-      if (!hist.length && !t.attempted){
+      if (!hist.length && !t.marksAvailable){
         li.appendChild(document.createTextNode(" — no sessions yet"));
       } else {
         var parts = [];
         if (hist.length){
-          var last = hist[0];
-          parts.push("last time " + last.correct + "/" + last.attempted + " (" + last.pct + "%)");
+          parts.push("last time " + formatSessionScore(hist[0]));
         }
-        if (t.attempted){
-          parts.push("all-time " + t.correct + "/" + t.attempted + " (" + Math.round((t.correct / t.attempted) * 100) + "%)");
+        if (t.marksAvailable){
+          parts.push("all-time " + t.marksEarned + "/" + t.marksAvailable + " marks (" +
+            Math.round((t.marksEarned / t.marksAvailable) * 100) + "%)");
         }
         li.appendChild(document.createTextNode(" — " + parts.join(", ")));
       }
@@ -1585,6 +1636,8 @@
     qIndex = 0;
     correctCount = 0;
     attemptedCount = 0;
+    sessionMarksEarned = 0;
+    sessionMarksAvailable = 0;
     missed = [];
     sessionAnswers = [];
     quizTitle.textContent = SUBJECT_NAME[subjectKey] || "Trivia";
@@ -1634,6 +1687,7 @@
     qFeedbackEl.textContent = "";
     qFeedbackEl.className = "q-feedback";
     qTagEl.textContent = SUBJECT_NAME[item.subject] || "Trivia";
+    marksBadgeEl.textContent = item.rubric.length + (item.rubric.length === 1 ? " mark" : " marks");
     qPromptEl.textContent = item.prompt;
     qBody.innerHTML = "";
     checkBtn.hidden = true;
@@ -1668,29 +1722,37 @@
       // not mutate whatever's on screen now.
       if (myToken !== sessionToken) return;
       checkBtn.hidden = true;
-      var isCorrect = recordOutcome(currentSubject, item, result);
-      var isPartial = result.verdict === "partial";
-      if (isCorrect){
+      var isFullMarks = recordOutcome(currentSubject, item, result);
+      var isZeroMarks = result.marksAwarded === 0;
+      sessionMarksEarned += result.marksAwarded;
+      sessionMarksAvailable += result.marksAvailable;
+      if (isFullMarks){
         correctCount++;
         questionCard.classList.add("is-correct");
         qFeedbackEl.className = "q-feedback is-correct";
-      } else if (isPartial){
+      } else if (!isZeroMarks){
         questionCard.classList.add("is-partial");
         qFeedbackEl.className = "q-feedback is-partial";
-        missed.push({ prompt:item.prompt, correctText:item.modelAnswer });
+        missed.push({
+          prompt: item.prompt, correctText: item.modelAnswer,
+          marksAwarded: result.marksAwarded, marksAvailable: result.marksAvailable
+        });
       } else {
         questionCard.classList.add("is-incorrect");
         qFeedbackEl.className = "q-feedback is-incorrect";
-        missed.push({ prompt:item.prompt, correctText:item.modelAnswer });
+        missed.push({
+          prompt: item.prompt, correctText: item.modelAnswer,
+          marksAwarded: result.marksAwarded, marksAvailable: result.marksAvailable
+        });
       }
       sessionAnswers.push({
         prompt: item.prompt,
         answerText: answerText,
-        verdict: result.verdict,
+        marksAwarded: result.marksAwarded,
+        marksAvailable: result.marksAvailable,
         feedback: result.feedback || ""
       });
-      var lead = isCorrect ? "Correct! " : (isPartial ? "Partly there. " : "Not quite. ");
-      qFeedbackEl.textContent = lead + (result.feedback || "");
+      qFeedbackEl.textContent = result.marksAwarded + "/" + result.marksAvailable + " marks — " + (result.feedback || "");
       nextBtn.hidden = false;
       nextBtn.focus();
     }
@@ -1737,10 +1799,10 @@
     progressRow.hidden = true;
     quitRow.hidden = true;
     completionPanel.hidden = false;
-    var pct = attemptedCount ? Math.round((correctCount / attemptedCount) * 100) : 0;
+    var pct = sessionMarksAvailable ? Math.round((sessionMarksEarned / sessionMarksAvailable) * 100) : 0;
     completionTitle.textContent = "Session complete!";
-    completionStats.textContent = "You answered " + attemptedCount + " question" + (attemptedCount === 1 ? "" : "s") +
-      " and got " + correctCount + " right (" + pct + "%).";
+    completionStats.textContent = "You scored " + sessionMarksEarned + " out of " + sessionMarksAvailable +
+      " marks (" + pct + "%) across " + attemptedCount + " question" + (attemptedCount === 1 ? "" : "s") + ".";
     if (missed.length){
       reviewList.innerHTML = "";
       reviewList.hidden = false;
@@ -1748,7 +1810,7 @@
         var li = document.createElement("li");
         var strong = document.createElement("strong");
         strong.textContent = m.correctText;
-        li.appendChild(document.createTextNode(m.prompt + " — "));
+        li.appendChild(document.createTextNode(m.prompt + " (" + m.marksAwarded + "/" + m.marksAvailable + " marks) — "));
         li.appendChild(strong);
         reviewList.appendChild(li);
       });
@@ -1757,8 +1819,8 @@
     }
     addHistoryRecord(currentSubject, {
       date: new Date().toISOString(),
-      attempted: attemptedCount,
-      correct: correctCount,
+      marksEarned: sessionMarksEarned,
+      marksAvailable: sessionMarksAvailable,
       pct: pct
     });
 

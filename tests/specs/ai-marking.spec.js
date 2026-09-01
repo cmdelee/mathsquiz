@@ -5,13 +5,13 @@
 // banks: Greek Mythology, Harry Potter, Stranger Things) and the generic AI
 // marking settings it shares with any future AI-marked subject: each item
 // bank itself, the landing state gated on a key actually being configured,
-// the one-off disclosure panel, the marking flow (correct/partial/incorrect
-// verdicts) and its error handling, its own per-subject progress tracking
-// (separate from stats.html), the admin.html "AI Marking" section (generic
-// key names, a "Clear Trivia history" control) and the backup/reset
-// behaviour around it. Every call to Anthropic's API is intercepted with
-// page.route() — nothing here ever makes a real network request or costs
-// real money.
+// the one-off disclosure panel, the GCSE-style marks-based marking flow
+// (full/partial/zero marks) and its error handling, its own per-subject
+// progress tracking (separate from stats.html), the admin.html "AI Marking"
+// section (generic key names, a "Clear Trivia history" control) and the
+// backup/reset behaviour around it. Every call to Anthropic's API is
+// intercepted with page.route() — nothing here ever makes a real network
+// request or costs real money.
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
@@ -24,12 +24,19 @@ const TRIVIA_ITEM_STATS_KEY = "triviaItemStats_v1";
 const TRIVIA_TOTALS_KEY = "triviaTotals_v1";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
-function claudeResponse(verdict, feedback){
+// marksAwarded is whatever the mock hands back; the real page always clamps
+// it to the actual item's marksAvailable (item.rubric.length), so a huge
+// number reliably means "full marks" and 0 reliably means "zero marks" no
+// matter which item was randomly drawn for a given question. 1 reliably
+// means "some but not full marks", since every item in the bank has at
+// least 2 marks available (see the item-bank check below).
+const FULL_MARKS = 999;
+function claudeResponse(marksAwarded, feedback){
   return {
     status: 200,
     contentType: "application/json",
     body: JSON.stringify({
-      content: [{ type: "text", text: JSON.stringify({ verdict: verdict, feedback: feedback || "Good effort." }) }]
+      content: [{ type: "text", text: JSON.stringify({ marksAwarded: marksAwarded, feedback: feedback || "Good effort." }) }]
     })
   };
 }
@@ -50,6 +57,10 @@ module.exports = async function run({ browser, baseUrl, check }){
           total: items.length,
           allTaggedCorrectly: items.every(function (it){ return it.subject === subjectKey; }),
           allHaveRubric: items.every(function (it){ return Array.isArray(it.rubric) && it.rubric.length > 0; }),
+          // Every rubric point is one mark in the GCSE-style scheme (see
+          // markLongAnswerWithAi) — at least 2 so a mocked "partial" response
+          // of 1 mark is never mistaken for full marks in the tests below.
+          allWorthAtLeastTwoMarks: items.every(function (it){ return Array.isArray(it.rubric) && it.rubric.length >= 2; }),
           allHaveModelAnswer: items.every(function (it){ return typeof it.modelAnswer === "string" && it.modelAnswer.length > 0; }),
           allHavePrompt: items.every(function (it){ return typeof it.prompt === "string" && it.prompt.length > 0; }),
           uniqueIdCount: uniqueIds.length
@@ -65,6 +76,7 @@ module.exports = async function run({ browser, baseUrl, check }){
       check("mythology.html: " + subjectKey + " bank has 20 questions", bank.total === 20);
       check("mythology.html: every " + subjectKey + " item is tagged with its own subject", bank.allTaggedCorrectly);
       check("mythology.html: every " + subjectKey + " item has a marking rubric", bank.allHaveRubric);
+      check("mythology.html: every " + subjectKey + " item is worth at least 2 marks", bank.allWorthAtLeastTwoMarks);
       check("mythology.html: every " + subjectKey + " item has a model answer", bank.allHaveModelAnswer);
       check("mythology.html: every " + subjectKey + " item has prompt text", bank.allHavePrompt);
       check("mythology.html: " + subjectKey + " item ids are unique", bank.uniqueIdCount === bank.total);
@@ -153,10 +165,10 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.close();
   }
 
-  // ---- marking flow: a "correct" verdict ----
+  // ---- marking flow: full marks ----
   {
     const page = await browser.newPage();
-    await page.route(ANTHROPIC_URL, (route) => route.fulfill(claudeResponse("correct", "Great, you covered the key facts!")));
+    await page.route(ANTHROPIC_URL, (route) => route.fulfill(claudeResponse(FULL_MARKS, "Great, you covered the key facts!")));
     await page.goto(baseUrl + "/mythology.html");
     await page.evaluate((keys) => {
       localStorage.clear();
@@ -168,13 +180,18 @@ module.exports = async function run({ browser, baseUrl, check }){
 
     await page.click('[data-subject="mythology"]');
     await page.waitForTimeout(150);
+    const marksAvailable = await page.evaluate(() => window.__mythologyCurrentQueue()[0].rubric.length);
+    check("mythology.html: the marks badge shows how many marks the current question is worth",
+      (await page.locator("#marksBadge").textContent()).indexOf(String(marksAvailable)) !== -1);
+
     await page.fill(".long-answer-box", "Zeus is the king of the gods and rules Mount Olympus. He controls thunder.");
     await page.click("#checkBtn");
     await page.waitForTimeout(200);
 
-    check("mythology.html: a 'correct' verdict shows correct feedback",
-      (await page.locator("#qFeedback").textContent()).indexOf("Great, you covered the key facts!") !== -1);
-    check("mythology.html: a 'correct' verdict marks the question card correct",
+    check("mythology.html: full marks shows the mark fraction and feedback",
+      (await page.locator("#qFeedback").textContent()) ===
+      marksAvailable + "/" + marksAvailable + " marks — Great, you covered the key facts!");
+    check("mythology.html: full marks marks the question card correct",
       (await page.locator("#questionCard").getAttribute("class") || "").indexOf("is-correct") !== -1);
     check("mythology.html: 'Mark my answer' is hidden after marking", await page.locator("#checkBtn").isHidden());
     check("mythology.html: 'Next question' appears after marking", await page.locator("#nextBtn").isVisible());
@@ -185,16 +202,19 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.waitForTimeout(100);
 
     const itemStats = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) || "{}"), TRIVIA_ITEM_STATS_KEY);
-    check("mythology.html: a correct answer is recorded under its subject in the shared item-stats key (not stats.html's keys)",
+    check("mythology.html: a marked answer is recorded under its subject in the shared item-stats key (not stats.html's keys)",
       itemStats.mythology && Object.keys(itemStats.mythology).length === 1);
+    const recordedStat = itemStats.mythology[Object.keys(itemStats.mythology)[0]];
+    check("mythology.html: the recorded item stat carries marksAwarded/marksAvailable, clamped to the question's own scheme",
+      recordedStat.marksAwarded === marksAvailable && recordedStat.marksAvailable === marksAvailable);
 
     await page.close();
   }
 
-  // ---- marking flow: a "partial" verdict is distinct from both correct and incorrect ----
+  // ---- marking flow: partial marks are distinct from both full and zero ----
   {
     const page = await browser.newPage();
-    await page.route(ANTHROPIC_URL, (route) => route.fulfill(claudeResponse("partial", "You had the labyrinth right, but missed who built it.")));
+    await page.route(ANTHROPIC_URL, (route) => route.fulfill(claudeResponse(1, "You had the labyrinth right, but missed who built it.")));
     await page.goto(baseUrl + "/mythology.html");
     await page.evaluate((keys) => {
       localStorage.clear();
@@ -210,12 +230,39 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.click("#checkBtn");
     await page.waitForTimeout(200);
 
-    check("mythology.html: a 'partial' verdict is styled distinctly from correct/incorrect",
+    check("mythology.html: partial marks are styled distinctly from full/zero",
       (await page.locator("#qFeedback").getAttribute("class")) === "q-feedback is-partial");
-    check("mythology.html: a 'partial' verdict's feedback text comes through",
-      (await page.locator("#qFeedback").textContent()).indexOf("missed who built it") !== -1);
-    check("mythology.html: a 'partial' verdict does not mark the question card correct",
+    check("mythology.html: partial marks show a 1/N fraction and the feedback text",
+      /^1\/\d+ marks — .*missed who built it/.test(await page.locator("#qFeedback").textContent()));
+    check("mythology.html: partial marks don't mark the question card correct",
       (await page.locator("#questionCard").getAttribute("class") || "").indexOf("is-correct") === -1);
+
+    await page.close();
+  }
+
+  // ---- marking flow: zero marks ----
+  {
+    const page = await browser.newPage();
+    await page.route(ANTHROPIC_URL, (route) => route.fulfill(claudeResponse(0, "Not quite — that's not what this question is about.")));
+    await page.goto(baseUrl + "/mythology.html");
+    await page.evaluate((keys) => {
+      localStorage.clear();
+      localStorage.setItem(keys.settings, JSON.stringify({ provider: "claude", apiKey: "sk-ant-test-key" }));
+      localStorage.setItem(keys.disclosure, "1");
+    }, { settings: AI_SETTINGS_KEY, disclosure: AI_DISCLOSURE_KEY });
+    await page.reload();
+    await page.waitForTimeout(150);
+
+    await page.click('[data-subject="mythology"]');
+    await page.waitForTimeout(150);
+    await page.fill(".long-answer-box", "I don't know.");
+    await page.click("#checkBtn");
+    await page.waitForTimeout(200);
+
+    check("mythology.html: zero marks are styled as incorrect, not partial",
+      (await page.locator("#qFeedback").getAttribute("class")) === "q-feedback is-incorrect");
+    check("mythology.html: zero marks show a 0/N fraction and the feedback text",
+      /^0\/\d+ marks — Not quite/.test(await page.locator("#qFeedback").textContent()));
 
     await page.close();
   }
@@ -259,7 +306,7 @@ module.exports = async function run({ browser, baseUrl, check }){
     let markingCalls = 0;
     await page.route(ANTHROPIC_URL, (route) => {
       markingCalls++;
-      return route.fulfill(claudeResponse("correct", "Nice work."));
+      return route.fulfill(claudeResponse(FULL_MARKS, "Nice work."));
     });
     await page.goto(baseUrl + "/mythology.html");
     await page.evaluate((keys) => {
@@ -274,8 +321,11 @@ module.exports = async function run({ browser, baseUrl, check }){
 
     await page.click('[data-subject="mythology"]');
     await page.waitForTimeout(150);
+    const queueBefore = await page.evaluate(() => window.__mythologyCurrentQueue());
     check("mythology.html: a session always draws exactly 5 questions from a 20-question bank",
-      (await page.evaluate(() => window.__mythologyCurrentQueue().length)) === 5);
+      queueBefore.length === 5);
+    const totalMarksAvailable = queueBefore.reduce((sum, item) => sum + item.rubric.length, 0);
+
     for (let i = 0; i < 5; i++){
       await page.fill(".long-answer-box", "A full answer covering the key points.");
       await page.click("#checkBtn");
@@ -286,8 +336,9 @@ module.exports = async function run({ browser, baseUrl, check }){
 
     check("mythology.html: the completion panel shows once all questions are done",
       await page.locator("#completionPanel").isVisible());
-    check("mythology.html: the completion panel reports the session score",
-      /5 right/.test(await page.locator("#completionStats").textContent()));
+    check("mythology.html: the completion panel reports the full marks total across all 5 questions",
+      (await page.locator("#completionStats").textContent()).indexOf(
+        "You scored " + totalMarksAvailable + " out of " + totalMarksAvailable + " marks (100%) across 5 questions.") !== -1);
     check("mythology.html: a perfect session shows a well-done tip rather than a generated one",
       await page.locator("#sessionTip").isVisible() &&
       /keep it up/i.test(await page.locator("#sessionTipText").textContent()));
@@ -298,17 +349,19 @@ module.exports = async function run({ browser, baseUrl, check }){
 
     check("mythology.html: progress section appears after a completed session",
       await page.locator("#progressSection").isVisible());
-    check("mythology.html: the per-subject progress list reports Greek Mythology's session score",
+    check("mythology.html: the per-subject progress list reports Greek Mythology's session score in marks",
       /Greek Mythology/.test(await page.locator("#progressSummaryList").textContent()) &&
-      /5\/5/.test(await page.locator("#progressSummaryList").textContent()));
+      (await page.locator("#progressSummaryList").textContent()).indexOf(
+        totalMarksAvailable + "/" + totalMarksAvailable + " marks") !== -1);
 
     const history = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) || "{}"), TRIVIA_HISTORY_KEY);
-    check("mythology.html: a completed session is recorded under its subject in the shared history key",
-      Array.isArray(history.mythology) && history.mythology.length === 1 && history.mythology[0].correct === 5);
+    check("mythology.html: a completed session is recorded under its subject in the shared history key, in marks",
+      Array.isArray(history.mythology) && history.mythology.length === 1 &&
+      history.mythology[0].marksEarned === totalMarksAvailable && history.mythology[0].marksAvailable === totalMarksAvailable);
 
     const totals = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) || "{}"), TRIVIA_TOTALS_KEY);
-    check("mythology.html: all-time totals are tracked per subject in the shared totals key",
-      totals.mythology && totals.mythology.attempted === 5 && totals.mythology.correct === 5);
+    check("mythology.html: all-time totals are tracked per subject in the shared totals key, in marks",
+      totals.mythology && totals.mythology.marksEarned === totalMarksAvailable && totals.mythology.marksAvailable === totalMarksAvailable);
 
     // Not written to any of the keys entry-test.html / stats.html use.
     const noCrossContamination = await page.evaluate(() => {
@@ -344,9 +397,9 @@ module.exports = async function run({ browser, baseUrl, check }){
         });
       }
       markingCallCount++;
-      // Alternate correct/incorrect so this session isn't a perfect sweep.
-      const verdict = markingCallCount % 2 === 0 ? "incorrect" : "correct";
-      return route.fulfill(claudeResponse(verdict, verdict === "correct" ? "Nice work." : "Missing some detail."));
+      // Alternate full/zero marks so this session isn't a perfect sweep.
+      const marksAwarded = markingCallCount % 2 === 0 ? 0 : FULL_MARKS;
+      return route.fulfill(claudeResponse(marksAwarded, marksAwarded ? "Nice work." : "Missing some detail."));
     });
     await page.goto(baseUrl + "/mythology.html");
     await page.evaluate((keys) => {
@@ -396,7 +449,7 @@ module.exports = async function run({ browser, baseUrl, check }){
           status: 500, contentType: "application/json", body: JSON.stringify({ error: { message: "Overloaded." } })
         });
       }
-      return route.fulfill(claudeResponse("incorrect", "Missing some detail."));
+      return route.fulfill(claudeResponse(0, "Missing some detail."));
     });
     await page.goto(baseUrl + "/mythology.html");
     await page.evaluate((keys) => {
@@ -503,11 +556,11 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.evaluate((keys) => {
       localStorage.clear();
       localStorage.setItem(keys.history, JSON.stringify({
-        mythology: [{ date: new Date().toISOString(), attempted: 5, correct: 4, pct: 80 }],
-        "harry-potter": [{ date: new Date().toISOString(), attempted: 5, correct: 5, pct: 100 }]
+        mythology: [{ date: new Date().toISOString(), marksEarned: 14, marksAvailable: 18, pct: 78 }],
+        "harry-potter": [{ date: new Date().toISOString(), marksEarned: 18, marksAvailable: 18, pct: 100 }]
       }));
-      localStorage.setItem(keys.itemStats, JSON.stringify({ mythology: { abc123: { attempted: 1, correct: 1 } } }));
-      localStorage.setItem(keys.totals, JSON.stringify({ mythology: { attempted: 5, correct: 4 } }));
+      localStorage.setItem(keys.itemStats, JSON.stringify({ mythology: { abc123: { marksAwarded: 3, marksAvailable: 4 } } }));
+      localStorage.setItem(keys.totals, JSON.stringify({ mythology: { marksEarned: 14, marksAvailable: 18 } }));
       localStorage.setItem("entryTestHistory_v1", JSON.stringify([{ date: new Date().toISOString(), attempted: 10, correct: 8, pct: 80 }]));
     }, { history: TRIVIA_HISTORY_KEY, itemStats: TRIVIA_ITEM_STATS_KEY, totals: TRIVIA_TOTALS_KEY });
     await page.reload();
@@ -542,7 +595,7 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.evaluate((keys) => {
       localStorage.clear();
       localStorage.setItem(keys.settings, JSON.stringify({ provider: "claude", apiKey: "sk-ant-should-not-leave-device" }));
-      localStorage.setItem(keys.history, JSON.stringify({ mythology: [{ date: new Date().toISOString(), attempted: 5, correct: 4, pct: 80 }] }));
+      localStorage.setItem(keys.history, JSON.stringify({ mythology: [{ date: new Date().toISOString(), marksEarned: 14, marksAvailable: 18, pct: 78 }] }));
       // A device that hasn't opened mythology.html since the update yet — still on the old legacy keys.
       localStorage.setItem("mythologyHistory_v1", JSON.stringify([{ date: new Date().toISOString(), attempted: 5, correct: 4, pct: 80 }]));
     }, { settings: AI_SETTINGS_KEY, history: TRIVIA_HISTORY_KEY });

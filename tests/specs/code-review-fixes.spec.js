@@ -31,12 +31,16 @@ const AI_DISCLOSURE_KEY = "aiDisclosureSeen_v1";
 const TRIVIA_ITEM_STATS_KEY = "triviaItemStats_v1";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
-function claudeResponse(verdict, feedback){
+// marksAwarded is clamped client-side to the real item's marksAvailable
+// (item.rubric.length), so a huge number reliably means "full marks"
+// regardless of which item was randomly drawn — see ai-marking.spec.js.
+const FULL_MARKS = 999;
+function claudeResponse(marksAwarded, feedback){
   return {
     status: 200,
     contentType: "application/json",
     body: JSON.stringify({
-      content: [{ type: "text", text: JSON.stringify({ verdict: verdict, feedback: feedback || "Good effort." }) }]
+      content: [{ type: "text", text: JSON.stringify({ marksAwarded: marksAwarded, feedback: feedback || "Good effort." }) }]
     })
   };
 }
@@ -102,7 +106,7 @@ module.exports = async function run({ browser, baseUrl, check }){
     const gate = new Promise((resolve) => { resolveGate = resolve; });
     await page.route(ANTHROPIC_URL, async (route) => {
       await gate;
-      await route.fulfill(claudeResponse("correct", "Nice one."));
+      await route.fulfill(claudeResponse(FULL_MARKS, "Nice one."));
     });
     await page.goto(baseUrl + "/mythology.html");
     await page.evaluate((keys) => {
@@ -143,7 +147,7 @@ module.exports = async function run({ browser, baseUrl, check }){
   // ---- mythology.html: progress bar/row is hidden (not frozen at 80%) once a session completes ----
   {
     const page = await browser.newPage();
-    await page.route(ANTHROPIC_URL, (route) => route.fulfill(claudeResponse("correct", "Nice work.")));
+    await page.route(ANTHROPIC_URL, (route) => route.fulfill(claudeResponse(FULL_MARKS, "Nice work.")));
     await page.goto(baseUrl + "/mythology.html");
     await page.evaluate((keys) => {
       localStorage.clear();

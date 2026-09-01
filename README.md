@@ -291,12 +291,16 @@ existing bookmark or home-screen install still opens it.
 
 Long, free-text answers here don't have one single "correct" wording, so they can't be checked by
 matching against a list of accepted answers the way the maths and entry-test apps are. Instead,
-each answer is marked by sending the question, a short marking rubric written for that question
-(not a real exam mark scheme) and whatever's been typed straight from the browser to Claude
-(Anthropic's AI), which comes back with a verdict — correct, partial or incorrect — and a line of
-feedback. Nothing is sent anywhere unless an API key's been set up on the admin page first (see
-"AI marking" above), and the page makes that clear with a one-off disclosure the first time it's
-used, before anything's ever sent.
+each question is marked on a small GCSE-style scheme — one mark for each point a good answer
+should cover, so a 4-mark question has a 4-point rubric written for it (not a real exam mark
+scheme). Marks-available varies question to question (2–5 in the current bank) and shows as a
+badge on the question card itself. To mark an answer, the question, its rubric and whatever's been
+typed are sent straight from the browser to Claude (Anthropic's AI), which comes back with a marks
+score out of that question's own total and a line of feedback explaining what earned or missed a
+mark — full marks colours the question card green, zero marks red, anything in between amber.
+Nothing is sent anywhere unless an API key's been set up on the admin page first (see "AI marking"
+above), and the page makes that clear with a one-off disclosure the first time it's used, before
+anything's ever sent.
 
 This needs a Claude API key of your own (get one at
 [console.anthropic.com](https://console.anthropic.com)) — it isn't bundled with the app, and each
@@ -310,29 +314,33 @@ server, not built here), and Microsoft Copilot doesn't offer an individual API k
 
 ### Tip for next time
 
-Once a session finishes, the completion screen doesn't just show the score — if it wasn't a clean
-sweep, one more request goes to Claude with all five questions, answers and marks from that
-session together (not one at a time, the way marking itself works), asking it to spot a single
-recurring pattern worth fixing next time — leaving out specific names/dates, answering too
-briefly, not quite addressing what the question actually asked, that sort of thing — and hand back
-one short, encouraging sentence written directly to her. A perfect 5/5 skips this extra request
-entirely (there's nothing to point out) in favour of a plain well-done note, so it only ever costs
-the small amount of extra API credit when there's actually something to learn from. See
-`generateSessionTip()` in `mythology.html`, right below `markLongAnswerWithAi()`.
+Once a session finishes, the completion screen doesn't just show the marks total — if at least one
+question dropped a mark, one more request goes to Claude with all five questions, answers and
+marks from that session together (not one at a time, the way marking itself works), asking it to
+spot a single recurring pattern worth fixing next time — leaving out specific names/dates,
+answering too briefly, not quite addressing what the question actually asked, that sort of thing —
+and hand back one short, encouraging sentence written directly to her. A session where every
+question scored full marks skips this extra request entirely (there's nothing to point out) in
+favour of a plain well-done note, so it only ever costs the small amount of extra API credit when
+there's actually something to learn from. See `generateSessionTip()` in `mythology.html`, right
+below `markLongAnswerWithAi()`.
 
 ### History and progress
 
 Trivia keeps its own history and progress, separate from `stats.html` and the maths/entry-test
 apps, shown directly on `mythology.html` itself once at least one session's been completed. Each
-subject is tracked separately — its own last-session score and its own all-time accuracy — under
-three `localStorage` keys that each hold one object keyed by subject (`mythology`,
-`harry-potter`, `stranger-things`): `triviaHistory_v1` (session-by-session), `triviaItemStats_v1`
-(per-question, so any admin backup carries the same "what's been asked before, and how it went"
-picture forward) and `triviaTotals_v1` (running all-time correct/attempted per subject). Anyone
-who used the page back when it only covered Greek Mythology has their existing progress carried
-over automatically the first time the updated page loads, from the old `mythologyHistory_v1` /
+subject is tracked separately — its own last-session score and its own all-time accuracy, both in
+marks earned out of marks available rather than a question count — under three `localStorage` keys
+that each hold one object keyed by subject (`mythology`, `harry-potter`, `stranger-things`):
+`triviaHistory_v1` (session-by-session), `triviaItemStats_v1` (per-question marks and feedback, so
+any admin backup carries the same "what's been asked before, and how it went" picture forward) and
+`triviaTotals_v1` (running all-time marksEarned/marksAvailable per subject). Anyone who used the
+page back when it only covered Greek Mythology has their existing progress carried over
+automatically the first time the updated page loads, from the old `mythologyHistory_v1` /
 `mythologyItemStats_v1` / `mythologyTotals_v1` keys into the new per-subject ones, filed under
-`mythology`.
+`mythology`; a session recorded before marks-based scoring existed just displays in its original
+question-count shape rather than being force-converted, since there's no way to know retroactively
+how many marks those older questions would have been worth.
 
 ## Backup, restore and full reset
 
@@ -374,7 +382,7 @@ commit and push from a local clone with Git/GitHub Desktop.
 `tests/` holds a Playwright suite (280 checks as of the last update) covering the things most
 likely to break silently: the PIN gate on `admin.html` and `stats.html`, the streak maths,
 backup/restore round-tripping every setting, the mock exam configuration, the Progress-page
-visibility toggle, and Trivia's subject picker, AI-marked verdicts and per-subject progress
+visibility toggle, and Trivia's subject picker, GCSE-style marks-based scoring and per-subject progress
 tracking (every call to Anthropic's API is intercepted with a mocked route, so the suite never
 makes a real network request or spends real API credit). It's plain Node with no bundler — see
 `tests/README.md` for how to install Playwright and run it locally, and

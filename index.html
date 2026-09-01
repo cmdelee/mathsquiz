@@ -376,7 +376,15 @@
     });
     if (latest){
       var yEl = document.getElementById("mythologyTeaser");
-      yEl.textContent = "Last time (" + TRIVIA_SUBJECT_NAMES[latestSubject] + "): " + latest.correct + "/" + latest.attempted + " (" + latest.pct + "%)";
+      var label = "Last time (" + TRIVIA_SUBJECT_NAMES[latestSubject] + "): ";
+      // Marks-based scoring (marksEarned/marksAvailable) replaced the older
+      // flat correct/attempted question count — an older session recorded
+      // before that change just reads in its original shape.
+      if (typeof latest.marksEarned === "number" && typeof latest.marksAvailable === "number"){
+        yEl.textContent = label + latest.marksEarned + "/" + latest.marksAvailable + " marks (" + latest.pct + "%)";
+      } else {
+        yEl.textContent = label + latest.correct + "/" + latest.attempted + " (" + latest.pct + "%)";
+      }
       yEl.hidden = false;
     }
   } catch (e){ /* ignore */ }
