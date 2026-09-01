@@ -1,8 +1,8 @@
 # Quiz App
 
-Two small practice tools for the same pupil, sharing one repo, one look and one hub page.
+Three practice tools for the same pupil, sharing one repo, one look and one hub page.
 
-- **`index.html`** — the hub/menu. Opens first, offers four options, and links to everything
+- **`index.html`** — the hub/menu. Opens first, offers five options, and links to everything
   else. Nothing to answer here.
 - **`maths-quiz.html`** — a holiday-aware long arithmetic practice tool, built for a Year 6–7
   pupil (age 11–12) at Skipton Parish Church of England Primary School. It checks whether today
@@ -12,11 +12,15 @@ Two small practice tools for the same pupil, sharing one repo, one look and one 
 - **`entry-test.html`** — practice questions in the style of the FSCE-run Year 7 entry test used
   by several grammar and independent schools (the Adventure and Beacon papers), for 11+
   preparation. See its own section below.
-- **`stats.html`** — the read-only Progress page: scores, streaks and history for both practice
-  apps. Behind the parent PIN by default, but a parent can turn that off so the child can check
-  her own progress without asking.
-- **`admin.html`** — the PIN-locked settings and reset controls for both practice apps (and for
-  the Progress page's own visibility).
+- **`mythology.html`** — a standalone "Trivia" page, just for fun and not linked to the 11+
+  practice: long-answer questions across three subjects (Greek Mythology, Harry Potter, Stranger
+  Things), marked by AI rather than matched against a fixed list of accepted answers. See its own
+  section below.
+- **`stats.html`** — the read-only Progress page: scores, streaks and history for all three
+  practice apps. Behind the parent PIN by default, but a parent can turn that off so the child can
+  check her own progress without asking.
+- **`admin.html`** — the PIN-locked settings and reset controls for all three practice apps (and
+  for the Progress page's own visibility, and the AI marking key Trivia needs).
 
 Live at: https://github.com/cmdelee/mathsquiz (GitHub Pages, once enabled)
 
@@ -24,9 +28,9 @@ Live at: https://github.com/cmdelee/mathsquiz (GitHub Pages, once enabled)
 
 The page a browser or home-screen icon opens to. It shows the child's name in the title if one's
 been set, a one-line teaser of the last session for each practice app (once there's history to
-show), and four cards: **Maths quiz** (`maths-quiz.html`), **Practice exam** (`entry-test.html`),
-**Progress** (`stats.html`) and **Parents/Admin** (`admin.html`). Nothing here reads or writes any
-answers — it's just a menu.
+show), and five cards: **Maths quiz** (`maths-quiz.html`), **Practice exam** (`entry-test.html`),
+**Trivia** (`mythology.html`), **Progress** (`stats.html`) and **Parents/Admin** (`admin.html`).
+Nothing here reads or writes any answers — it's just a menu.
 
 ## Maths practice (`maths-quiz.html`)
 
@@ -67,10 +71,11 @@ answers — it's just a menu.
 
 ## Progress (`stats.html`)
 
-A read-only page showing scores, streaks and history for **both** practice apps — nothing on it
-can be changed or reset. By default it's behind the same parent PIN as the admin page, but a
-parent can turn that off from the admin page so the child can check her own progress without
-asking each time. Both practice apps link to it as "My progress".
+A read-only page showing scores, streaks and history for the maths and entry-test practice apps —
+nothing on it can be changed or reset. By default it's behind the same parent PIN as the admin
+page, but a parent can turn that off from the admin page so the child can check her own progress
+without asking each time. Both practice apps link to it as "My progress". (Trivia keeps its own,
+separate progress summary on `mythology.html` itself — see below — rather than appearing here.)
 
 - **Maths practice**: lifetime totals (sessions and questions answered since the start), the
   streak goal alongside the current streak and the best one on record, the current difficulty
@@ -83,7 +88,7 @@ asking each time. Both practice apps link to it as "My progress".
 
 ## Parents / Admin (`admin.html`)
 
-A single page behind one shared PIN, covering settings and resets for **both** practice apps. The
+A single page behind one shared PIN, covering settings and resets for all three practice apps. The
 parent chooses the PIN themselves the first time the page is opened on a device (see below).
 Getting in at all needs the PIN — not just changing something — so a child can't see or touch it.
 It's split into six sections:
@@ -94,11 +99,14 @@ It's split into six sections:
 - **Entry test practice**: an optional exam date (shown as a countdown on the Progress page), the
   time limit and question count for the timed "Mock exam" mode, and buttons to clear the history
   or to clear the page's memory of missed questions (used to weight future sessions — see below).
+- **AI marking**: the provider and API key Trivia's long-answer questions need to be marked (see
+  below) — currently only Claude (Anthropic) is offered, saved, tested and cleared here — plus a
+  button to clear Trivia's own history and progress across all three of its subjects.
 - **Progress page access**: a single toggle — "Let her open the Progress page without entering
   the PIN". Off by default, so the Progress page needs the PIN too, same as this one.
 - **Backup and reset**: download everything above (plus the stats shown on the Progress page) as
   one JSON file, restore from a previously downloaded file (replacing whatever's currently on the
-  device), or wipe everything for both apps back to a completely fresh start.
+  device), or wipe everything for all three apps back to a completely fresh start.
 - **Parent PIN**: a "Change parent PIN" button (asks for the current PIN first, then the new one
   twice).
 
@@ -110,13 +118,14 @@ or assembled from fragments.
 
 | File | Purpose |
 |---|---|
-| `index.html` | The hub/menu page — links to the four pages below. |
+| `index.html` | The hub/menu page — links to the five pages below. |
 | `maths-quiz.html` | The maths practice app — markup, styles and logic in one file. |
 | `entry-test.html` | The 11+ entry test practice page — same one-file approach. |
-| `stats.html` | The read-only Progress page — history and stats for both apps, PIN-locked unless a parent's turned that off. |
-| `admin.html` | The PIN-locked settings/reset page for both apps. |
+| `mythology.html` | The Trivia page — three AI-marked subjects (Greek Mythology, Harry Potter, Stranger Things), same one-file approach. Kept this filename even though it now covers more than mythology, to avoid breaking any existing bookmark or home-screen install. |
+| `stats.html` | The read-only Progress page — history and stats for the maths and entry-test apps, PIN-locked unless a parent's turned that off. |
+| `admin.html` | The PIN-locked settings/reset page for all three apps, plus the shared AI marking key. |
 | `manifest.json` | PWA manifest for the whole hub, so it can be installed to a phone/tablet home screen. |
-| `sw.js` | Service worker — caches the app shell (all five pages) for offline use once installed. |
+| `sw.js` | Service worker — caches the app shell (all six pages) for offline use once installed. |
 | `icon-192.png`, `icon-512.png` | App icons (moss green, Σ mark). |
 | `.gitignore` | Just ignores a stray local test file; nothing app-related. |
 
@@ -186,8 +195,8 @@ of showing any settings. Only the PIN's SHA-256 hash is stored, in `localStorage
 `quizAppParentPinHash_v1`, never the PIN itself. From then on the same PIN gets back in, and a
 "Change parent PIN" button on the page lets you set a new one (it asks for the current PIN
 first). The same PIN covers `stats.html` too, unless a parent's turned that off for it (see
-below) — and both apps' history and settings, since there's only one PIN and one admin page for
-the whole site.
+below) — and all three apps' history and settings, since there's only one PIN and one admin page
+for the whole site.
 
 `stats.html` uses the same PIN as `admin.html`, but never creates or changes it — if no PIN's
 been set up yet, it just asks that a parent visit the admin page first, rather than offering to
@@ -263,34 +272,86 @@ matter). The page itself shows only the most recent session's date, paper and sc
 history and a recent-scores chart (like the maths app) live on `stats.html`, saved to
 `localStorage` under `entryTestHistory_v1`.
 
-All five pages link to each other from their footers.
+All six pages link to each other from their footers.
+
+## Trivia (`mythology.html`)
+
+A standalone page, just for fun and not linked to the 11+ entry test practice or the Progress
+page. It offers long-answer trivia questions across three subjects — **Greek Mythology**,
+**Harry Potter** and **Stranger Things** — pitched at a strong Year 6 reader who already knows
+them well, with 20 written-from-scratch questions per subject. Picking a subject draws 5 random
+questions from that subject's own 20-question bank (see `MYTHOLOGY_ITEMS`, `HARRY_POTTER_ITEMS`
+and `STRANGER_THINGS_ITEMS` in `mythology.html`), so sessions rarely repeat, but no two sessions
+cover the whole bank either.
+
+Kept at the `mythology.html` filename/URL even though it's grown beyond just mythology, so any
+existing bookmark or home-screen install still opens it.
+
+### Why it's marked differently to the other two apps
+
+Long, free-text answers here don't have one single "correct" wording, so they can't be checked by
+matching against a list of accepted answers the way the maths and entry-test apps are. Instead,
+each answer is marked by sending the question, a short marking rubric written for that question
+(not a real exam mark scheme) and whatever's been typed straight from the browser to Claude
+(Anthropic's AI), which comes back with a verdict — correct, partial or incorrect — and a line of
+feedback. Nothing is sent anywhere unless an API key's been set up on the admin page first (see
+"AI marking" above), and the page makes that clear with a one-off disclosure the first time it's
+used, before anything's ever sent.
+
+This needs a Claude API key of your own (get one at
+[console.anthropic.com](https://console.anthropic.com)) — it isn't bundled with the app, and each
+answer marked costs a small fraction of a cent against that key's own balance. The key itself is
+stored only in that browser's `localStorage`, the same as everything else, and is deliberately
+left out of the downloadable backup (see below), so it needs re-entering after a restore. Only
+Claude is offered as a provider: it can be called directly from the browser with no server needed
+in between, and Anthropic's terms don't rule out use by children the way Google's Gemini terms do;
+ChatGPT/OpenAI's API blocks being called directly from a browser (it would need a small backend
+server, not built here), and Microsoft Copilot doesn't offer an individual API key at all.
+
+### History and progress
+
+Trivia keeps its own history and progress, separate from `stats.html` and the maths/entry-test
+apps, shown directly on `mythology.html` itself once at least one session's been completed. Each
+subject is tracked separately — its own last-session score and its own all-time accuracy — under
+three `localStorage` keys that each hold one object keyed by subject (`mythology`,
+`harry-potter`, `stranger-things`): `triviaHistory_v1` (session-by-session), `triviaItemStats_v1`
+(per-question, so any admin backup carries the same "what's been asked before, and how it went"
+picture forward) and `triviaTotals_v1` (running all-time correct/attempted per subject). Anyone
+who used the page back when it only covered Greek Mythology has their existing progress carried
+over automatically the first time the updated page loads, from the old `mythologyHistory_v1` /
+`mythologyItemStats_v1` / `mythologyTotals_v1` keys into the new per-subject ones, filed under
+`mythology`.
 
 ## Backup, restore and full reset
 
-Everything either app knows lives only in that browser's `localStorage` on that one device —
-there's no account and nothing syncs anywhere, which also means there's no automatic recovery if
-the browser's site data is ever cleared or the device is replaced. The "Backup and reset" section
-on `admin.html` covers this:
+Everything any of the three apps knows lives only in that browser's `localStorage` on that one
+device — there's no account and nothing syncs anywhere, which also means there's no automatic
+recovery if the browser's site data is ever cleared or the device is replaced. The "Backup and
+reset" section on `admin.html` covers this:
 
-- **Backup** downloads a single JSON file containing every setting and history list for both
+- **Backup** downloads a single JSON file containing every setting and history list for all three
   apps (session history, streak/difficulty/target settings, lifetime and per-operation maths
-  stats, entry-test weak-question memory, subject accuracy, mock exam and exam date settings, the
-  Progress page's visibility setting, and the parent PIN's hash) — everything except
-  `entryTestBankSize_v1`, which is deliberately left out since `entry-test.html` regenerates it
-  itself on every load.
+  stats, entry-test weak-question memory, subject accuracy, mock exam and exam date settings,
+  Trivia's own per-subject history/item-stats/totals, the Progress page's visibility setting, and
+  the parent PIN's hash) — everything except `entryTestBankSize_v1` (regenerated by
+  `entry-test.html` on every load) and the AI marking API key, which is deliberately left out of
+  the backup file and needs re-entering on `admin.html` after a restore.
 - **Restore** reads a previously-downloaded backup file back in, after confirming, replacing
   whatever's currently stored on the device and reloading the page.
-- **Reset everything** wipes all of the above (PIN included) back to a completely blank slate,
-  after two separate confirmations, since there's no undo.
+- **Reset everything** wipes all of the above (PIN and AI marking key included) back to a
+  completely blank slate, after two separate confirmations, since there's no undo. It also clears
+  the old pre-Trivia `mythologyHistory_v1` / `mythologyItemStats_v1` / `mythologyTotals_v1` keys
+  on a device that hasn't opened `mythology.html` since the update yet, so nothing's left behind
+  either way.
 
 ## Making changes
 
-Edit `index.html`, `maths-quiz.html`, `entry-test.html`, `stats.html` or `admin.html` directly —
-each is a single, self-contained file (CSS and JS inline, nothing built from anything else), so
-there's no build step. After editing, sanity-check it locally by opening the file straight in a
-browser (`file://` works fine for most of the page; the service worker registration needs a real
-HTTPS host to succeed, though the rest of each page still works over `file://`), and see
-[Testing](#testing) below for the automated checks.
+Edit `index.html`, `maths-quiz.html`, `entry-test.html`, `mythology.html`, `stats.html` or
+`admin.html` directly — each is a single, self-contained file (CSS and JS inline, nothing built
+from anything else), so there's no build step. After editing, sanity-check it locally by opening
+the file straight in a browser (`file://` works fine for most of the page; the service worker
+registration needs a real HTTPS host to succeed, though the rest of each page still works over
+`file://`), and see [Testing](#testing) below for the automated checks.
 
 To get changes onto GitHub: either edit the files directly in the GitHub web UI ("Edit" pencil
 icon on each file), use "Add file → Upload files" to replace them after editing locally, or
@@ -298,10 +359,13 @@ commit and push from a local clone with Git/GitHub Desktop.
 
 ## Testing
 
-`tests/` holds a small Playwright suite covering the things most likely to break silently: the
-PIN gate on `admin.html` and `stats.html`, the streak maths, backup/restore round-tripping every
-setting, the mock exam configuration, and the Progress-page visibility toggle. It's plain Node
-with no bundler — see `tests/README.md` for how to install Playwright and run it locally, and
+`tests/` holds a Playwright suite (280 checks as of the last update) covering the things most
+likely to break silently: the PIN gate on `admin.html` and `stats.html`, the streak maths,
+backup/restore round-tripping every setting, the mock exam configuration, the Progress-page
+visibility toggle, and Trivia's subject picker, AI-marked verdicts and per-subject progress
+tracking (every call to Anthropic's API is intercepted with a mocked route, so the suite never
+makes a real network request or spends real API credit). It's plain Node with no bundler — see
+`tests/README.md` for how to install Playwright and run it locally, and
 `.github/workflows/test.yml` runs the same suite on every push and pull request.
 
 ## Known limitations
@@ -320,3 +384,10 @@ with no bundler — see `tests/README.md` for how to install Playwright and run 
   and sample from it, but the questions themselves don't change or grow on their own. Adding
   more is a matter of appending further objects to `ADVENTURE_ITEMS` / `BEACON_ITEMS` in
   `entry-test.html`, following the existing shape.
+- Trivia's three subject banks are likewise fixed at 20 written questions each — adding more
+  follows the same pattern, appending to `MYTHOLOGY_ITEMS` / `HARRY_POTTER_ITEMS` /
+  `STRANGER_THINGS_ITEMS` in `mythology.html`.
+- Trivia needs its own Claude API key and a live connection to mark answers — without one it just
+  shows a "not set up" message rather than falling back to anything else, and each answer marked
+  spends a small amount of that key's own balance (a fraction of a cent per answer on the model
+  used, `claude-haiku-4-5`).
