@@ -519,19 +519,14 @@
     <p class="date-line">25 questions a session — a mix of quick picks and a few marked by AI.</p>
   </header>
 
-  <section class="card intro-card">
-    <p>Trivia across four subjects — Greek Mythology, Harry Potter, Stranger Things and Red Dwarf — pitched at a strong Year 6 reader who already knows them well. Each session is 25 random questions from that subject's own pool: mostly quick multiple-choice and single-word questions marked instantly, plus up to 5 longer free-text ones once AI marking's been set up (see below) — until then, sessions stick to the quick questions only. The free-text questions don't have one fixed correct wording, so those are marked by sending them to an AI (Claude) instead of matching against a fixed list of accepted answers — everything else is matched and marked on this device, with nothing sent anywhere.</p>
-    <p>This is a standalone page, separate from the 11+ entry test practice — it's here purely for fun, with its own progress tracking below rather than on the main Progress page.</p>
-  </section>
-
   <section class="card quiz" id="notSetUpCard" hidden>
-    <p class="quiz-note">A few questions each session are longer, free-text ones marked by AI — those need an API key set up first, so sessions leave them out and stick to the quick questions until then. Ask a parent to open the <a href="admin.html">Parents / Admin</a> page and set this up under "AI marking" if you'd like those included too.</p>
+    <p class="quiz-note">Long, free-text questions need AI marking set up first, so sessions stick to the quick ones until then — see <a href="help.html#ai-marking">how AI marking works</a>, or ask a parent to set it up in <a href="admin.html">Parents / Admin</a>.</p>
   </section>
 
   <section class="card quiz" id="subjectPickerCard" hidden>
     <div class="quiz-head">
       <h2>Pick a subject</h2>
-      <p class="quiz-sub">25 random questions each time, one at a time — a mix of quick picks and, once AI marking's set up, a few longer ones to write.</p>
+      <p class="quiz-sub">25 random questions each time, one at a time. <a href="help.html#trivia">How this works →</a></p>
     </div>
     <div class="subject-options">
       <button class="subject-btn" data-subject="mythology">
@@ -550,17 +545,6 @@
         <span class="subject-name">Red Dwarf</span>
         <span class="subject-desc">Three million years from home, with a crew of misfits and a very smart ship's computer.</span>
       </button>
-    </div>
-  </section>
-
-  <section class="card ai-disclosure-card" id="aiDisclosureView" hidden>
-    <h2>Before you start: how this is marked</h2>
-    <p>Most questions here are multiple-choice or single-word, matched and marked straight away on this device — nothing sent anywhere for those. A handful of longer, free-text questions each session don't have one fixed correct wording though, so instead of matching what's typed against a list of accepted answers, each of those is sent to an AI (Claude, using the API key entered on the Parents / Admin page) along with the question and a short rubric of what a good answer should cover. It reads the answer and marks it out of a few marks — the same way a person marking it would, just automatically.</p>
-    <p>What's actually sent for those longer questions: the question text, the marking rubric, and whatever's typed into the answer box — nothing else about you or the device. It goes straight from this browser to Anthropic's API (the company that makes Claude), not through any server run by this app.</p>
-    <p>This explanation only appears once, on this device — every AI-marked question carries a small "AI-marked" badge afterwards as an ongoing reminder that it works this way.</p>
-    <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none;">
-      <button id="aiDisclosureContinueBtn" class="btn btn-primary" type="button">Continue</button>
-      <button id="aiDisclosureBackBtn" class="btn btn-ghost" type="button">Back</button>
     </div>
   </section>
 
@@ -618,8 +602,8 @@
   </section>
 
   <footer class="foot">
-    <p>Multiple-choice and quick-answer questions are marked on this device. Longer, free-text questions are marked by sending the answer to Claude, using the API key set up on the Parents / Admin page — see that page for the full explanation of what's sent.</p>
     <p><a href="index.html">← Back to menu</a></p>
+    <p><a href="help.html#trivia">Help — how this works →</a></p>
     <p><a href="admin.html">Parents / Admin →</a></p>
   </footer>
 
@@ -3009,19 +2993,6 @@
     return map[subjectKey] !== false;
   }
 
-  // One-off disclosure, shown before the very first AI-marked session on a
-  // device, explaining what's sent to the AI and that it's AI marking
-  // rather than a person. Shared across every subject here (and any future
-  // AI-marked page) — the small "AI-marked" badge on each question card is
-  // the ongoing reminder, so this doesn't show again once seen anywhere.
-  var AI_DISCLOSURE_SEEN_KEY = "aiDisclosureSeen_v1";
-  function hasSeenAiDisclosure(){
-    try { return window.localStorage.getItem(AI_DISCLOSURE_SEEN_KEY) === "1"; } catch (e){ return false; }
-  }
-  function markAiDisclosureSeen(){
-    try { window.localStorage.setItem(AI_DISCLOSURE_SEEN_KEY, "1"); } catch (e){ /* ignore */ }
-  }
-
   // Sends one question/rubric/answer to Claude and resolves to
   // { marksAwarded: <integer 0..marksAvailable>, marksAvailable: <integer>,
   // feedback: "..." }. A GCSE-style scheme rather than a flat right/wrong —
@@ -3344,9 +3315,6 @@
   var notSetUpCard = document.getElementById("notSetUpCard");
   var subjectPickerCard = document.getElementById("subjectPickerCard");
   var subjectButtons = Array.prototype.slice.call(document.querySelectorAll(".subject-btn"));
-  var aiDisclosureView = document.getElementById("aiDisclosureView");
-  var aiDisclosureContinueBtn = document.getElementById("aiDisclosureContinueBtn");
-  var aiDisclosureBackBtn = document.getElementById("aiDisclosureBackBtn");
   var quizSection = document.getElementById("quizSection");
   var quizTitle = document.getElementById("quizTitle");
   var progressRow = document.getElementById("progressRow");
@@ -3389,9 +3357,6 @@
   // session rather than judging each miss in isolation.
   var sessionAnswers = [];
   var currentSubject = null;
-  // The subject a child tapped, waiting on the one-off disclosure before a
-  // session actually starts for it.
-  var pendingSubject = null;
   // Bumped every time a session starts (including a retry). A marking
   // request in flight when the session changes — quitting or starting a new
   // one before Claude replies — captures the token at request time, so a
@@ -3449,7 +3414,6 @@
   // up on admin.html in another tab while this page is still open.
   function showLanding(){
     quizSection.hidden = true;
-    aiDisclosureView.hidden = true;
     notSetUpCard.hidden = hasAiMarkingKey();
     subjectPickerCard.hidden = false;
     var enabledMap = loadTriviaEnabledSubjects();
@@ -3460,13 +3424,6 @@
       btn.hidden = anyEnabled && !isTriviaSubjectEnabled(enabledMap, btn.getAttribute("data-subject"));
     });
     renderProgressSummary();
-  }
-
-  function showAiDisclosure(subjectKey){
-    pendingSubject = subjectKey;
-    subjectPickerCard.hidden = true;
-    notSetUpCard.hidden = true;
-    aiDisclosureView.hidden = false;
   }
 
   // Shared by beginSession below and the test-only hook further down —
@@ -3486,7 +3443,6 @@
     quizTitle.textContent = SUBJECT_NAME[subjectKey] || "Trivia";
     notSetUpCard.hidden = true;
     subjectPickerCard.hidden = true;
-    aiDisclosureView.hidden = true;
     quizSection.hidden = false;
     completionPanel.hidden = true;
     questionCard.hidden = false;
@@ -3502,22 +3458,9 @@
 
   subjectButtons.forEach(function(btn){
     btn.addEventListener("click", function(){
-      var subjectKey = btn.getAttribute("data-subject");
-      // Nothing's sent to an AI at all without a key set up — the session
-      // just won't have any long-answer questions in it — so there's
-      // nothing here that needs disclosing yet.
-      if (hasAiMarkingKey() && !hasSeenAiDisclosure()){
-        showAiDisclosure(subjectKey);
-        return;
-      }
-      beginSession(subjectKey);
+      beginSession(btn.getAttribute("data-subject"));
     });
   });
-  aiDisclosureContinueBtn.addEventListener("click", function(){
-    markAiDisclosureSeen();
-    beginSession(pendingSubject);
-  });
-  aiDisclosureBackBtn.addEventListener("click", showLanding);
 
   function updateProgress(){
     var total = queue.length;

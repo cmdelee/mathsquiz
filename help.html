@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Help</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#35664F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quiz App">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --bg:#EEF1E6;
+    --grain:#E3E8D8;
+    --surface:#FFFFFF;
+    --surface-2:#F6F7F0;
+    --border:#D8DECB;
+    --ink:#232B22;
+    --ink-soft:#5B6656;
+    --ink-faint:#8A9483;
+    --accent:#35664F;
+    --accent-ink:#F5FBF6;
+    --accent-soft:#DCEAE1;
+    --gold:#8B6B36;
+    --gold-ink:#FBF6EC;
+    --gold-soft:#EFE3C9;
+    --success:#2E7D4F;
+    --success-bg:#E4F2E6;
+    --error:#B4432F;
+    --error-bg:#FBE7E1;
+    --focus:#35664F;
+    --shadow: 0 1px 2px rgba(35,43,34,0.06), 0 8px 24px -12px rgba(35,43,34,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#171C16;
+      --grain:#1D231B;
+      --surface:#1F251C;
+      --surface-2:#252C21;
+      --border:#333D2C;
+      --ink:#E9ECDF;
+      --ink-soft:#AAB79D;
+      --ink-faint:#748069;
+      --accent:#74B594;
+      --accent-ink:#0E1F16;
+      --accent-soft:#243A2D;
+      --gold:#D6AD6C;
+      --gold-ink:#241C0C;
+      --gold-soft:#3A2F1B;
+      --success:#79D19C;
+      --success-bg:#1E3327;
+      --error:#E8917E;
+      --error-bg:#3A211C;
+      --focus:#74B594;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#171C16;
+    --grain:#1D231B;
+    --surface:#1F251C;
+    --surface-2:#252C21;
+    --border:#333D2C;
+    --ink:#E9ECDF;
+    --ink-soft:#AAB79D;
+    --ink-faint:#748069;
+    --accent:#74B594;
+    --accent-ink:#0E1F16;
+    --accent-soft:#243A2D;
+    --gold:#D6AD6C;
+    --gold-ink:#241C0C;
+    --gold-soft:#3A2F1B;
+    --success:#79D19C;
+    --success-bg:#1E3327;
+    --error:#E8917E;
+    --error-bg:#3A211C;
+    --focus:#74B594;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%; overscroll-behavior-y:contain;}
+  body{
+    margin:0;
+    overscroll-behavior-y:contain;
+    background-color:var(--bg);
+    background-image:
+      radial-gradient(circle at 1px 1px, var(--grain) 1px, transparent 1px);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{
+    max-width:700px;
+    margin:0 auto;
+    padding:40px 20px 64px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+  }
+
+  .masthead{ text-align:left; }
+  .eyebrow{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:0.95rem;
+    color:var(--accent);
+    letter-spacing:0.02em;
+  }
+  h1{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:clamp(1.9rem, 5vw, 2.5rem);
+    line-height:1.08;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .date-line{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:1rem;
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:var(--shadow);
+  }
+
+  .toc-card{ padding:16px 20px; }
+  .toc-card p{ margin:0 0 8px; font-size:0.85rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.04em; }
+  .toc-list{
+    margin:0;
+    padding:0;
+    list-style:none;
+    display:grid;
+    gap:6px;
+  }
+  .toc-list a{
+    color:var(--accent);
+    text-decoration:none;
+    font-weight:600;
+    font-size:0.95rem;
+  }
+  .toc-list a:hover{ text-decoration:underline; }
+
+  .topic{ padding:22px 20px; scroll-margin-top:16px; }
+  .topic h2{
+    margin:0 0 4px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.3rem;
+    color:var(--ink);
+  }
+  .topic .topic-kicker{
+    margin:0 0 12px;
+    font-size:0.82rem;
+    color:var(--ink-faint);
+  }
+  .topic p{
+    margin:0;
+    font-size:0.92rem;
+    color:var(--ink-soft);
+  }
+  .topic p + p{ margin-top:10px; }
+  .topic h3{
+    margin:16px 0 4px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.02rem;
+    color:var(--ink);
+  }
+  .topic ul{
+    margin:8px 0 0;
+    padding-left:20px;
+    font-size:0.92rem;
+    color:var(--ink-soft);
+  }
+  .topic li + li{ margin-top:6px; }
+  .topic a{ color:var(--accent); }
+  .topic strong{ color:var(--ink); }
+
+  .back-to-top{
+    font-size:0.82rem;
+    text-align:right;
+    margin-top:14px;
+  }
+  .back-to-top a{ color:var(--ink-faint); text-decoration:none; }
+  .back-to-top a:hover{ color:var(--accent); }
+
+  .foot{
+    font-size:0.78rem;
+    color:var(--ink-faint);
+    line-height:1.6;
+    padding:4px 4px 0;
+  }
+  .foot a{ color:var(--ink-faint); }
+  .foot p{ margin:0 0 4px; }
+
+  .update-banner{
+    position:fixed;
+    left:50%;
+    bottom:18px;
+    transform:translateX(-50%);
+    z-index:9999;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    max-width:min(92vw, 420px);
+    padding:12px 16px;
+    border-radius:10px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    box-shadow:var(--shadow);
+    font-size:0.88rem;
+    color:var(--ink);
+  }
+  .update-banner[hidden]{ display:none; }
+  .update-banner span{ flex:1; }
+  .update-banner button{
+    font:inherit;
+    font-weight:600;
+    font-size:0.85rem;
+    padding:8px 14px;
+    border-radius:7px;
+    border:1px solid transparent;
+    cursor:pointer;
+    background:var(--accent);
+    color:var(--accent-ink);
+    white-space:nowrap;
+  }
+  .update-banner button:hover{ filter:brightness(1.08); }
+  .update-banner button:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<div class="update-banner" id="updateBanner" hidden role="status">
+  <span>An update's ready.</span>
+  <button id="updateBannerBtn" type="button">Refresh</button>
+</div>
+
+<div class="page">
+
+  <header class="masthead" id="top">
+    <p class="eyebrow">Quiz App</p>
+    <h1>Help</h1>
+    <p class="date-line">What each part of the app does, and how AI marking and privacy work.</p>
+  </header>
+
+  <section class="card toc-card">
+    <p>Jump to</p>
+    <ul class="toc-list">
+      <li><a href="#maths">Maths quiz</a></li>
+      <li><a href="#entry-test">Practice exam (11+)</a></li>
+      <li><a href="#trivia">Trivia</a></li>
+      <li><a href="#ai-marking">How AI marking works, and privacy</a></li>
+      <li><a href="#progress">Progress page</a></li>
+      <li><a href="#admin">Parents / Admin</a></li>
+      <li><a href="#install">Installing on a phone or tablet</a></li>
+    </ul>
+  </section>
+
+  <section class="card topic" id="maths">
+    <h2>Maths quiz</h2>
+    <p class="topic-kicker">maths-quiz.html</p>
+    <p>Long multiplication, long division, long subtraction and long addition, roughly evenly mixed, set at Year 6–7 level. Division always divides exactly (no remainders); subtraction can land on a negative answer; addition always stays positive.</p>
+    <p>It's not a fixed set of questions — it keeps going, including retrying whichever type was just got wrong, until a target number of correct answers is reached: 10 on a school holiday, 25 in term time by default, worked out automatically from the school's own published term dates. Both numbers can be changed from Parents / Admin.</p>
+    <p>Each of the four operation types has its own difficulty level that rises after a run of correct answers and drops straight back down after a wrong one, so it settles near whatever's challenging-but-doable and climbs gradually over weeks.</p>
+  </section>
+
+  <section class="card topic" id="entry-test">
+    <h2>Practice exam (11+ entry test)</h2>
+    <p class="topic-kicker">entry-test.html</p>
+    <p>Practises the format of an FSCE-run Year 7 entry test used by several grammar and independent schools, plus a separate non-verbal reasoning option for schools whose own test includes that. Every question here is original, written in the same style — none of it is the real test, which stays confidential to FSCE (check whichever school's own familiarisation guide for genuine examples).</p>
+    <h3>The two main papers</h3>
+    <ul>
+      <li><strong>Adventure</strong> — multiple choice: short reading passages with comprehension questions, vocabulary/synonym questions, and maths reasoning word problems.</li>
+      <li><strong>Beacon</strong> — short written answers: spelling (a word shown with some letters filled in, like <code>COM____</code>, and only the missing letters need typing) and multi-step maths word problems.</li>
+    </ul>
+    <h3>Practice modes</h3>
+    <ul>
+      <li><strong>Adventure / Beacon</strong> — one paper on its own.</li>
+      <li><strong>NVR practice</strong> — non-verbal reasoning: figure sequences and odd-one-out puzzles. A separate skill from Adventure/Beacon, not mixed in with them.</li>
+      <li><strong>Mixed practice</strong> — a longer session blending Adventure and Beacon together.</li>
+      <li><strong>Focus practice</strong> — weighted toward whichever of maths or English has the lower accuracy so far (once there's enough history to tell), so practice leans toward whatever needs it most.</li>
+      <li><strong>Spaced review</strong> — a dedicated session of whatever's currently due for review: still-shaky questions, and older correct ones worth checking have actually stuck. A question that slips after being learned gets flagged as "Slipping back" on the Progress page.</li>
+      <li><strong>Mock exam</strong> — a longer, timed session (20 minutes / 20 questions by default, both changeable from Parents / Admin) blending Adventure and Beacon, finishing automatically if time runs out.</li>
+    </ul>
+    <p>Sessions aren't a plain shuffle — each question is remembered as last answered right or wrong, and a weighted draw favours recently-missed questions over ones never seen, and both over ones already answered correctly, so nothing is guaranteed or excluded but practice still leans toward what needs it.</p>
+  </section>
+
+  <section class="card topic" id="trivia">
+    <h2>Trivia</h2>
+    <p class="topic-kicker">mythology.html</p>
+    <p>A standalone page, just for fun and not linked to the 11+ practice or the Progress page — it keeps its own history and progress, shown on the page itself. Four subjects: Greek Mythology, Harry Potter, Stranger Things and Red Dwarf, each written true to its own source material's actual tone rather than a softened version of it.</p>
+    <p>Each session is 25 random questions from the chosen subject's own pool — mostly quick multiple-choice and single-word questions, matched and marked instantly on this device, plus up to 5 longer free-text questions once AI marking's set up (see below). A session always includes at least one of whichever kinds are available, and never more than 5 long-answer questions, so it's quick to get through rather than mostly slow, effortful free-text marking.</p>
+    <p>The long, free-text questions don't have one single correct wording, so they're marked on a small scheme — one mark for each point a good answer should cover, up to that question's own total (2–5 marks, shown as a badge on the question). Multiple-choice and quick-answer questions are always worth a flat 1 mark. A parent can hide any subject entirely from the picker in Parents / Admin, without losing its saved history.</p>
+    <p>Without an AI marking key set up, the long-answer questions are simply left out of sessions — everything else works the same either way.</p>
+  </section>
+
+  <section class="card topic" id="ai-marking">
+    <h2>How AI marking works, and privacy</h2>
+    <p class="topic-kicker">Set up from Parents / Admin</p>
+    <p>Most questions across the app — multiple-choice, short spelling/word answers — have one or more fixed correct answers, so they're checked and marked instantly on this device. Nothing about those is ever sent anywhere.</p>
+    <p>Trivia's long, free-text questions are different: there's no single "correct" wording to match against, so each one is marked by sending it to Claude (Anthropic's AI) instead. What's actually sent: the question text, a short marking rubric written for that question (not a real exam), and whatever's been typed into the answer box — nothing else about the device or whoever's using it. It goes straight from this browser to Anthropic's API, not through any server run by this app. It comes back with a mark out of that question's own total and a line of feedback explaining what earned or missed a mark.</p>
+    <p>Nothing is sent anywhere, ever, unless an API key's been set up in Parents / Admin first — without one, Trivia's long-answer questions are simply left out of sessions, and everything else keeps working exactly the same. The key itself is stored only in this browser's local storage, the same as everything else in the app; it's never sent anywhere except to Anthropic, and it's deliberately left out of the downloadable backup, so it needs re-entering after a restore.</p>
+    <p>Only <strong>Claude</strong> is offered as a provider, because it's the only one that's actually workable here: it can be called directly from the browser with no server needed in between, and Anthropic's terms don't rule out use by children the way some others do. Google's Gemini is excluded outright — its API terms say it must not be used in an app "directed towards or is likely to be accessed by individuals under the age of 18". Microsoft Copilot doesn't offer an individual API key at all. ChatGPT/OpenAI could work in principle, but its API blocks being called directly from a browser and would need a small backend server built first — not done here.</p>
+    <p>A get-started key can be created at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>. Each long-answer question marked costs a small fraction of a cent against that key's own balance; multiple-choice/quick-answer questions and everything in the maths and entry-test apps cost nothing, since nothing is ever sent for those.</p>
+  </section>
+
+  <section class="card topic" id="progress">
+    <h2>Progress page</h2>
+    <p class="topic-kicker">stats.html</p>
+    <p>A read-only page showing scores, streaks and history for the maths and entry-test apps — nothing on it can be changed or reset. Behind the same parent PIN as Parents / Admin by default, though a parent can turn that off so progress can be checked without asking each time. Trivia keeps its own separate progress summary on its own page rather than appearing here.</p>
+  </section>
+
+  <section class="card topic" id="admin">
+    <h2>Parents / Admin</h2>
+    <p class="topic-kicker">admin.html</p>
+    <p>One PIN-locked page covering settings and resets for everything: maths targets and streak settings, the entry test's exam date/mock exam/session-size settings, the AI marking key and which Trivia subjects are offered, whether the Progress page needs the PIN, backup/restore of everything as one file, and a full reset. The PIN itself is chosen the first time the page is opened on a device — only its hash is ever stored, never the PIN itself.</p>
+  </section>
+
+  <section class="card topic" id="install">
+    <h2>Installing on a phone or tablet</h2>
+    <p>This is a Progressive Web App, so it installs straight from the browser — no app store needed.</p>
+    <h3>iPhone / iPad</h3>
+    <p>Open the site in <strong>Safari</strong> (it has to be Safari — Chrome and other browsers on iOS can't do this), tap the Share icon, then "Add to Home Screen".</p>
+    <h3>Android</h3>
+    <p>Open the site in Chrome, then use "Add to Home Screen" or "Install app" from the ⋮ menu — it's sometimes also offered as a banner automatically.</p>
+    <p>Either way, it then opens as its own icon without any browser address bar, and keeps working offline once it's been opened at least once. Everything — history, PIN, targets, the AI marking key — lives only in that one browser on that one device; there's no account and nothing syncs anywhere, so using a different browser or reinstalling starts with a clean slate (see Parents / Admin for backing that up to a file first).</p>
+  </section>
+
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+
+  <footer class="foot">
+    <p><a href="index.html">← Back to menu</a></p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Update available banner ----------
+  if ("serviceWorker" in navigator){
+    var hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener("controllerchange", function(){
+      if (!hadController){ hadController = true; return; } // first install, not an update
+      var banner = document.getElementById("updateBanner");
+      if (banner) banner.hidden = false;
+    });
+    var updateBannerBtn = document.getElementById("updateBannerBtn");
+    if (updateBannerBtn){
+      updateBannerBtn.addEventListener("click", function(){
+        window.location.reload();
+      });
+    }
+  }
+
+  // ---------- Install as an app (optional, safe to fail) ----------
+  if ("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){ /* no sw.js here – fine */ });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -22,6 +22,11 @@ Three practice tools for the same pupil, sharing one repo, one look and one hub 
   check their own progress without asking.
 - **`admin.html`** — the PIN-locked settings and reset controls for all three practice apps (and
   for the Progress page's own visibility, and the AI marking key Trivia needs).
+- **`help.html`** — a standalone reference page explaining what everything does: each practice
+  app, how AI marking and privacy work, the Progress and Admin pages, and installing on a phone or
+  tablet. Linked from every other page's footer, so the explanatory writeups that used to sit above
+  each page's picker only need to be written once, here, rather than repeated (and kept in sync) in
+  five places.
 
 Live at: https://github.com/cmdelee/mathsquiz (GitHub Pages, once enabled)
 
@@ -31,7 +36,32 @@ The page a browser or home-screen icon opens to. It shows the child's name in th
 been set, a one-line teaser of the last session for each practice app (once there's history to
 show), and five cards: **Maths quiz** (`maths-quiz.html`), **Practice exam** (`entry-test.html`),
 **Trivia** (`mythology.html`), **Progress** (`stats.html`) and **Parents/Admin** (`admin.html`).
-Nothing here reads or writes any answers — it's just a menu.
+Nothing here reads or writes any answers — it's just a menu. A "Help" link in the footer opens
+`help.html` (see below) for anyone who wants the full explanation of how any of it works.
+
+## Help (`help.html`)
+
+A standalone, read-only reference page — what each practice app does, how the entry test's various
+modes differ, how Trivia's marking works, the full explanation of AI marking and what's sent where,
+what the Progress and Admin pages cover, and how to install the hub on a phone or tablet. Linked
+from every other page's footer (Trivia and the entry test link straight to the relevant section
+with an anchor, e.g. `help.html#trivia`), so a picker page can stay short and just link out here
+rather than repeating its own explanation above the actual options — see "Keeping the pickers
+short" below for why that mattered enough to build this page. Nothing on it reads or writes any
+`localStorage` key; it's pure content, and included in the service worker's offline cache like
+every other page.
+
+### Keeping the pickers short
+
+Trivia's subject picker and the entry test's paper picker used to open with a couple of paragraphs
+explaining the format above the actual buttons — fine on a tablet, cluttered on a phone. Both now
+open straight into their picker, with a single short link ("How this works →") to the relevant
+section of `help.html` instead of the writeup itself. Trivia's one-off "how this is marked"
+disclosure screen (shown once, before the very first AI-marked session on a device) was removed
+outright rather than shortened, for the same reason — that explanation now lives permanently on
+`help.html#ai-marking` instead, so it's available whenever it's wanted rather than shown once and
+then gone. Picking a subject always starts a session straight away now; nothing about how AI
+marking works has changed, only where the explanation of it lives.
 
 ## Maths practice (`maths-quiz.html`)
 
@@ -123,14 +153,15 @@ or assembled from fragments.
 
 | File | Purpose |
 |---|---|
-| `index.html` | The hub/menu page — links to the five pages below. |
+| `index.html` | The hub/menu page — links to the six pages below. |
 | `maths-quiz.html` | The maths practice app — markup, styles and logic in one file. |
 | `entry-test.html` | The 11+ entry test practice page — same one-file approach. |
 | `mythology.html` | The Trivia page — four subjects (Greek Mythology, Harry Potter, Stranger Things, Red Dwarf), each a mix of AI-marked long-answer and instantly-marked quick-answer questions, same one-file approach. Kept this filename even though it now covers more than mythology, to avoid breaking any existing bookmark or home-screen install. |
 | `stats.html` | The read-only Progress page — history and stats for the maths and entry-test apps, PIN-locked unless a parent's turned that off. |
 | `admin.html` | The PIN-locked settings/reset page for all three apps, plus the shared AI marking key. |
+| `help.html` | The reference/explainer page — what each app does, how AI marking and privacy work, and how to install the hub as an app. Purely informational; nothing on it reads or writes any app data. |
 | `manifest.json` | PWA manifest for the whole hub, so it can be installed to a phone/tablet home screen. |
-| `sw.js` | Service worker — caches the app shell (all six pages) for offline use once installed. |
+| `sw.js` | Service worker — caches the app shell (all seven pages) for offline use once installed. |
 | `icon-192.png`, `icon-512.png` | App icons (moss green, Σ mark). |
 | `.gitignore` | Just ignores a stray local test file; nothing app-related. |
 
@@ -327,11 +358,13 @@ question card green, zero marks red, anything in between amber.
 
 The rest of Trivia works without an AI marking key being set up at all — it's only the long-answer
 questions that need one. Without a key, the subject picker and quick-answer sessions are fully
-usable, a note on the landing page explains that the longer questions are left out until a key's
-set up (see "AI marking" under Parents/Admin above), and picking a subject skips straight into a
-session rather than showing the one-off AI disclosure, since nothing's being sent anywhere. Once a
-key is set up, that disclosure appears once, the first time a session is started, explaining what's
-sent and to whom before anything actually is.
+usable, and a note on the landing page explains that the longer questions are left out until a
+key's set up (see "AI marking" under Parents/Admin above), linking to `help.html#ai-marking` for
+the full explanation of what's sent and to whom. Picking a subject always starts a session straight
+away, whether a key's set up or not — there used to be a one-off disclosure screen shown before the
+very first AI-marked session on a device, but that explanation now lives permanently on
+`help.html#ai-marking` instead (see "Keeping the pickers short" above), so it doesn't need
+repeating in-app at all.
 
 This needs a Claude API key of your own (get one at
 [console.anthropic.com](https://console.anthropic.com)) — it isn't bundled with the app, and each
@@ -402,9 +435,10 @@ reset" section on `admin.html` covers this:
 
 ## Making changes
 
-Edit `index.html`, `maths-quiz.html`, `entry-test.html`, `mythology.html`, `stats.html` or
-`admin.html` directly — each is a single, self-contained file (CSS and JS inline, nothing built
-from anything else), so there's no build step. After editing, sanity-check it locally by opening
+Edit `index.html`, `maths-quiz.html`, `entry-test.html`, `mythology.html`, `stats.html`,
+`admin.html` or `help.html` directly — each is a single, self-contained file (CSS and JS inline,
+nothing built from anything else), so there's no build step. After editing, sanity-check it locally
+by opening
 the file straight in a browser (`file://` works fine for most of the page; the service worker
 registration needs a real HTTPS host to succeed, though the rest of each page still works over
 `file://`), and see [Testing](#testing) below for the automated checks.
@@ -415,15 +449,16 @@ commit and push from a local clone with Git/GitHub Desktop.
 
 ## Testing
 
-`tests/` holds a Playwright suite (365+ checks as of the last update) covering the things most
+`tests/` holds a Playwright suite (370+ checks as of the last update) covering the things most
 likely to break silently: the PIN gate on `admin.html` and `stats.html`, the streak maths,
 backup/restore round-tripping every setting, the mock exam configuration, the Progress-page
-visibility toggle, and Trivia's subject picker (including per-subject enable/disable, with a guard
+visibility toggle, Trivia's subject picker (including per-subject enable/disable, with a guard
 against hiding every subject at once), 25-question mixed-kind session builder (at least one of each
 kind, never more than 5 long-answer), GCSE-style marks-based scoring for long-answer questions,
-instant local marking for multiple-choice/quick-answer questions, and per-subject progress tracking
-(every call to Anthropic's API is intercepted with a mocked route, so the suite never makes a real
-network request or spends real API credit). It's plain Node with no bundler —
+instant local marking for multiple-choice/quick-answer questions, per-subject progress tracking,
+and `help.html` loading cleanly with a working jump link for every topic it covers (every call to
+Anthropic's API is intercepted with a mocked route, so the suite never makes a real network request
+or spends real API credit). It's plain Node with no bundler —
 see `tests/README.md` for how to install Playwright and run it locally, and
 `.github/workflows/test.yml` runs the same suite on every push and pull request.
 

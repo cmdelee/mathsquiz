@@ -529,13 +529,13 @@
     <section class="card parents-page">
       <div class="quiz-head">
         <h2>AI marking</h2>
-        <p class="quiz-sub">Some question types are free-text, with no single right wording, so they can't be marked by matching against a list of accepted answers. Setting this up lets them be marked by AI instead. It currently powers the long-answer questions on the standalone <strong>Trivia</strong> page (Greek Mythology, Harry Potter, Stranger Things and Red Dwarf — the page's multiple-choice/quick-answer questions don't need this at all), and is written to cover any future AI-marked subject the same way. Trivia itself doesn't need this to be usable — without a key set up here, sessions just leave the long-answer questions out and stick to the quick multiple-choice/single-word ones.</p>
+        <p class="quiz-sub">Some question types are free-text, with no single right wording, so they can't be marked by matching against a list of accepted answers. Setting this up lets them be marked by AI instead. It currently powers the long-answer questions on the standalone <strong>Trivia</strong> page — Trivia itself doesn't need this to be usable, but without a key set up here, sessions leave those questions out and stick to the quick multiple-choice/single-word ones. See <a href="help.html#ai-marking">how AI marking works</a> for the full explanation of what's sent, and why only Claude is offered.</p>
       </div>
 
       <div class="parents-block">
         <h3>How it works, and what's sent</h3>
         <p class="quiz-sub">When an answer's submitted to one of these questions, the question text, a short marking rubric (written for that question, not a real exam) and whatever's been typed are sent straight from the browser to the AI provider chosen below — nothing else about the device or whoever's using it. Nothing is sent anywhere, ever, unless a key is set up here. The API key is stored only in this browser's local storage, the same as everything else on this page — it is never sent anywhere except to that provider, and it's deliberately left out of the backup file below, so it needs re-entering after a restore.</p>
-        <p class="quiz-sub">Only <strong>Claude</strong> (Anthropic) is offered right now, because it's the only option that's actually workable for a page like this: it can be called directly from the browser with no server in between, and Anthropic's terms don't rule out use by children the way some others do. Google's Gemini is excluded outright — its API terms say it must not be used in an app "directed towards or is likely to be accessed by individuals under the age of 18". Microsoft Copilot doesn't offer an individual API key to use here at all. ChatGPT/OpenAI could work in principle, but its API blocks being called directly from a browser and would need a small backend server built first — not done yet, so it isn't offered below.</p>
+        <p class="quiz-sub">Only <strong>Claude</strong> (Anthropic) is offered right now — see <a href="help.html#ai-marking">Help</a> for why.</p>
         <div class="settings-body">
           <div class="settings-field">
             <label for="aiProviderInput">Provider</label>
@@ -648,6 +648,7 @@
 
   <footer class="foot">
     <p><a href="index.html">← Back to menu</a></p>
+    <p><a href="help.html">Help →</a></p>
     <p><button type="button" class="foot-refresh-btn" id="refreshAppBtn">↻ Refresh app / check for updates</button></p>
   </footer>
 

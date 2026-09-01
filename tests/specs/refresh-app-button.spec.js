@@ -34,7 +34,7 @@ module.exports = async function run({ browser, baseUrl, check }){
     check("admin.html: has a refresh-app footer button", await page.locator("#refreshAppBtn").count() === 1);
     await page.close();
   }
-  for (const p of ["index.html", "maths-quiz.html", "entry-test.html", "stats.html"]){
+  for (const p of ["index.html", "maths-quiz.html", "entry-test.html", "stats.html", "help.html"]){
     const page = await browser.newPage();
     await page.goto(baseUrl + "/" + p);
     check(p + ": no refresh-app footer button (admin.html only)", await page.locator("#refreshAppBtn").count() === 0);

@@ -279,7 +279,7 @@
       <span class="nav-icon">⚡</span>
       <span class="nav-body">
         <span class="nav-name">Trivia</span>
-        <p class="nav-desc">Just for fun — Greek Mythology, Harry Potter and Stranger Things, marked by AI. Not linked to the 11+ practice.</p>
+        <p class="nav-desc">Just for fun — Greek Mythology, Harry Potter, Stranger Things and Red Dwarf. Not linked to the 11+ practice.</p>
         <p class="nav-teaser" id="mythologyTeaser" hidden></p>
       </span>
       <span class="nav-arrow">→</span>
@@ -305,7 +305,8 @@
   </nav>
 
   <footer class="foot">
-    <p>Everything here runs on this device only — nothing is sent anywhere, except Trivia answers if AI marking's been set up, which go to Claude for marking only.</p>
+    <p>Everything here runs on this device only — nothing is sent anywhere, except Trivia's long-answer questions if AI marking's been set up, which go to Claude for marking only.</p>
+    <p><a href="help.html">Help — how everything works →</a></p>
   </footer>
 
 </div>
@@ -355,12 +356,14 @@
 
   try {
     // triviaHistory_v1 is an object keyed by subject (mythology, harry-potter,
-    // stranger-things), each holding that subject's own list of past sessions
-    // — so find the single most recent session across all three subjects.
+    // stranger-things, red-dwarf), each holding that subject's own list of
+    // past sessions — so find the single most recent session across all
+    // four subjects.
     var TRIVIA_SUBJECT_NAMES = {
       "mythology": "Greek Mythology",
       "harry-potter": "Harry Potter",
-      "stranger-things": "Stranger Things"
+      "stranger-things": "Stranger Things",
+      "red-dwarf": "Red Dwarf"
     };
     var triviaRaw = window.localStorage.getItem("triviaHistory_v1");
     var triviaHistory = triviaRaw ? JSON.parse(triviaRaw) : {};

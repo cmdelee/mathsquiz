@@ -221,13 +221,17 @@ module.exports = async function run({ browser, baseUrl, check }){
       await page.locator("#notSetUpCard").isVisible());
     check("mythology.html: the note points to Parents / Admin",
       /Parents \/ Admin/.test(await page.locator("#notSetUpCard").textContent()));
+    check("mythology.html: the note links to the Help page's AI marking section",
+      (await page.locator("#notSetUpCard a").evaluateAll((els) => els.map((el) => el.getAttribute("href"))))
+        .some((href) => href && href.indexOf("help.html#ai-marking") === 0));
 
-    // Picking a subject with no key set skips the AI disclosure entirely — nothing's
-    // being sent to an AI — and goes straight into a session with no long-answer items.
+    // Picking a subject with no key set goes straight into a session with no
+    // long-answer items — there's no separate AI disclosure step any more
+    // (that explanation now lives on help.html instead).
     await page.click('[data-subject="mythology"]');
     await page.waitForTimeout(150);
-    check("mythology.html: picking a subject with no key skips the AI disclosure",
-      await page.locator("#aiDisclosureView").isHidden() && await page.locator("#quizSection").isVisible());
+    check("mythology.html: picking a subject with no key goes straight into a session",
+      await page.locator("#quizSection").isVisible());
     const queueWithoutKey = await page.evaluate(() => window.__mythologyCurrentQueue());
     check("mythology.html: a session with no AI marking key has no long-answer questions",
       queueWithoutKey.every((item) => item.kind !== "long"));
@@ -252,7 +256,10 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.close();
   }
 
-  // ---- the one-off AI marking disclosure ----
+  // ---- picking a subject (with a key configured) starts a session right away ----
+  // There used to be a one-off "how this is marked" disclosure step here on
+  // the very first session — that explanation now lives permanently on
+  // help.html instead, so every visit behaves the same way.
   {
     const page = await browser.newPage();
     await page.goto(baseUrl + "/mythology.html");
@@ -265,27 +272,8 @@ module.exports = async function run({ browser, baseUrl, check }){
 
     await page.click('[data-subject="mythology"]');
     await page.waitForTimeout(150);
-    check("mythology.html: the disclosure panel shows before the first session",
-      await page.locator("#aiDisclosureView").isVisible());
-    check("mythology.html: no question is shown yet while the disclosure is up",
-      await page.locator("#quizSection").isHidden());
-
-    // "Back" returns to the landing view without starting anything or marking it seen.
-    await page.click("#aiDisclosureBackBtn");
-    await page.waitForTimeout(100);
-    check("mythology.html: 'Back' returns to the subject picker", await page.locator("#subjectPickerCard").isVisible());
-    const seenAfterBack = await page.evaluate((key) => localStorage.getItem(key), AI_DISCLOSURE_KEY);
-    check("mythology.html: 'Back' does not mark the disclosure as seen", seenAfterBack !== "1");
-
-    // Now go through it properly.
-    await page.click('[data-subject="mythology"]');
-    await page.waitForTimeout(100);
-    await page.click("#aiDisclosureContinueBtn");
-    await page.waitForTimeout(150);
-    check("mythology.html: 'Continue' proceeds into the session",
+    check("mythology.html: picking a subject goes straight into a session",
       await page.locator("#quizSection").isVisible() && await page.locator("#questionCard").isVisible());
-    const seenAfterContinue = await page.evaluate((key) => localStorage.getItem(key), AI_DISCLOSURE_KEY);
-    check("mythology.html: 'Continue' marks the disclosure as seen", seenAfterContinue === "1");
     const firstKind = await page.evaluate(() => window.__mythologyCurrentQueue()[0].kind);
     check("mythology.html: the AI-marked badge only shows when the current question is long-answer",
       (await page.locator("#aiBadge").isVisible()) === (firstKind === "long"));
@@ -295,8 +283,8 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.click("#quitBtn");
     await page.click('[data-subject="harry-potter"]');
     await page.waitForTimeout(150);
-    check("mythology.html: a later visit (any subject) skips straight past the disclosure",
-      await page.locator("#quizSection").isVisible() && await page.locator("#aiDisclosureView").isHidden());
+    check("mythology.html: picking a different subject also goes straight into a session",
+      await page.locator("#quizSection").isVisible());
     check("mythology.html: picking a different subject shows that subject's name",
       (await page.locator("#quizTitle").textContent()).indexOf("Harry Potter") !== -1);
 

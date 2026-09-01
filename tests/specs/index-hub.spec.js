@@ -22,6 +22,31 @@ module.exports = async function run({ browser, baseUrl, check }){
     const examCardVisible = await page.locator("#examNavCard").isVisible();
     check("index.html: exam card visible with no exam date set", examCardVisible);
 
+    const helpHref = await page.locator('footer a:has-text("Help")').getAttribute("href");
+    check("index.html: footer 'Help' link -> help.html", helpHref.indexOf("help.html") === 0);
+
+    await page.close();
+  }
+
+  // ---- trivia "last time" teaser covers all four subjects, Red Dwarf included ----
+  {
+    const page = await browser.newPage();
+    await page.goto(baseUrl + "/index.html");
+    await page.evaluate(() => {
+      localStorage.clear();
+      // Red Dwarf's session is the most recent of the four by date — the
+      // teaser should surface this one, not silently skip it.
+      localStorage.setItem("triviaHistory_v1", JSON.stringify({
+        "mythology": [{ date: "2024-01-01T00:00:00.000Z", marksEarned: 10, marksAvailable: 20, pct: 50 }],
+        "red-dwarf": [{ date: "2024-06-01T00:00:00.000Z", marksEarned: 18, marksAvailable: 20, pct: 90 }]
+      }));
+    });
+    await page.reload();
+
+    const teaserText = await page.locator("#mythologyTeaser").textContent();
+    check("index.html: trivia teaser picks the most recent session across all subjects (Red Dwarf included)",
+      teaserText.indexOf("Red Dwarf") !== -1 && teaserText.indexOf("18/20") !== -1);
+
     await page.close();
   }
 
