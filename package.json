@@ -3,7 +3,8 @@
   "private": true,
   "description": "Maths practice and 11+ entry test practice, plus their tests.",
   "scripts": {
-    "test": "node tests/run.js"
+    "test": "node tests/run.js",
+    "test:cross-browser": "node tests/run.js --browsers=chromium,firefox,webkit"
   },
   "devDependencies": {
     "playwright": "^1.47.0"

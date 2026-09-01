@@ -17,8 +17,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install Playwright's Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright's browsers
+        run: npx playwright install --with-deps chromium firefox webkit
 
-      - name: Run tests
-        run: npm test
+      - name: Run tests (chromium, firefox, webkit)
+        run: npm run test:cross-browser
