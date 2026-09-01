@@ -2,13 +2,16 @@
 
 Three practice tools for the same pupil, sharing one repo, one look and one hub page.
 
-- **`index.html`** — the hub/menu. Opens first, offers five options, and links to everything
+- **`index.html`** — the hub/menu. Opens first, offers six options, and links to everything
   else. Nothing to answer here.
 - **`maths-quiz.html`** — a holiday-aware long arithmetic practice tool, built for a Year 6–7
   pupil (age 11–12) at Skipton Parish Church of England Primary School. It checks whether today
   falls in one of the school's own holidays and sets a practice target accordingly, then keeps
   generating questions until that many are answered correctly, adapting each operation's
   difficulty to how they're doing along the way.
+- **`how-to.html`** — a step-by-step guide to long multiplication and long division, written
+  simply enough for a 10-year-old to follow on their own, with fully worked examples. See its own
+  section below.
 - **`entry-test.html`** — practice questions in the style of the FSCE-run Year 7 entry test used
   by several grammar and independent schools (the Adventure and Beacon papers), for 11+
   preparation. See its own section below.
@@ -34,10 +37,11 @@ Live at: https://github.com/cmdelee/mathsquiz (GitHub Pages, once enabled)
 
 The page a browser or home-screen icon opens to. It shows the child's name in the title if one's
 been set, a one-line teaser of the last session for each practice app (once there's history to
-show), and five cards: **Maths quiz** (`maths-quiz.html`), **Practice exam** (`entry-test.html`),
-**Trivia** (`mythology.html`), **Progress** (`stats.html`) and **Parents/Admin** (`admin.html`).
-Nothing here reads or writes any answers — it's just a menu. A "Help" link in the footer opens
-`help.html` (see below) for anyone who wants the full explanation of how any of it works.
+show), and six cards: **Maths quiz** (`maths-quiz.html`), **How to multiply & divide**
+(`how-to.html`), **Practice exam** (`entry-test.html`), **Trivia** (`mythology.html`), **Progress**
+(`stats.html`) and **Parents/Admin** (`admin.html`). Nothing here reads or writes any answers —
+it's just a menu. A "Help" link in the footer opens `help.html` (see below) for anyone who wants
+the full explanation of how any of it works.
 
 ## Help (`help.html`)
 
@@ -100,6 +104,30 @@ marking works has changed, only where the explanation of it lives.
 - **Numeric keypad on mobile**: answer fields bring up a compact number pad rather than the
   full keyboard, while still allowing a minus sign for negative answers.
 
+## How to: long multiplication & division (`how-to.html`)
+
+A standalone, static reference page teaching the actual method for the two harder question types
+on the maths quiz — long multiplication and long division — written plainly enough for a
+10-year-old to read on their own, since the maths quiz itself only checks the final typed answer
+and doesn't teach the method. Linked as its own card on the hub (`index.html`), from
+`maths-quiz.html`'s footer, and from `help.html`'s Maths quiz section.
+
+Two fully worked examples per operation, easier one first:
+
+- **Long multiplication** — split the second (two-digit) number into its tens and units, multiply
+  the first number by each part separately, then add the two results. Shown as a small
+  column-arithmetic table (`table.calc-table`) for each example: 34 × 21, then a harder 236 × 14.
+- **Long division** — the "chunking" method: repeatedly subtract easy multiples of the divisor
+  (starting with ×10, then ×5, ×2, ×1 as needed) until nothing's left, then add up how many of
+  each multiple were taken away. Chosen over the traditional bring-down column algorithm because
+  it's more forgiving and intuitive to follow at this age, and it always works cleanly here since
+  the maths quiz's own division questions are generated to divide exactly, never leaving a
+  remainder. Shown as a running steps table (`table.steps-table`) for each example: 468 ÷ 12, then
+  a less round 621 ÷ 23.
+
+Both worked examples per operation are checked by the test suite for actual arithmetic correctness
+(not just that plausible-looking numbers are present) — see `quiz-pages-smoke.spec.js`.
+
 ## Progress (`stats.html`)
 
 A read-only page showing scores, streaks and history for the maths and entry-test practice apps —
@@ -160,8 +188,9 @@ or assembled from fragments.
 | `stats.html` | The read-only Progress page — history and stats for the maths and entry-test apps, PIN-locked unless a parent's turned that off. |
 | `admin.html` | The PIN-locked settings/reset page for all three apps, plus the shared AI marking key. |
 | `help.html` | The reference/explainer page — what each app does, how AI marking and privacy work, and how to install the hub as an app. Purely informational; nothing on it reads or writes any app data. |
+| `how-to.html` | A step-by-step guide to long multiplication and long division for the maths quiz, written for a 10-year-old to follow on their own. Purely informational; nothing on it reads or writes any app data. |
 | `manifest.json` | PWA manifest for the whole hub, so it can be installed to a phone/tablet home screen. |
-| `sw.js` | Service worker — caches the app shell (all seven pages) for offline use once installed. |
+| `sw.js` | Service worker — caches the app shell (all eight pages) for offline use once installed. |
 | `icon-192.png`, `icon-512.png` | App icons (moss green, Σ mark). |
 | `.gitignore` | Just ignores a stray local test file; nothing app-related. |
 
@@ -308,7 +337,7 @@ matter). The page itself shows only the most recent session's date, paper and sc
 history and a recent-scores chart (like the maths app) live on `stats.html`, saved to
 `localStorage` under `entryTestHistory_v1`.
 
-All six pages link to each other from their footers.
+All pages link back to the hub and to Help from their footers.
 
 ## Trivia (`mythology.html`)
 
@@ -436,8 +465,8 @@ reset" section on `admin.html` covers this:
 ## Making changes
 
 Edit `index.html`, `maths-quiz.html`, `entry-test.html`, `mythology.html`, `stats.html`,
-`admin.html` or `help.html` directly — each is a single, self-contained file (CSS and JS inline,
-nothing built from anything else), so there's no build step. After editing, sanity-check it locally
+`admin.html`, `help.html` or `how-to.html` directly — each is a single, self-contained file (CSS
+and JS inline, nothing built from anything else), so there's no build step. After editing, sanity-check it locally
 by opening
 the file straight in a browser (`file://` works fine for most of the page; the service worker
 registration needs a real HTTPS host to succeed, though the rest of each page still works over
@@ -449,14 +478,16 @@ commit and push from a local clone with Git/GitHub Desktop.
 
 ## Testing
 
-`tests/` holds a Playwright suite (370+ checks as of the last update) covering the things most
+`tests/` holds a Playwright suite (380+ checks as of the last update) covering the things most
 likely to break silently: the PIN gate on `admin.html` and `stats.html`, the streak maths,
 backup/restore round-tripping every setting, the mock exam configuration, the Progress-page
 visibility toggle, Trivia's subject picker (including per-subject enable/disable, with a guard
 against hiding every subject at once), 25-question mixed-kind session builder (at least one of each
 kind, never more than 5 long-answer), GCSE-style marks-based scoring for long-answer questions,
 instant local marking for multiple-choice/quick-answer questions, per-subject progress tracking,
-and `help.html` loading cleanly with a working jump link for every topic it covers (every call to
+`help.html` loading cleanly with a working jump link for every topic it covers, and `how-to.html`
+loading cleanly with both worked examples (long multiplication and long division) checked for
+actual arithmetic correctness, not just plausible-looking numbers (every call to
 Anthropic's API is intercepted with a mocked route, so the suite never makes a real network request
 or spends real API credit). It's plain Node with no bundler —
 see `tests/README.md` for how to install Playwright and run it locally, and

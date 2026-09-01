@@ -13,11 +13,13 @@ module.exports = async function run({ browser, baseUrl, check }){
     const mathsHref = await page.locator("a.nav-card.is-maths").getAttribute("href");
     const examHref = await page.locator("a.nav-card.is-exam").getAttribute("href");
     const triviaHref = await page.locator("a.nav-card.is-trivia").getAttribute("href");
+    const howtoHref = await page.locator("a.nav-card.is-howto").getAttribute("href");
     check("index.html: maths card -> maths-quiz.html", mathsHref === "maths-quiz.html");
     check("index.html: exam card -> entry-test.html", examHref === "entry-test.html");
     check("index.html: trivia card -> mythology.html", triviaHref === "mythology.html");
     check("index.html: stats card -> stats.html", statsHref === "stats.html");
     check("index.html: admin card -> admin.html", adminHref === "admin.html");
+    check("index.html: 'How to multiply & divide' card -> how-to.html", howtoHref === "how-to.html");
 
     const examCardVisible = await page.locator("#examNavCard").isVisible();
     check("index.html: exam card visible with no exam date set", examCardVisible);

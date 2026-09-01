@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to: Long Multiplication &amp; Division</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#35664F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quiz App">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+  :root{
+    --bg:#EEF1E6;
+    --grain:#E3E8D8;
+    --surface:#FFFFFF;
+    --surface-2:#F6F7F0;
+    --border:#D8DECB;
+    --ink:#232B22;
+    --ink-soft:#5B6656;
+    --ink-faint:#8A9483;
+    --accent:#35664F;
+    --accent-ink:#F5FBF6;
+    --accent-soft:#DCEAE1;
+    --gold:#8B6B36;
+    --gold-ink:#FBF6EC;
+    --gold-soft:#EFE3C9;
+    --success:#2E7D4F;
+    --success-bg:#E4F2E6;
+    --error:#B4432F;
+    --error-bg:#FBE7E1;
+    --focus:#35664F;
+    --shadow: 0 1px 2px rgba(35,43,34,0.06), 0 8px 24px -12px rgba(35,43,34,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#171C16;
+      --grain:#1D231B;
+      --surface:#1F251C;
+      --surface-2:#252C21;
+      --border:#333D2C;
+      --ink:#E9ECDF;
+      --ink-soft:#AAB79D;
+      --ink-faint:#748069;
+      --accent:#74B594;
+      --accent-ink:#0E1F16;
+      --accent-soft:#243A2D;
+      --gold:#D6AD6C;
+      --gold-ink:#241C0C;
+      --gold-soft:#3A2F1B;
+      --success:#79D19C;
+      --success-bg:#1E3327;
+      --error:#E8917E;
+      --error-bg:#3A211C;
+      --focus:#74B594;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#171C16;
+    --grain:#1D231B;
+    --surface:#1F251C;
+    --surface-2:#252C21;
+    --border:#333D2C;
+    --ink:#E9ECDF;
+    --ink-soft:#AAB79D;
+    --ink-faint:#748069;
+    --accent:#74B594;
+    --accent-ink:#0E1F16;
+    --accent-soft:#243A2D;
+    --gold:#D6AD6C;
+    --gold-ink:#241C0C;
+    --gold-soft:#3A2F1B;
+    --success:#79D19C;
+    --success-bg:#1E3327;
+    --error:#E8917E;
+    --error-bg:#3A211C;
+    --focus:#74B594;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%; overscroll-behavior-y:contain;}
+  body{
+    margin:0;
+    overscroll-behavior-y:contain;
+    background-color:var(--bg);
+    background-image:
+      radial-gradient(circle at 1px 1px, var(--grain) 1px, transparent 1px);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family:"Public Sans", ui-sans-serif, system-ui, sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{
+    max-width:700px;
+    margin:0 auto;
+    padding:40px 20px 64px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+  }
+
+  .masthead{ text-align:left; }
+  .eyebrow{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:0.95rem;
+    color:var(--accent);
+    letter-spacing:0.02em;
+  }
+  h1{
+    margin:0 0 6px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:clamp(1.9rem, 5vw, 2.5rem);
+    line-height:1.08;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .date-line{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:1rem;
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    box-shadow:var(--shadow);
+  }
+
+  .intro-card{ padding:18px 20px; }
+  .intro-card p{ margin:0; font-size:0.95rem; color:var(--ink-soft); }
+  .intro-card p + p{ margin-top:8px; }
+
+  .toc-card{ padding:16px 20px; }
+  .toc-card p{ margin:0 0 8px; font-size:0.85rem; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.04em; }
+  .toc-list{ margin:0; padding:0; list-style:none; display:flex; gap:16px; flex-wrap:wrap; }
+  .toc-list a{ color:var(--accent); text-decoration:none; font-weight:600; font-size:0.95rem; }
+  .toc-list a:hover{ text-decoration:underline; }
+
+  .topic{ padding:24px 20px; scroll-margin-top:16px; }
+  .topic h2{
+    margin:0 0 4px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.4rem;
+    color:var(--ink);
+  }
+  .topic .topic-kicker{ margin:0 0 14px; font-size:0.88rem; color:var(--ink-soft); }
+  .topic p{ margin:0; font-size:0.95rem; color:var(--ink-soft); }
+  .topic p + p{ margin-top:10px; }
+  .topic h3{
+    margin:20px 0 8px;
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.05rem;
+    color:var(--ink);
+  }
+  .topic h3 .step-example-label{
+    display:inline-block;
+    font-family:"Public Sans", sans-serif;
+    font-weight:600;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--accent);
+    background:var(--accent-soft);
+    padding:2px 8px;
+    border-radius:999px;
+    margin-right:8px;
+    vertical-align:middle;
+  }
+
+  /* Column-arithmetic worked example */
+  .calc-wrap{ overflow-x:auto; margin:10px 0 4px; }
+  table.calc-table{ border-collapse:collapse; font-family:"IBM Plex Mono", ui-monospace, monospace; }
+  table.calc-table td{
+    width:1.9em;
+    height:1.9em;
+    text-align:center;
+    vertical-align:middle;
+    font-size:1.15rem;
+    font-variant-numeric:tabular-nums;
+    color:var(--ink);
+  }
+  table.calc-table td.op{ color:var(--accent); font-weight:600; }
+  table.calc-table tr.calc-rule td{ border-top:2px solid var(--ink-faint); }
+  table.calc-table tr.calc-total td{ font-weight:700; color:var(--accent); }
+  .calc-caption{ margin:2px 0 0; font-size:0.8rem; color:var(--ink-faint); }
+
+  /* Division "chunking" steps table */
+  .steps-wrap{ overflow-x:auto; margin:10px 0 4px; }
+  table.steps-table{ border-collapse:collapse; width:100%; font-size:0.88rem; }
+  table.steps-table th, table.steps-table td{
+    text-align:left;
+    padding:7px 10px;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  table.steps-table th{
+    font-family:"Public Sans", sans-serif;
+    font-weight:600;
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    color:var(--ink-faint);
+  }
+  table.steps-table td.mono, table.steps-table th.mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; }
+  table.steps-table tr.steps-final td{ font-weight:700; color:var(--accent); border-bottom:none; }
+
+  .tip-box{
+    margin-top:14px;
+    padding:12px 14px;
+    background:var(--gold-soft);
+    border-radius:8px;
+    font-size:0.88rem;
+    color:var(--ink);
+  }
+  .tip-box strong{ color:var(--gold); }
+
+  .cta-card{ padding:22px 20px; text-align:center; }
+  .cta-card p{ margin:0 0 14px; font-size:0.95rem; color:var(--ink-soft); }
+  .cta-btn{
+    display:inline-block;
+    font:inherit;
+    font-weight:600;
+    font-size:0.95rem;
+    padding:11px 22px;
+    border-radius:8px;
+    background:var(--accent);
+    color:var(--accent-ink);
+    text-decoration:none;
+  }
+  .cta-btn:hover{ filter:brightness(1.08); }
+
+  .back-to-top{ font-size:0.82rem; text-align:right; margin-top:4px; }
+  .back-to-top a{ color:var(--ink-faint); text-decoration:none; }
+  .back-to-top a:hover{ color:var(--accent); }
+
+  .foot{ font-size:0.78rem; color:var(--ink-faint); line-height:1.6; padding:4px 4px 0; }
+  .foot a{ color:var(--ink-faint); }
+  .foot p{ margin:0 0 4px; }
+
+  .update-banner{
+    position:fixed; left:50%; bottom:18px; transform:translateX(-50%); z-index:9999;
+    display:flex; align-items:center; gap:14px; max-width:min(92vw, 420px);
+    padding:12px 16px; border-radius:10px; background:var(--surface);
+    border:1px solid var(--border); box-shadow:var(--shadow);
+    font-size:0.88rem; color:var(--ink);
+  }
+  .update-banner[hidden]{ display:none; }
+  .update-banner span{ flex:1; }
+  .update-banner button{
+    font:inherit; font-weight:600; font-size:0.85rem; padding:8px 14px;
+    border-radius:7px; border:1px solid transparent; cursor:pointer;
+    background:var(--accent); color:var(--accent-ink); white-space:nowrap;
+  }
+  .update-banner button:hover{ filter:brightness(1.08); }
+  .update-banner button:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<div class="update-banner" id="updateBanner" hidden role="status">
+  <span>An update's ready.</span>
+  <button id="updateBannerBtn" type="button">Refresh</button>
+</div>
+
+<div class="page">
+
+  <header class="masthead" id="top">
+    <p class="eyebrow">For the maths quiz</p>
+    <h1>How to: Long Multiplication &amp; Division</h1>
+    <p class="date-line">Two simple ways to work them out, one step at a time.</p>
+  </header>
+
+  <section class="card intro-card">
+    <p>Long multiplication and long division look tricky at first, but they're really just lots of small, easy steps done in order. This page shows you exactly what to do, with real examples worked all the way through.</p>
+    <p>Grab a pencil and some paper — the maths quiz only checks your final answer, so work it out on paper first, the same way you would in school, then type in the answer.</p>
+  </section>
+
+  <section class="card toc-card">
+    <p>Jump to</p>
+    <ul class="toc-list">
+      <li><a href="#multiplication">Long multiplication</a></li>
+      <li><a href="#division">Long division</a></li>
+    </ul>
+  </section>
+
+  <section class="card topic" id="multiplication">
+    <h2>Long multiplication</h2>
+    <p class="topic-kicker">For questions like 236 × 14</p>
+    <p>The trick is to split the second number into tens and units, multiply by each part separately, and then add the two answers together. So for <strong>34 × 21</strong>, that means working out "34 × 1" and "34 × 20" separately, then adding them.</p>
+
+    <h3><span class="step-example-label">Example 1</span>34 × 21</h3>
+    <p><strong>Step 1.</strong> Multiply 34 by the units digit of 21, which is 1. 34 × 1 = 34.</p>
+    <p><strong>Step 2.</strong> Multiply 34 by the tens digit of 21, which is 20 (not just 2!). 34 × 20 = 680. A quick way to do this: work out 34 × 2 = 68, then add a zero on the end to make 680, because you're really multiplying by 20, not 2.</p>
+    <p><strong>Step 3.</strong> Add the two answers together: 34 + 680 = 714.</p>
+    <div class="calc-wrap">
+      <table class="calc-table">
+        <tr><td></td><td>3</td><td>4</td></tr>
+        <tr><td class="op">×</td><td>2</td><td>1</td></tr>
+        <tr class="calc-rule"><td></td><td></td><td></td></tr>
+        <tr><td></td><td>3</td><td>4</td></tr>
+        <tr><td class="op">+</td><td>6</td><td>8</td><td>0</td></tr>
+        <tr class="calc-rule"><td></td><td></td><td></td><td></td></tr>
+        <tr class="calc-total"><td></td><td>7</td><td>1</td><td>4</td></tr>
+      </table>
+    </div>
+    <p class="calc-caption">34 × 1 = 34, then 34 × 20 = 680, then 34 + 680 = 714.</p>
+
+    <h3><span class="step-example-label">Example 2</span>236 × 14</h3>
+    <p>Same idea, just with a bigger first number. 14 splits into 4 (units) and 10 (tens).</p>
+    <p><strong>Step 1.</strong> 236 × 4 = 944.</p>
+    <p><strong>Step 2.</strong> 236 × 10 = 2360 (multiplying by 10 is easy — just add a zero on the end).</p>
+    <p><strong>Step 3.</strong> Add them: 944 + 2360 = 3304.</p>
+    <div class="calc-wrap">
+      <table class="calc-table">
+        <tr><td></td><td>2</td><td>3</td><td>6</td></tr>
+        <tr><td class="op">×</td><td></td><td>1</td><td>4</td></tr>
+        <tr class="calc-rule"><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td>9</td><td>4</td><td>4</td></tr>
+        <tr><td class="op">+</td><td>2</td><td>3</td><td>6</td><td>0</td></tr>
+        <tr class="calc-rule"><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr class="calc-total"><td></td><td>3</td><td>3</td><td>0</td><td>4</td></tr>
+      </table>
+    </div>
+    <p class="calc-caption">236 × 4 = 944, then 236 × 10 = 2360, then 944 + 2360 = 3304.</p>
+
+    <div class="tip-box"><strong>Check it:</strong> round the numbers to check your answer looks right. 236 is close to 240, and 240 × 14 is about 3360 — so an answer of 3304 looks about right, but an answer like 334 or 33040 would clearly be a mistake.</div>
+  </section>
+
+  <section class="card topic" id="division">
+    <h2>Long division</h2>
+    <p class="topic-kicker">For questions like 621 ÷ 23</p>
+    <p>A friendly way to do long division is to keep taking away easy "chunks" of the number you're dividing by, until there's nothing left — then add up how many chunks you took away. In the quiz, division always comes out exactly, with nothing left over, so this always works perfectly.</p>
+
+    <h3><span class="step-example-label">Example 1</span>468 ÷ 12</h3>
+    <p>We want to know how many 12s fit into 468. Start with an easy chunk: 12 × 10 = 120.</p>
+    <div class="steps-wrap">
+      <table class="steps-table">
+        <tr><th>Step</th><th>Take away</th><th class="mono">Chunks so far</th><th class="mono">Left</th></tr>
+        <tr><td>Start</td><td>—</td><td class="mono">0</td><td class="mono">468</td></tr>
+        <tr><td>1</td><td>12 × 10 = 120</td><td class="mono">10</td><td class="mono">348</td></tr>
+        <tr><td>2</td><td>12 × 10 = 120</td><td class="mono">20</td><td class="mono">228</td></tr>
+        <tr><td>3</td><td>12 × 10 = 120</td><td class="mono">30</td><td class="mono">108</td></tr>
+        <tr><td>4</td><td>12 × 9 = 108</td><td class="mono">39</td><td class="mono">0</td></tr>
+        <tr class="steps-final"><td colspan="4">Nothing left, so 468 ÷ 12 = 39</td></tr>
+      </table>
+    </div>
+    <p>We took away 12 four times (that's 3 lots of 10, plus one lot of 9): 10 + 10 + 10 + 9 = 39.</p>
+
+    <h3><span class="step-example-label">Example 2</span>621 ÷ 23</h3>
+    <p>23 is a trickier number, but the method is exactly the same — just keep chipping away with whatever chunk fits.</p>
+    <div class="steps-wrap">
+      <table class="steps-table">
+        <tr><th>Step</th><th>Take away</th><th class="mono">Chunks so far</th><th class="mono">Left</th></tr>
+        <tr><td>Start</td><td>—</td><td class="mono">0</td><td class="mono">621</td></tr>
+        <tr><td>1</td><td>23 × 10 = 230</td><td class="mono">10</td><td class="mono">391</td></tr>
+        <tr><td>2</td><td>23 × 10 = 230</td><td class="mono">20</td><td class="mono">161</td></tr>
+        <tr><td>3</td><td>23 × 5 = 115</td><td class="mono">25</td><td class="mono">46</td></tr>
+        <tr><td>4</td><td>23 × 2 = 46</td><td class="mono">27</td><td class="mono">0</td></tr>
+        <tr class="steps-final"><td colspan="4">Nothing left, so 621 ÷ 23 = 27</td></tr>
+      </table>
+    </div>
+    <p>Add up the chunks: 10 + 10 + 5 + 2 = 27.</p>
+
+    <div class="tip-box"><strong>Picking good chunks:</strong> ×10 is always the easiest place to start — just add a zero. Once ×10 chunks won't fit any more, try ×5 (half of ×10), then ×2, then ×1, until there's nothing left.</div>
+  </section>
+
+  <section class="card cta-card">
+    <p>Ready to give it a go for real?</p>
+    <a class="cta-btn" href="maths-quiz.html">Start the maths quiz →</a>
+  </section>
+
+  <p class="back-to-top"><a href="#top">↑ Back to top</a></p>
+
+  <footer class="foot">
+    <p><a href="index.html">← Back to menu</a></p>
+    <p><a href="help.html">Help →</a></p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Update available banner ----------
+  if ("serviceWorker" in navigator){
+    var hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener("controllerchange", function(){
+      if (!hadController){ hadController = true; return; } // first install, not an update
+      var banner = document.getElementById("updateBanner");
+      if (banner) banner.hidden = false;
+    });
+    var updateBannerBtn = document.getElementById("updateBannerBtn");
+    if (updateBannerBtn){
+      updateBannerBtn.addEventListener("click", function(){
+        window.location.reload();
+      });
+    }
+  }
+
+  // ---------- Install as an app (optional, safe to fail) ----------
+  if ("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){ /* no sw.js here – fine */ });
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
