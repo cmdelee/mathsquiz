@@ -1070,6 +1070,8 @@
     if (!list.length){
       mathsHistorySummary.textContent = "No sessions completed yet.";
       clearMathsHistoryBtn.hidden = true;
+      renderTrendChart(mathsChartWrap, mathsChartNote, list);
+      renderStreakSettings(list);
       return;
     }
     mathsHistorySummary.textContent = list.length + " session" + (list.length === 1 ? "" : "s") + " completed on this device.";
