@@ -4,7 +4,7 @@
 // internet connection. Question generation and history are local anyway;
 // this just caches the app shell (not the Google Fonts request, which
 // falls through to network).
-var CACHE_NAME = "quiz-app-v6";
+var CACHE_NAME = "quiz-app-v7";
 var CORE_ASSETS = [
   "./",
   "./index.html",

@@ -28,7 +28,7 @@ async function clickAndCaptureDialog(page, selector, accept, promptAnswer){
 
 const AI_SETTINGS_KEY = "aiMarkingSettings_v1";
 const AI_DISCLOSURE_KEY = "aiDisclosureSeen_v1";
-const MYTHOLOGY_ITEM_STATS_KEY = "mythologyItemStats_v1";
+const TRIVIA_ITEM_STATS_KEY = "triviaItemStats_v1";
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
 function claudeResponse(verdict, feedback){
@@ -113,7 +113,7 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.reload();
     await page.waitForTimeout(150);
 
-    await page.click("#startBtn");
+    await page.click('[data-subject="mythology"]');
     await page.waitForTimeout(150);
     await page.fill(".long-answer-box", "An answer, currently being marked.");
     await page.click("#checkBtn");
@@ -121,7 +121,7 @@ module.exports = async function run({ browser, baseUrl, check }){
 
     // Quit before the (held) response comes back, then start a fresh session.
     await page.click("#quitBtn");
-    await page.click("#startBtn");
+    await page.click('[data-subject="mythology"]');
     await page.waitForTimeout(150);
 
     // Now let the stale request resolve.
@@ -133,8 +133,9 @@ module.exports = async function run({ browser, baseUrl, check }){
     check("mythology.html: the new session's question card carries no stale verdict styling",
       (await page.locator("#questionCard").getAttribute("class") || "").indexOf("is-correct") === -1);
 
-    const itemStats = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) || "{}"), MYTHOLOGY_ITEM_STATS_KEY);
-    check("mythology.html: the stale, abandoned answer was never recorded", Object.keys(itemStats).length === 0);
+    const itemStats = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) || "{}"), TRIVIA_ITEM_STATS_KEY);
+    check("mythology.html: the stale, abandoned answer was never recorded",
+      !itemStats.mythology || Object.keys(itemStats.mythology).length === 0);
 
     await page.close();
   }
@@ -152,7 +153,7 @@ module.exports = async function run({ browser, baseUrl, check }){
     await page.reload();
     await page.waitForTimeout(150);
 
-    await page.click("#startBtn");
+    await page.click('[data-subject="mythology"]');
     await page.waitForTimeout(150);
     for (let i = 0; i < 5; i++){
       await page.fill(".long-answer-box", "A full answer covering the key points.");

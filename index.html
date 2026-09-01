@@ -169,7 +169,7 @@
     color:var(--accent);
   }
   .nav-card.is-exam .nav-icon{ background:var(--gold-soft); color:var(--gold); }
-  .nav-card.is-mythology .nav-icon{ background:var(--surface-2); color:var(--ink-soft); }
+  .nav-card.is-trivia .nav-icon{ background:var(--surface-2); color:var(--ink-soft); }
   .nav-card.is-stats .nav-icon{ background:var(--accent-soft); color:var(--accent); }
   .nav-card.is-admin .nav-icon{ background:var(--surface-2); color:var(--ink-soft); }
   .nav-body{ flex:1 1 auto; min-width:0; }
@@ -275,11 +275,11 @@
       <span class="nav-arrow">→</span>
     </a>
 
-    <a class="nav-card is-mythology" href="mythology.html">
+    <a class="nav-card is-trivia" href="mythology.html">
       <span class="nav-icon">⚡</span>
       <span class="nav-body">
-        <span class="nav-name">Greek Mythology</span>
-        <p class="nav-desc">Just for fun — long-answer questions, marked by AI. Not linked to the 11+ practice.</p>
+        <span class="nav-name">Trivia</span>
+        <p class="nav-desc">Just for fun — Greek Mythology, Harry Potter and Stranger Things, marked by AI. Not linked to the 11+ practice.</p>
         <p class="nav-teaser" id="mythologyTeaser" hidden></p>
       </span>
       <span class="nav-arrow">→</span>
@@ -305,7 +305,7 @@
   </nav>
 
   <footer class="foot">
-    <p>Everything here runs on this device only — nothing is sent anywhere, except Greek Mythology answers if AI marking's been set up, which go to Claude for marking only.</p>
+    <p>Everything here runs on this device only — nothing is sent anywhere, except Trivia answers if AI marking's been set up, which go to Claude for marking only.</p>
   </footer>
 
 </div>
@@ -354,11 +354,29 @@
   } catch (e){ /* ignore */ }
 
   try {
-    var mythList = loadJSONList("mythologyHistory_v1");
-    if (mythList.length){
-      var y = mythList[0];
+    // triviaHistory_v1 is an object keyed by subject (mythology, harry-potter,
+    // stranger-things), each holding that subject's own list of past sessions
+    // — so find the single most recent session across all three subjects.
+    var TRIVIA_SUBJECT_NAMES = {
+      "mythology": "Greek Mythology",
+      "harry-potter": "Harry Potter",
+      "stranger-things": "Stranger Things"
+    };
+    var triviaRaw = window.localStorage.getItem("triviaHistory_v1");
+    var triviaHistory = triviaRaw ? JSON.parse(triviaRaw) : {};
+    var latest = null, latestSubject = null;
+    Object.keys(TRIVIA_SUBJECT_NAMES).forEach(function(subjectKey){
+      var list = Array.isArray(triviaHistory[subjectKey]) ? triviaHistory[subjectKey] : [];
+      if (!list.length) return;
+      var candidate = list[0];
+      if (!latest || new Date(candidate.date) > new Date(latest.date)){
+        latest = candidate;
+        latestSubject = subjectKey;
+      }
+    });
+    if (latest){
       var yEl = document.getElementById("mythologyTeaser");
-      yEl.textContent = "Last time: " + y.correct + "/" + y.attempted + " (" + y.pct + "%)";
+      yEl.textContent = "Last time (" + TRIVIA_SUBJECT_NAMES[latestSubject] + "): " + latest.correct + "/" + latest.attempted + " (" + latest.pct + "%)";
       yEl.hidden = false;
     }
   } catch (e){ /* ignore */ }

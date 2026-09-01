@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Greek Mythology</title>
+<title>Trivia</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -166,6 +166,33 @@
     color:var(--ink-soft);
   }
   .quiz-note a{ color:var(--accent); }
+
+  .subject-options{
+    display:grid;
+    gap:12px;
+  }
+  .subject-btn{
+    text-align:left;
+    padding:16px 18px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    background:var(--surface-2);
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    font:inherit;
+    color:inherit;
+  }
+  .subject-btn:hover{ border-color:var(--accent); background:var(--surface); }
+  .subject-btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .subject-name{
+    font-family:"Fraunces", Georgia, serif;
+    font-weight:600;
+    font-size:1.05rem;
+    color:var(--ink);
+  }
+  .subject-desc{ font-size:0.85rem; color:var(--ink-soft); }
 
   .progress-row{
     display:flex;
@@ -413,12 +440,12 @@
 
   <header class="masthead">
     <p class="eyebrow">Just for fun</p>
-    <h1>Greek Mythology</h1>
+    <h1>Trivia</h1>
     <p class="date-line">Long-answer questions, marked by AI.</p>
   </header>
 
   <section class="card intro-card">
-    <p>Five questions on Greek mythology, pitched at a strong Year 6 reader who already knows the subject well. They're free-text rather than multiple choice, since there's no single correct wording to match against — each answer is marked by sending it to an AI (Claude) instead of matching it against a fixed list of accepted answers.</p>
+    <p>Long-answer trivia across three subjects — Greek Mythology, Harry Potter and Stranger Things — pitched at a strong Year 6 reader who already knows them well. Each session picks 5 random questions from that subject's own bank of 20, so no two sessions are quite the same. They're free-text rather than multiple choice, since there's no single correct wording to match against — each answer is marked by sending it to an AI (Claude) instead of matching it against a fixed list of accepted answers.</p>
     <p>This is a standalone page, separate from the 11+ entry test practice — it's here purely for fun, with its own progress tracking below rather than on the main Progress page.</p>
   </section>
 
@@ -430,13 +457,24 @@
     <p class="quiz-note">Ask a parent to open the <a href="admin.html">Parents / Admin</a> page and set this up under "AI marking".</p>
   </section>
 
-  <section class="card quiz" id="startCard" hidden>
+  <section class="card quiz" id="subjectPickerCard" hidden>
     <div class="quiz-head">
-      <h2>Ready when you are</h2>
-      <p class="quiz-sub" id="startSub">5 questions, one at a time — take your time and write as much as you know.</p>
+      <h2>Pick a subject</h2>
+      <p class="quiz-sub">5 random questions each time, one at a time — take your time and write as much as you know.</p>
     </div>
-    <div class="quiz-actions" style="margin-top:0; padding-top:0; border-top:none; justify-content:flex-start;">
-      <button id="startBtn" class="btn btn-primary" type="button">Start practice</button>
+    <div class="subject-options">
+      <button class="subject-btn" data-subject="mythology">
+        <span class="subject-name">Greek Mythology</span>
+        <span class="subject-desc">Gods, heroes and monsters from ancient Greek myth.</span>
+      </button>
+      <button class="subject-btn" data-subject="harry-potter">
+        <span class="subject-name">Harry Potter</span>
+        <span class="subject-desc">Hogwarts, spells and the wizarding world.</span>
+      </button>
+      <button class="subject-btn" data-subject="stranger-things">
+        <span class="subject-name">Stranger Things</span>
+        <span class="subject-desc">Hawkins, the Upside Down, and the gang who take it on.</span>
+      </button>
     </div>
   </section>
 
@@ -453,7 +491,7 @@
 
   <section class="card quiz" id="quizSection" hidden>
     <div class="quiz-head">
-      <h2>Greek Mythology</h2>
+      <h2 id="quizTitle">Trivia</h2>
       <p class="quiz-sub">Write as much as you know — there's no single "correct" wording, so partial credit is fine.</p>
     </div>
 
@@ -464,7 +502,7 @@
 
     <div class="question-card" id="questionCard">
       <div class="q-tag-row">
-        <p class="q-tag">Greek Mythology</p>
+        <p class="q-tag" id="qTag">Trivia</p>
         <span class="ai-badge">AI-marked</span>
       </div>
       <p class="q-prompt" id="qPrompt"></p>
@@ -494,7 +532,8 @@
   <section class="history card" id="progressSection" hidden>
     <div class="quiz-head">
       <h2>Your progress</h2>
-      <p class="quiz-sub" id="progressSummary" style="margin-bottom:0;">No sessions completed yet.</p>
+      <p class="quiz-sub" style="margin-bottom:12px;">One line per subject, tracked separately.</p>
+      <ul class="review-list" id="progressSummaryList" style="margin-bottom:0;"></ul>
     </div>
   </section>
 
@@ -510,13 +549,28 @@
 (function(){
   "use strict";
 
-  // ---------- The question bank ----------
-  // A small trial section: free-text questions with no single right
-  // wording, so they're marked by sending the question, a rubric of what a
-  // good answer should cover, and the typed answer to an AI (configured on
-  // the Parents / Admin page) rather than matched against fixed text.
-  // Pitched at UK Year 6 level but with room to go further, since this is
-  // for a reader who already knows the subject well.
+  // ---------- Subjects ----------
+  // Each subject is a self-contained bank of 20 long-answer questions; a
+  // session always draws 5 at random from whichever bank was chosen, so no
+  // two sessions look quite the same. Adding a future subject is just
+  // another entry here plus another item bank below — everything else
+  // (AI marking, disclosure, history, progress) already works generically.
+  var SUBJECTS = [
+    { key:"mythology", name:"Greek Mythology" },
+    { key:"harry-potter", name:"Harry Potter" },
+    { key:"stranger-things", name:"Stranger Things" }
+  ];
+  var SUBJECT_NAME = {};
+  SUBJECTS.forEach(function(s){ SUBJECT_NAME[s.key] = s.name; });
+  var QUESTIONS_PER_SESSION = 5;
+
+  // ---------- The question banks ----------
+  // Free-text questions with no single right wording, so they're marked by
+  // sending the question, a rubric of what a good answer should cover, and
+  // the typed answer to an AI (configured on the Parents / Admin page)
+  // rather than matched against fixed text. Pitched at UK Year 6 level but
+  // with room to go further, since this is for a reader who already knows
+  // the subject well.
   var MYTHOLOGY_ITEMS = [
     { kind:"long", subject:"mythology",
       prompt:"Who is Zeus, and what is he the god of? Describe at least two other things you know about him.",
@@ -559,8 +613,506 @@
         "Correctly states at least one domain or power for each of them",
         "Makes a genuine comparison rather than just listing two separate facts – a real similarity or a real difference between them"
       ],
-      modelAnswer:"Athena is the goddess of wisdom and war strategy, while Ares is the god of war too, but of violent, chaotic battle rather than clever strategy. They are similar because they are both connected to war, but different because Athena represents wisdom and careful planning, while Ares represents raw aggression and bloodshed." }
+      modelAnswer:"Athena is the goddess of wisdom and war strategy, while Ares is the god of war too, but of violent, chaotic battle rather than clever strategy. They are similar because they are both connected to war, but different because Athena represents wisdom and careful planning, while Ares represents raw aggression and bloodshed." },
+    { kind:"long", subject:"mythology",
+      prompt:"How did the Greeks finally get inside the walled city of Troy, after ten years of war? Explain the trick they used.",
+      rubric:[
+        "The Greeks built a huge wooden horse and hid soldiers inside it",
+        "They left it outside Troy and pretended to sail away, so the Trojans thought it was a gift/offering",
+        "The Trojans brought the horse inside their walls",
+        "At night the hidden soldiers climbed out and opened the gates for the rest of the Greek army"
+      ],
+      modelAnswer:"After ten years of fighting outside Troy, the Greeks built a giant wooden horse and hid soldiers inside it. They left the horse outside the city and pretended to sail away, so the Trojans thought it was a gift and dragged it inside their walls. That night, the hidden Greek soldiers climbed out of the horse and opened the gates, letting the rest of the Greek army in to capture the city." },
+    { kind:"long", subject:"mythology",
+      prompt:"Who was Medusa, and what happened if you looked directly at her? Explain how Perseus managed to defeat her.",
+      rubric:[
+        "Medusa was a Gorgon with living snakes for hair",
+        "Anyone who looked directly into her eyes/face would turn to stone",
+        "Perseus used a reflective shield (or polished shield/mirror) to look at her safely rather than looking at her directly",
+        "He cut off her head while using this method"
+      ],
+      modelAnswer:"Medusa was a Gorgon, a monster with living snakes instead of hair, and anyone who looked directly at her face would instantly turn to stone. To defeat her safely, Perseus looked at her reflection in his polished shield instead of looking at her directly, and used this to cut off her head without ever meeting her eyes." },
+    { kind:"long", subject:"mythology",
+      prompt:"Daedalus built wings for himself and his son Icarus to escape from Crete. What warning did he give Icarus, and what happened when Icarus ignored it?",
+      rubric:[
+        "Daedalus made wings out of feathers and wax",
+        "He warned Icarus not to fly too close to the sun",
+        "Icarus got overexcited/overconfident and flew too high anyway",
+        "The wax melted and Icarus fell into the sea and drowned"
+      ],
+      modelAnswer:"Daedalus built wings out of feathers held together with wax so that he and his son Icarus could escape from Crete by flying. He warned Icarus not to fly too close to the sun, because the heat would melt the wax. Icarus got carried away with the thrill of flying and soared too high anyway, so the wax melted, his wings fell apart, and he fell into the sea and drowned." },
+    { kind:"long", subject:"mythology",
+      prompt:"Who was Achilles, and what was special (and dangerous) about the story of his heel?",
+      rubric:[
+        "Achilles was a great Greek hero/warrior in the Trojan War",
+        "As a baby he was dipped in the River Styx to make him invulnerable/impossible to hurt",
+        "His mother held him by the heel while dipping him, so his heel was never touched by the water and stayed vulnerable",
+        "He was eventually killed by an arrow to his heel – this is where 'Achilles' heel' comes from"
+      ],
+      modelAnswer:"Achilles was one of the greatest Greek warriors in the Trojan War. As a baby, his mother Thetis dipped him into the River Styx to make him invulnerable, but she held him by his heel, so the water never touched that one spot and it stayed weak. Years later he was killed by an arrow that struck him in that exact heel — which is where we get the phrase 'Achilles' heel' for someone's one weak point." },
+    { kind:"long", subject:"mythology",
+      prompt:"During his journey home from Troy, Odysseus and his men were trapped by a Cyclops named Polyphemus. Explain how Odysseus tricked him and escaped.",
+      rubric:[
+        "Polyphemus was a one-eyed giant (Cyclops) who trapped Odysseus and his men in his cave",
+        "Odysseus told Polyphemus his name was 'Nobody'",
+        "They got Polyphemus drunk and blinded his one eye while he slept",
+        "When Polyphemus called for help he shouted that 'Nobody' had hurt him, so the other Cyclopes didn't come",
+        "Odysseus and his men escaped by hiding underneath the giant's sheep"
+      ],
+      modelAnswer:"Odysseus and his men were trapped in a cave by a one-eyed giant called Polyphemus. Odysseus cleverly told the Cyclops his name was 'Nobody'. He got Polyphemus drunk and then blinded his single eye while he slept. When Polyphemus screamed for help, he shouted that 'Nobody' had hurt him, so the other Cyclopes ignored him. The next morning, Odysseus and his men escaped by clinging to the undersides of the giant's sheep as they were let out to graze." },
+    { kind:"long", subject:"mythology",
+      prompt:"Explain the myth of Persephone and Hades, and how the Ancient Greeks used this story to explain the seasons.",
+      rubric:[
+        "Hades, god of the Underworld, took Persephone to be his wife",
+        "Her mother Demeter, goddess of the harvest, was so upset that crops stopped growing",
+        "A deal was made for Persephone to spend part of the year in the Underworld and part with her mother",
+        "When Persephone is with Hades it is autumn/winter; when she returns it is spring/summer"
+      ],
+      modelAnswer:"Hades, god of the Underworld, took Persephone down to live with him. Her mother Demeter, the goddess of the harvest, was so devastated that she let all the crops on earth die. Eventually a deal was struck so Persephone spends part of the year with Hades and part with her mother. When she's in the Underworld, Demeter grieves and nothing grows, giving us autumn and winter; when Persephone returns to her, the earth blooms again, giving us spring and summer." },
+    { kind:"long", subject:"mythology",
+      prompt:"Who was Prometheus, and why was he punished so severely by Zeus?",
+      rubric:[
+        "Prometheus was a Titan who cared about/helped humankind",
+        "He stole fire from the gods and gave it to humans",
+        "This let humans have warmth, cook food, and develop technology/civilisation",
+        "As punishment, Zeus chained him to a rock where an eagle ate his liver every day, which grew back to be eaten again"
+      ],
+      modelAnswer:"Prometheus was a Titan who felt sorry for humans because they had no fire. He stole fire from the gods on Mount Olympus and gave it to humankind, letting them keep warm, cook and eventually build civilisation. Zeus was furious and punished him horribly: he chained Prometheus to a rock, where an eagle came every day to eat his liver, which then grew back overnight so the punishment could happen again and again." },
+    { kind:"long", subject:"mythology",
+      prompt:"Describe the Greek Underworld and the creature called Cerberus that guards it.",
+      rubric:[
+        "The Underworld is the realm of the dead, ruled by Hades",
+        "Cerberus is a giant three-headed dog",
+        "His job is to guard the entrance/gates of the Underworld",
+        "He stops the dead from leaving (and often the living from entering)"
+      ],
+      modelAnswer:"The Underworld is the Greek realm of the dead, ruled over by the god Hades. Guarding its entrance is Cerberus, a monstrous dog with three heads. His job is to make sure nobody who is dead can leave, and to stop living people from sneaking in, so almost nothing gets past him in either direction." },
+    { kind:"long", subject:"mythology",
+      prompt:"Who is Poseidon, and what is he the god of? Describe at least two things you know about him.",
+      rubric:[
+        "Poseidon is the god of the sea",
+        "His weapon/symbol is a trident",
+        "Any other accurate fact – e.g. brother of Zeus, also associated with earthquakes and/or horses, lives in an underwater palace"
+      ],
+      modelAnswer:"Poseidon is the Greek god of the sea, and his symbol is a three-pronged trident. He is the brother of Zeus and Hades, and as well as ruling the ocean he is also linked to earthquakes and horses, which he was said to have created." },
+    { kind:"long", subject:"mythology",
+      prompt:"Tell the story of King Midas and the golden touch. What went wrong with his wish, and how was it fixed?",
+      rubric:[
+        "Midas was granted a wish and wished that everything he touched would turn to gold",
+        "At first he was delighted, turning objects to gold",
+        "It went wrong when things he needed – like food and drink – also turned to gold",
+        "He had to ask for the gift to be taken away, usually by washing in a river, to undo it"
+      ],
+      modelAnswer:"King Midas was granted one wish and asked that everything he touched would turn to gold. At first he was thrilled, turning ordinary objects into gold. But it quickly went wrong: his food and drink turned to gold the moment he touched them, so he couldn't eat or drink. Horrified, he begged to have the gift removed, and was told to wash in a river, which washed the golden touch away." },
+    { kind:"long", subject:"mythology",
+      prompt:"Tell the story of Narcissus and Echo. What happens to each of them, and why?",
+      rubric:[
+        "Echo was a nymph cursed to only be able to repeat the last words other people said",
+        "She fell in love with Narcissus but couldn't tell him because of her curse",
+        "Narcissus was extremely vain and fell in love with his own reflection in a pool of water",
+        "He was so obsessed he couldn't leave and eventually wasted away"
+      ],
+      modelAnswer:"Echo was a nymph who was cursed so she could only repeat the last words someone else had said, never speak first. She fell in love with a beautiful but very vain young man called Narcissus, but couldn't tell him because of her curse. Narcissus later saw his own reflection in a pool of water and fell hopelessly in love with it, refusing to leave. He eventually wasted away staring at himself." },
+    { kind:"long", subject:"mythology",
+      prompt:"Name at least four of the twelve Olympian gods and goddesses, and say what each one is god or goddess of.",
+      rubric:[
+        "Names at least four real Olympians correctly",
+        "Gives a correct domain/power for each one named",
+        "No made-up gods or clearly wrong domains for the ones chosen"
+      ],
+      modelAnswer:"Four of the twelve Olympians are Zeus, king of the gods and god of the sky and thunder; Hera, his wife and the goddess of marriage and family; Athena, the goddess of wisdom and strategic warfare; and Apollo, the god of the sun, music and prophecy." },
+    { kind:"long", subject:"mythology",
+      prompt:"Tell the story of Arachne and Athena. Why did Athena punish Arachne, and what did Arachne become?",
+      rubric:[
+        "Arachne was a mortal weaver who boasted she was better at weaving than the goddess Athena",
+        "Athena challenged her to a weaving contest to prove it",
+        "Arachne's weaving was excellent (and mocked/insulted the gods), which angered Athena",
+        "Athena turned Arachne into a spider as punishment, so she could weave forever"
+      ],
+      modelAnswer:"Arachne was a mortal woman who was such a brilliant weaver that she boasted she was better than the goddess Athena herself. Athena challenged her to a weaving contest, and Arachne's tapestry was so perfect — and mocked the gods so cheekily — that Athena flew into a rage. As punishment, Athena turned Arachne into a spider, condemning her to weave beautiful webs forever." },
+    { kind:"long", subject:"mythology",
+      prompt:"Who is Hermes, and what is he the god of? Describe at least two things you know about him.",
+      rubric:[
+        "Hermes is the messenger god (delivers messages for the other gods, especially Zeus)",
+        "He is also linked to travellers, thieves and/or trade, and has winged sandals that let him move incredibly fast",
+        "Any other accurate fact – e.g. son of Zeus, guide for souls travelling to the Underworld"
+      ],
+      modelAnswer:"Hermes is the messenger of the gods, famous for delivering messages incredibly quickly for Zeus and the other Olympians. He wears winged sandals that let him fly, and he is also the god of travellers, trade and even thieves. He is a son of Zeus, and he also guides the souls of the dead down to the Underworld." },
+    { kind:"long", subject:"mythology",
+      prompt:"Who is Hades, and what is he the god of? Describe at least two things you know about him, and correct one common myth people have about him.",
+      rubric:[
+        "Hades is the god of the Underworld/the dead",
+        "He is the brother of Zeus and Poseidon",
+        "Correctly notes he is often confused with 'the devil' but is not evil – he simply rules the dead, and isn't a villain in the original myths",
+        "Any other accurate fact – e.g. married to Persephone, associated with wealth found underground, owns Cerberus"
+      ],
+      modelAnswer:"Hades is the god of the Underworld and ruler of the dead, and the brother of Zeus and Poseidon. Unlike how he's sometimes shown in modern stories, in the original Greek myths he isn't evil or a devil figure — he simply does the important job of ruling over the dead fairly. He is married to Persephone, and his name is also linked to wealth, since precious metals come from underground." }
   ];
+
+  var HARRY_POTTER_ITEMS = [
+    { kind:"long", subject:"harry-potter",
+      prompt:"Who is Harry Potter, and how did he become famous as a baby, before he even knew about the wizarding world?",
+      rubric:[
+        "Harry is a wizard who grows up thinking he's an ordinary boy, raised by his aunt and uncle (the Dursleys)",
+        "As a baby, the dark wizard Voldemort tried to kill him but the curse rebounded and Voldemort was destroyed/lost his powers instead",
+        "Harry survived with only a lightning-bolt shaped scar on his forehead",
+        "This made him famous in the wizarding world as 'the boy who lived'"
+      ],
+      modelAnswer:"Harry Potter is a wizard who grew up believing he was an ordinary boy, raised by his unpleasant aunt and uncle, the Dursleys. When he was a baby, the dark wizard Voldemort tried to kill him with a curse, but the curse rebounded and destroyed Voldemort's powers instead, leaving Harry alive with only a lightning-bolt scar on his forehead. Because he was the only person ever known to survive Voldemort's killing curse, he became famous throughout the wizarding world as 'the boy who lived'." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"Describe the four houses of Hogwarts, and explain how a new student is sorted into one.",
+      rubric:[
+        "Names the four houses correctly: Gryffindor, Slytherin, Hufflepuff, Ravenclaw",
+        "Gives at least one correct trait associated with at least two houses (e.g. Gryffindor = brave, Slytherin = ambitious/cunning, Hufflepuff = loyal/hardworking, Ravenclaw = clever/wise)",
+        "Explains that new students are sorted by the Sorting Hat, usually in their first year"
+      ],
+      modelAnswer:"The four houses of Hogwarts are Gryffindor, known for bravery; Slytherin, known for ambition and cunning; Hufflepuff, known for loyalty and hard work; and Ravenclaw, known for wisdom and cleverness. New students are sorted into one of these houses in their very first year, by placing the magical Sorting Hat on their head, which looks into their mind and decides where they belong." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"Who are Harry's two best friends, and what is each of them like?",
+      rubric:[
+        "Names Ron Weasley and Hermione Granger",
+        "Gives an accurate trait for Ron – e.g. comes from a big wizarding family, loyal, sometimes jealous/insecure, good at wizard chess",
+        "Gives an accurate trait for Hermione – e.g. extremely clever/studious, Muggle-born, rule-following but brave, good at spells/research"
+      ],
+      modelAnswer:"Harry's two best friends are Ron Weasley and Hermione Granger. Ron comes from a large wizarding family and is loyal and funny, though he sometimes feels overshadowed or jealous. Hermione is exceptionally clever and hardworking, and although she usually likes following the rules, she's willing to break them and be very brave when it really matters." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"What is the Mirror of Erised, and what does it show the person looking into it?",
+      rubric:[
+        "The Mirror of Erised shows the viewer their deepest, most desperate desire",
+        "Notes 'Erised' is 'Desire' spelled backwards",
+        "Harry sees his dead parents when he looks into it",
+        "Dumbledore warns that people can become obsessed staring at it, since it doesn't show truth, just a wish"
+      ],
+      modelAnswer:"The Mirror of Erised shows whoever looks into it their deepest, most desperate desire — 'Erised' is simply 'Desire' spelled backwards. When Harry looks into it, he sees his parents, who died when he was a baby. Dumbledore warns him that it can be dangerous, because people can waste away staring at something that isn't real or true, just a wish that will never come from the mirror itself." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"Who is Voldemort, and why is he sometimes called 'He Who Must Not Be Named' or 'You-Know-Who'?",
+      rubric:[
+        "Voldemort is the most powerful/feared dark wizard, and the main villain of the series",
+        "Most witches and wizards are too afraid of him to say his real name out loud",
+        "So they use nicknames like 'He Who Must Not Be Named' or 'You-Know-Who' instead",
+        "Notes that Harry (and Dumbledore) are unusual in that they say his actual name"
+      ],
+      modelAnswer:"Voldemort is the most powerful and feared dark wizard in the story, and the main villain trying to take over the wizarding world. He caused so much fear during his rise to power that most witches and wizards are too scared to even say his real name, calling him 'He Who Must Not Be Named' or 'You-Know-Who' instead. Harry and Dumbledore are unusual because they say his real name anyway, which other characters often find shocking." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"What is a Patronus, and what is it used for? Explain what's needed to cast one successfully.",
+      rubric:[
+        "A Patronus is a magical guardian, usually shaped like an animal, conjured with the spell 'Expecto Patronum'",
+        "It is used to defend against Dementors (creatures that feed on happy feelings/cause despair)",
+        "To cast one, the caster needs to concentrate on a single, very happy memory",
+        "A Patronus takes the shape of an animal specific to that witch or wizard (e.g. Harry's is a stag)"
+      ],
+      modelAnswer:"A Patronus is a magical guardian, usually shaped like an animal, summoned with the spell 'Expecto Patronum'. It's used to fight off Dementors, dark creatures that drain happiness and hope from anyone nearby. To cast a proper Patronus, the witch or wizard has to focus hard on one truly happy memory. Everyone's Patronus takes a different animal shape — Harry's, for example, is a stag." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"In the second story, what is the Chamber of Secrets, what creature is hidden inside it, and who is behind opening it?",
+      rubric:[
+        "The Chamber of Secrets is a hidden chamber inside Hogwarts, built by Salazar Slytherin",
+        "It contains a giant Basilisk (a giant serpent whose gaze can kill/petrify)",
+        "It is opened that year by Ginny Weasley, who is being controlled via Tom Riddle's enchanted diary",
+        "Tom Riddle is later revealed to be a young Voldemort"
+      ],
+      modelAnswer:"The Chamber of Secrets is a hidden chamber inside Hogwarts, built long ago by Salazar Slytherin, containing a giant Basilisk — a monstrous serpent whose stare can kill or turn people to stone. That year it's opened by Ginny Weasley, who has been secretly controlled through an enchanted diary belonging to Tom Riddle — who turns out to be a younger version of Voldemort himself." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"Who is Sirius Black, and what is his relationship to Harry?",
+      rubric:[
+        "Sirius Black is Harry's godfather",
+        "He was wrongly imprisoned in Azkaban for years for a crime (betraying Harry's parents) that he didn't actually commit",
+        "He was a close friend of Harry's father, James, at school",
+        "He can transform into a large black dog (he is an Animagus)"
+      ],
+      modelAnswer:"Sirius Black is Harry's godfather, and he was one of his father James's closest friends at school. He spends much of the story having just escaped from Azkaban prison, where he was wrongly locked up for years, blamed for a betrayal he didn't actually commit. He is also an Animagus, able to transform into a large black dog." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"What are the three Deathly Hallows, and what does the legend say happens if someone possesses all three?",
+      rubric:[
+        "Names the three Hallows: the Elder Wand, the Resurrection Stone, and the Invisibility Cloak",
+        "Legend says whoever unites/possesses all three becomes 'master of death'"
+      ],
+      modelAnswer:"The three Deathly Hallows are the Elder Wand, the most powerful wand in existence; the Resurrection Stone, which can bring back an echo of the dead; and the Invisibility Cloak. According to legend, anyone who manages to unite all three objects becomes the 'master of death'." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"Who is Albus Dumbledore, and what role does he play at Hogwarts and in the wider fight against Voldemort?",
+      rubric:[
+        "Dumbledore is the headmaster of Hogwarts",
+        "He is considered one of the greatest/most powerful wizards of his time",
+        "He is a mentor figure who guides and protects Harry through the series",
+        "He leads/is closely linked to the resistance against Voldemort (e.g. founder of the Order of the Phoenix)"
+      ],
+      modelAnswer:"Albus Dumbledore is the headmaster of Hogwarts and widely considered one of the greatest wizards of his time. Throughout the series he acts as a mentor to Harry, guiding and protecting him while carefully withholding information until Harry is ready for it. He is also a key leader in the fight against Voldemort, including founding a secret group called the Order of the Phoenix." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"Describe the game of Quidditch — what are the main positions, and how does a team score points or win?",
+      rubric:[
+        "Played on broomsticks, with two teams of seven players",
+        "Names at least two positions correctly – e.g. Chaser (scores with the Quaffle), Keeper (guards the hoops), Beater (hits Bludgers at the other team), Seeker (catches the Golden Snitch)",
+        "Explains that catching the Golden Snitch is worth a lot of points (150) and usually ends the game",
+        "General scoring – e.g. getting the Quaffle through a hoop is worth 10 points"
+      ],
+      modelAnswer:"Quidditch is played on broomsticks by two teams of seven players. Chasers try to score by throwing the Quaffle through one of the opposing team's three hoops, worth 10 points each, while the Keeper guards their own hoops. Beaters hit the Bludgers — heavy balls that try to knock players off their brooms — away from their teammates. The Seeker's job is to catch the tiny, fast Golden Snitch, which is worth 150 points and usually ends the match." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"What is the Triwizard Tournament, and which schools take part in it?",
+      rubric:[
+        "A dangerous magical competition/tournament between three wizarding schools",
+        "Names the three schools – Hogwarts, Beauxbatons, and Durmstrang",
+        "One champion is usually chosen from each school (via the Goblet of Fire)",
+        "Notes it involves difficult and dangerous magical tasks/challenges"
+      ],
+      modelAnswer:"The Triwizard Tournament is a dangerous magical competition held between three wizarding schools: Hogwarts, Beauxbatons, and Durmstrang. One champion is normally chosen from each school by the magical Goblet of Fire, and the champions compete in a series of difficult and dangerous tasks to see who is the most skilled." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"Who is Severus Snape, and why is his true loyalty a mystery for much of the series?",
+      rubric:[
+        "Snape is a Potions professor at Hogwarts",
+        "He is unpleasant/harsh towards Harry and seems to favour Slytherin, making him seem untrustworthy",
+        "He was once a Death Eater/follower of Voldemort, which makes his true side unclear",
+        "In fact he is secretly working for Dumbledore, because of his love for Harry's mother, Lily"
+      ],
+      modelAnswer:"Severus Snape is the Potions professor at Hogwarts, who is consistently harsh and unfair towards Harry, which makes him seem like an enemy. His loyalty is a genuine mystery for most of the series because he used to be a Death Eater, a follower of Voldemort. It's eventually revealed that he has secretly been working for Dumbledore all along, out of his lifelong love for Harry's mother, Lily." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"What is a Horcrux, and why does Voldemort create them?",
+      rubric:[
+        "A Horcrux is an object in which a wizard has hidden a piece of their own soul",
+        "It is created through an evil/dark act, often murder",
+        "As long as at least one Horcrux survives, the person cannot fully die",
+        "Voldemort creates several of them to try to become immortal/impossible to kill"
+      ],
+      modelAnswer:"A Horcrux is an object that a dark wizard has hidden a fragment of their own soul inside, usually created through committing murder. As long as even one Horcrux still exists somewhere, the wizard who made it cannot be fully killed. Voldemort deliberately splits his soul into several Horcruxes because he is terrified of dying and wants to make himself as close to immortal and impossible to destroy as possible." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"Describe Hagrid — what is his job, and what is his personality like?",
+      rubric:[
+        "Hagrid is the Keeper of Keys and Grounds (gamekeeper) at Hogwarts, and later Care of Magical Creatures teacher",
+        "He is a half-giant, extremely large/strong",
+        "Personality – warm-hearted, kind, loyal, but not always careful, especially around dangerous creatures he loves",
+        "He is the one who first tells Harry he is a wizard and takes him to buy his school things"
+      ],
+      modelAnswer:"Hagrid is the gamekeeper at Hogwarts and later also teaches Care of Magical Creatures. He is a half-giant, enormously tall and strong, but underneath that he is warm-hearted, kind and fiercely loyal, even if he isn't always careful — especially when it comes to the dangerous magical creatures he loves. He's also the one who first tells Harry that he's a wizard and takes him shopping for his school supplies." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"What happens to Harry's parents, and how does this shape his life before he arrives at Hogwarts?",
+      rubric:[
+        "Harry's parents, James and Lily Potter, are murdered by Voldemort when Harry is a baby",
+        "Lily's sacrifice to protect Harry gives him powerful protective magic",
+        "Harry is sent to live with his aunt and uncle, the Dursleys, who treat him badly",
+        "He grows up not knowing he's famous or a wizard until he's eleven"
+      ],
+      modelAnswer:"Harry's parents, James and Lily Potter, are murdered by Voldemort when Harry is just a baby. Lily dies protecting her son, and her sacrifice leaves Harry with powerful protective magic. He is then sent to live with his unpleasant aunt and uncle, the Dursleys, who treat him poorly and never tell him anything about magic, so he grows up with no idea that he's a famous wizard until he turns eleven." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"Who is Dobby, and how does he try to help (and sometimes accidentally hinder) Harry?",
+      rubric:[
+        "Dobby is a house-elf",
+        "He originally serves the Malfoy family",
+        "He tries to protect Harry from danger, sometimes by getting in his way or causing chaotic accidents to try to keep him away from Hogwarts",
+        "Harry later helps free Dobby"
+      ],
+      modelAnswer:"Dobby is a house-elf who originally serves the Malfoy family. Desperate to protect Harry from danger he knows is coming, he tries to warn and help him, even though his methods (like causing chaotic accidents to keep Harry away from Hogwarts) often cause more trouble than they solve. Harry later manages to free Dobby from servitude by tricking Lucius Malfoy into accidentally giving him a piece of clothing." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"What is the Sorting Hat, and how does it decide which house a new student belongs to?",
+      rubric:[
+        "The Sorting Hat is an old, magical, talking hat",
+        "New students put it on and it looks into their mind/personality",
+        "It considers their qualities and sometimes their own preferences",
+        "It then announces which of the four houses they belong to"
+      ],
+      modelAnswer:"The Sorting Hat is an old, magical hat that can talk and think. When a new student puts it on, it looks into their mind and personality, weighing up their qualities — and sometimes listening to what the student themselves wants — before deciding out loud which of the four houses suits them best." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"Who is Draco Malfoy, and what is his relationship with Harry like?",
+      rubric:[
+        "Draco Malfoy is a Slytherin student in Harry's year",
+        "He comes from a wealthy, pure-blood wizarding family that looks down on Muggle-born witches and wizards",
+        "He and Harry are rivals/enemies for most of the series, often clashing",
+        "Notes some nuance – e.g. he is not simply evil, and his character becomes more complicated later in the series"
+      ],
+      modelAnswer:"Draco Malfoy is a Slytherin student in Harry's year, from a wealthy pure-blood family that looks down on Muggle-born witches and wizards. He and Harry are rivals for almost the entire series, constantly clashing and insulting each other. He isn't simply a straightforward villain though — later in the story his character becomes more complicated, showing fear and doubt rather than pure cruelty." },
+    { kind:"long", subject:"harry-potter",
+      prompt:"What is the Battle of Hogwarts, and who wins?",
+      rubric:[
+        "The Battle of Hogwarts is the final, huge battle of the series, fought at Hogwarts castle",
+        "It is between Voldemort's forces (Death Eaters and allies) and the defenders of Hogwarts (students, teachers, the Order of the Phoenix)",
+        "Harry ultimately defeats Voldemort during/at the end of this battle",
+        "Notes the cost – several beloved characters die in the battle"
+      ],
+      modelAnswer:"The Battle of Hogwarts is the huge final battle of the series, fought at Hogwarts castle between Voldemort's Death Eaters and the combined defenders — students, teachers and the Order of the Phoenix. By the end of the battle, Harry finally defeats Voldemort for good, though the victory comes at a heavy cost, with several much-loved characters dying in the fighting." }
+  ];
+
+  var STRANGER_THINGS_ITEMS = [
+    { kind:"long", subject:"stranger-things",
+      prompt:"Where is Stranger Things set, and in roughly what decade does the story take place?",
+      rubric:[
+        "Set in the fictional small town of Hawkins, Indiana",
+        "Takes place in the 1980s",
+        "Any supporting detail – e.g. period music, technology, or a Cold War backdrop"
+      ],
+      modelAnswer:"Stranger Things is set in the small fictional town of Hawkins, Indiana, in the 1980s. The show leans heavily into the look and feel of that decade, with period music, technology like walkie-talkies and arcade games, and a Cold War backdrop." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"Who is Eleven, and what special abilities does she have?",
+      rubric:[
+        "Eleven (El) is a girl with psychic/telekinetic powers",
+        "She was experimented on as a child at Hawkins Lab",
+        "Powers include telekinesis (moving objects with her mind) and the ability to spy on/enter other places or minds",
+        "She has a shaved head and a tattoo of the number 011 on her arm when first found"
+      ],
+      modelAnswer:"Eleven, or El, is a girl with extraordinary psychic powers, including telekinesis — the ability to move objects and even people with her mind — and the ability to mentally travel to or spy on other places. She was experimented on as a young child at Hawkins Lab, which is where her powers were developed and tested. When the boys first find her, she has a shaved head and a tattoo reading '011' on her arm." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"What is the Upside Down, and how is it connected to the town of Hawkins?",
+      rubric:[
+        "The Upside Down is a dark, decaying alternate/parallel dimension",
+        "It mirrors the real world (Hawkins) but twisted, dark and dangerous",
+        "It is home to monsters (e.g. the Demogorgon, the Mind Flayer)",
+        "People and creatures can cross between the two worlds through gates/rifts"
+      ],
+      modelAnswer:"The Upside Down is a dark, decaying alternate dimension that mirrors Hawkins but in a twisted, dangerous version, covered in strange vines and spores. It's home to terrifying creatures like the Demogorgon and the Mind Flayer. People and monsters can cross between the two worlds through gates or rifts that open up between them." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"Who is Will Byers, and what happens to him at the very start of the show?",
+      rubric:[
+        "Will Byers is one of a group of four close friends",
+        "He disappears/goes missing near the start of the show, after being chased by a monster",
+        "He is actually pulled into the Upside Down (not simply lost/kidnapped by a person)",
+        "His disappearance kicks off the search that drives much of the first season"
+      ],
+      modelAnswer:"Will Byers is one of a tight-knit group of four friends. At the very start of the show, he disappears while cycling home, having been chased and taken by a monster. In reality he has been pulled into the Upside Down, the dark alternate dimension, and his disappearance sets off the desperate search that drives the whole first season." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"Name Will's three closest friends, who help search for him after he goes missing.",
+      rubric:[
+        "Names Mike Wheeler",
+        "Names Dustin Henderson",
+        "Names Lucas Sinclair"
+      ],
+      modelAnswer:"Will's three closest friends, who lead the search for him, are Mike Wheeler, Dustin Henderson and Lucas Sinclair." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"Who or what is the Demogorgon, and where does it come from?",
+      rubric:[
+        "The Demogorgon is a tall, faceless monster (with a flower-like opening for a face)",
+        "It comes from the Upside Down",
+        "It hunts and kills people from the real world (Hawkins)",
+        "Notes the name comes from the Dungeons & Dragons game the boys play"
+      ],
+      modelAnswer:"The Demogorgon is a tall, faceless monster from the Upside Down, with a strange flower-like opening instead of a face. It crosses over into Hawkins and hunts people there. The boys actually name it after a monster from the Dungeons & Dragons game they play, since it reminds them of it." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"Describe Chief Jim Hopper — what is his job, and what is his personality like?",
+      rubric:[
+        "Hopper is the police chief of Hawkins",
+        "Personality – gruff, world-weary/troubled to begin with, but caring and protective, especially once he takes El in",
+        "He investigates Will's disappearance and the wider mystery",
+        "Becomes a father figure to Eleven"
+      ],
+      modelAnswer:"Jim Hopper is the police chief of Hawkins. He starts out gruff and world-weary, carrying a lot of personal grief, but underneath that he is deeply caring and protective, especially once he takes Eleven in and becomes a father figure to her. He's the one who ends up investigating both Will's disappearance and the strange goings-on connected to it." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"Who is Joyce Byers, and how does she try to communicate with Will while he's missing?",
+      rubric:[
+        "Joyce is Will's mother",
+        "She is convinced Will is still alive and trying to reach her, even when others don't believe her",
+        "She strings up Christmas/fairy lights and paints the alphabet on the wall to communicate with Will",
+        "The lights flicker to spell out letters/messages"
+      ],
+      modelAnswer:"Joyce Byers is Will's mother, and she refuses to believe he is dead even when almost everyone else does. Convinced he is trying to reach her from somewhere strange, she strings up Christmas lights around her house and paints letters of the alphabet on the wall, using the flickering lights to spell out messages from Will." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"What is Hawkins Lab, and what kind of work goes on there?",
+      rubric:[
+        "Hawkins Lab is a secretive government research facility near the town",
+        "It conducts secret experiments, including on children with psychic abilities (like Eleven)",
+        "Its experiments are connected to the opening of the gate to the Upside Down",
+        "It is generally shown as sinister/covering up what it's really doing"
+      ],
+      modelAnswer:"Hawkins Lab is a secretive government research facility just outside the town. Behind its official cover story, it runs secret experiments, including on children with psychic abilities like Eleven, and its work turns out to be directly responsible for opening a gate to the Upside Down. Throughout the show it behaves in a sinister way, covering up what's really going on inside." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"Who is Steve Harrington, and how does his role in the group change over the course of the show?",
+      rubric:[
+        "Steve starts out as a popular, somewhat arrogant older student/Nancy's boyfriend",
+        "Over time he becomes a genuinely brave and protective figure",
+        "He becomes something of a big-brother/babysitter figure to the younger kids (e.g. Dustin)",
+        "He is shown fighting monsters to protect the group despite having no powers"
+      ],
+      modelAnswer:"Steve Harrington starts off as a popular, slightly arrogant older student and Nancy's boyfriend. Over the course of the show he grows into a genuinely brave and selfless character, becoming a protective, almost big-brother figure to the younger kids, especially Dustin. Despite having no powers of his own, he repeatedly puts himself in danger, fighting monsters to keep the group safe." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"What is the Mind Flayer, and what does it want?",
+      rubric:[
+        "The Mind Flayer is a massive, shadowy monster/hive-mind that rules the Upside Down",
+        "It wants to invade and take over Hawkins (and eventually the wider world)",
+        "It can possess/control people and creatures",
+        "It is connected to Will after he spends time trapped in the Upside Down"
+      ],
+      modelAnswer:"The Mind Flayer is a massive, shadowy creature that rules over the Upside Down like a hive mind. It wants to invade and take over Hawkins, and eventually spread beyond it. It's able to possess and control people, and it forms a disturbing psychic connection to Will after his time trapped in the Upside Down, using him almost like a spy." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"Who is Max Mayfield, and how does she join the main group of friends?",
+      rubric:[
+        "Max is a new girl who moves to Hawkins with her family",
+        "She is skilled at skateboarding/arcade games, confident and independent",
+        "She becomes friends with the group after they notice her skills / she gets drawn into their mystery",
+        "She is the stepsister of Billy"
+      ],
+      modelAnswer:"Max Mayfield is a new girl who moves to Hawkins with her family. She's confident, independent, and impressively good at arcade games and skateboarding, which is how she first catches the boys' attention. She gradually becomes part of the main group as she gets drawn into the strange events happening in the town, and she's also Billy's stepsister." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"How does Joyce use Christmas lights to try to talk to Will, and how does the method work?",
+      rubric:[
+        "She paints/writes the alphabet on her living room wall",
+        "She strings Christmas lights along the letters",
+        "Will (from the Upside Down) makes individual lights flicker to spell out words/messages letter by letter",
+        "This gives Joyce a way to know he's still alive"
+      ],
+      modelAnswer:"Joyce paints the letters of the alphabet onto her living room wall and strings Christmas lights along them. Will, trapped in the Upside Down, is able to make individual lights flicker on to spell out words one letter at a time, giving Joyce a way to know he's still alive and to receive short messages from him." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"Who is Dr. Brenner (sometimes called 'Papa'), and what is his relationship to Eleven?",
+      rubric:[
+        "Dr. Brenner runs the experiments at Hawkins Lab",
+        "He raised Eleven from a young age and she calls him 'Papa'",
+        "He is controlling and manipulative, treating her more as a subject/tool than a daughter",
+        "He is responsible for the experiment that opens the gate to the Upside Down"
+      ],
+      modelAnswer:"Dr. Brenner runs the secret experiments at Hawkins Lab, and he raised Eleven from a young age, which is why she calls him 'Papa'. Despite that name, he treats her more like a research subject than a real daughter, controlling and manipulating her to push her powers further. It's his experiments that end up opening the gate to the Upside Down in the first place." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"Describe Dustin Henderson's personality — what is he known for?",
+      rubric:[
+        "Dustin is enthusiastic, curious, and knowledgeable (especially about science/D&D/nature)",
+        "He is loyal to his friends",
+        "He has a distinctive gap in his teeth, referenced in the show",
+        "He often comes up with clever/scientific explanations for strange happenings"
+      ],
+      modelAnswer:"Dustin Henderson is enthusiastic, endlessly curious, and knows a huge amount about science and Dungeons & Dragons, which he often puts to good use working out what's really going on. He's fiercely loyal to his friends, and he's known for the gap in his teeth after losing a baby tooth, which the show even jokes about directly." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"In Season 3, what is going on at the new Starcourt Mall, broadly speaking?",
+      rubric:[
+        "A big new shopping mall (Starcourt Mall) opens in Hawkins",
+        "Underneath/behind it, there is a secret Russian base/operation",
+        "The Russians are trying to reopen the gate to the Upside Down",
+        "The mall is used as a cover for their secret machine/operation"
+      ],
+      modelAnswer:"In Season 3, a huge new shopping mall called Starcourt opens in Hawkins, drawing in the whole town. Underneath it, hidden from view, a secret Russian operation is running a massive machine, using the mall as a cover story while they try to force open the gate to the Upside Down again." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"Who is Robin Buckley, and how does she become part of the main group?",
+      rubric:[
+        "Robin works with Steve at the Scoops Ahoy ice cream shop in Season 3",
+        "She is clever, quick-witted, and good with codes/languages",
+        "She gets pulled into the group's investigation when she overhears something suspicious",
+        "She becomes close friends with Steve"
+      ],
+      modelAnswer:"Robin Buckley works alongside Steve at the Scoops Ahoy ice cream shop in Starcourt Mall. She's quick-witted and skilled with codes and languages, and she gets pulled into the group's investigation after overhearing a strange coded message at work. She and Steve become close friends through the adventure that follows." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"In Season 4, what is Vecna, and where does he come from?",
+      rubric:[
+        "Vecna is a powerful, monstrous new villain",
+        "He is revealed to be connected to the Upside Down/Hawkins Lab's earlier experiments",
+        "He hunts and curses victims, often linked to their trauma/memories, before killing them",
+        "He is later revealed to have a human origin/backstory connected to earlier events at the Lab"
+      ],
+      modelAnswer:"In Season 4, Vecna is a powerful and terrifying new villain who hunts victims by preying on their trauma and painful memories before killing them. He turns out to be deeply connected to the Upside Down and to Hawkins Lab's earlier experiments, with a shocking human origin that ties him back to events from long before the main story began." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"Describe Nancy Wheeler and Jonathan Byers, and the role each of them plays in the story.",
+      rubric:[
+        "Nancy is Mike's older sister",
+        "She is determined, brave, and becomes increasingly interested in journalism/investigating",
+        "Jonathan is Will's older brother, and is thoughtful, artistic (photography) and a bit of an outsider",
+        "They team up together to investigate/fight the threats to Hawkins, and grow close"
+      ],
+      modelAnswer:"Nancy Wheeler is Mike's older sister — determined and brave, and increasingly drawn to journalism and investigating the truth behind Hawkins' strange events. Jonathan Byers is Will's older brother, a thoughtful, artistic outsider who loves photography. The two of them team up to investigate the dangers threatening the town, and grow steadily closer as they do." },
+    { kind:"long", subject:"stranger-things",
+      prompt:"The main group of boys love playing Dungeons & Dragons. Give an example of how the game influences how they understand or name the strange things happening around them.",
+      rubric:[
+        "Explains the boys are keen Dungeons & Dragons players",
+        "Gives at least one concrete example – e.g. naming the monster 'Demogorgon' after a D&D creature, or using D&D logic/strategy to solve real problems",
+        "Shows understanding that their game knowledge genuinely helps them make sense of real danger"
+      ],
+      modelAnswer:"The boys are dedicated Dungeons & Dragons players, and their knowledge of the game keeps helping them make sense of the real danger around them. For example, they name the monster from the alternate dimension the 'Demogorgon', because it reminds them of a creature from the game, giving them a shared way to describe and reason about the impossible things they're facing." }
+  ];
+
+  var ITEMS_BY_SUBJECT = {
+    "mythology": MYTHOLOGY_ITEMS,
+    "harry-potter": HARRY_POTTER_ITEMS,
+    "stranger-things": STRANGER_THINGS_ITEMS
+  };
 
   function shuffle(arr){
     var a = arr.slice();
@@ -583,7 +1135,7 @@
   // ---------- AI marking ----------
   // Shared with any other AI-marked question page this app might grow —
   // the settings are written and read the same way, keyed generically
-  // rather than to "mythology", so a future subject can reuse them as-is.
+  // rather than to any one subject, so a future subject can reuse them as-is.
   var AI_MARKING_SETTINGS_KEY = "aiMarkingSettings_v1";
   var AI_MARKING_MODEL = "claude-haiku-4-5-20251001";
 
@@ -606,9 +1158,9 @@
 
   // One-off disclosure, shown before the very first AI-marked session on a
   // device, explaining what's sent to the AI and that it's AI marking
-  // rather than a person. Shared across any future AI-marked subject too —
-  // the small "AI-marked" badge on each question card is the ongoing
-  // reminder, so this doesn't show again once seen anywhere in the app.
+  // rather than a person. Shared across every subject here (and any future
+  // AI-marked page) — the small "AI-marked" badge on each question card is
+  // the ongoing reminder, so this doesn't show again once seen anywhere.
   var AI_DISCLOSURE_SEEN_KEY = "aiDisclosureSeen_v1";
   function hasSeenAiDisclosure(){
     try { return window.localStorage.getItem(AI_DISCLOSURE_SEEN_KEY) === "1"; } catch (e){ return false; }
@@ -627,8 +1179,9 @@
     if (!settings.provider || !settings.apiKey){
       return Promise.reject(new Error("no API key configured"));
     }
+    var subjectName = SUBJECT_NAME[item.subject] || "the question";
     var rubricText = item.rubric.map(function(r, i){ return (i + 1) + ". " + r; }).join("\n");
-    var systemPrompt = "You are marking a UK Year 6 pupil's written answer to a Greek mythology question. " +
+    var systemPrompt = "You are marking a UK Year 6 pupil's written answer to a trivia question about " + subjectName + ". " +
       "Judge it against the rubric below on meaning, not exact wording - synonyms, different phrasing and " +
       "minor spelling mistakes are all fine as long as the facts are right. Reply with ONLY a JSON object of " +
       "exactly this shape and nothing else (no markdown, no extra text): " +
@@ -688,30 +1241,66 @@
     });
   }
 
-  // ---------- This page's own history and progress ----------
+  // ---------- This page's own history and progress, tracked per subject ----------
   // Entirely separate from the entry test app and its Progress page — a
-  // trial, just-for-fun section with its own small tracking here instead.
-  var HISTORY_KEY = "mythologyHistory_v1";
+  // just-for-fun trivia section with its own small tracking here instead,
+  // broken down by subject so a future subject slots straight into the
+  // same three keys rather than needing its own.
+  var HISTORY_KEY = "triviaHistory_v1";
+  var ITEM_STATS_KEY = "triviaItemStats_v1";
+  var TOTALS_KEY = "triviaTotals_v1";
   var HISTORY_MAX = 100;
-  function loadHistory(){
+
+  // One-time migration from this page's original single-subject (Greek
+  // Mythology only) storage keys, from before Harry Potter and Stranger
+  // Things were added, so nobody's existing progress gets lost.
+  (function migrateLegacyMythologyData(){
+    try {
+      if (window.localStorage.getItem(HISTORY_KEY) !== null) return; // already on the new format
+      var legacyHistoryRaw = window.localStorage.getItem("mythologyHistory_v1");
+      var legacyItemStatsRaw = window.localStorage.getItem("mythologyItemStats_v1");
+      var legacyTotalsRaw = window.localStorage.getItem("mythologyTotals_v1");
+      if (legacyHistoryRaw === null && legacyItemStatsRaw === null && legacyTotalsRaw === null) return;
+
+      var history = {}, itemStatsData = {}, totalsData = {};
+      try { var h = JSON.parse(legacyHistoryRaw); if (Array.isArray(h)) history.mythology = h; } catch (e){ /* ignore */ }
+      try { var s = JSON.parse(legacyItemStatsRaw); if (s && typeof s === "object") itemStatsData.mythology = s; } catch (e){ /* ignore */ }
+      try { var t = JSON.parse(legacyTotalsRaw); if (t && typeof t === "object") totalsData.mythology = t; } catch (e){ /* ignore */ }
+
+      window.localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      window.localStorage.setItem(ITEM_STATS_KEY, JSON.stringify(itemStatsData));
+      window.localStorage.setItem(TOTALS_KEY, JSON.stringify(totalsData));
+      window.localStorage.removeItem("mythologyHistory_v1");
+      window.localStorage.removeItem("mythologyItemStats_v1");
+      window.localStorage.removeItem("mythologyTotals_v1");
+    } catch (e){ /* best effort */ }
+  })();
+
+  function loadAllHistory(){
+    var obj = null;
     try {
       var raw = window.localStorage.getItem(HISTORY_KEY);
-      var list = raw ? JSON.parse(raw) : [];
-      return Array.isArray(list) ? list : [];
-    } catch (e){ return []; }
+      obj = raw ? JSON.parse(raw) : null;
+    } catch (e){ obj = null; }
+    return (obj && typeof obj === "object") ? obj : {};
   }
-  function saveHistory(list){
-    try { window.localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); } catch (e){ /* ignore */ }
+  function saveAllHistory(all){
+    try { window.localStorage.setItem(HISTORY_KEY, JSON.stringify(all)); } catch (e){ /* ignore */ }
   }
-  function addHistoryRecord(rec){
-    var list = loadHistory();
+  function loadHistory(subjectKey){
+    var list = loadAllHistory()[subjectKey];
+    return Array.isArray(list) ? list : [];
+  }
+  function addHistoryRecord(subjectKey, rec){
+    var all = loadAllHistory();
+    var list = Array.isArray(all[subjectKey]) ? all[subjectKey] : [];
     list.unshift(rec);
     if (list.length > HISTORY_MAX) list.length = HISTORY_MAX;
-    saveHistory(list);
+    all[subjectKey] = list;
+    saveAllHistory(all);
   }
 
-  var ITEM_STATS_KEY = "mythologyItemStats_v1";
-  function loadItemStats(){
+  function loadAllItemStats(){
     var obj = null;
     try {
       var raw = window.localStorage.getItem(ITEM_STATS_KEY);
@@ -719,41 +1308,51 @@
     } catch (e){ obj = null; }
     return (obj && typeof obj === "object") ? obj : {};
   }
-  function saveItemStats(){
-    try { window.localStorage.setItem(ITEM_STATS_KEY, JSON.stringify(itemStats)); } catch (e){ /* ignore */ }
+  function saveAllItemStats(all){
+    try { window.localStorage.setItem(ITEM_STATS_KEY, JSON.stringify(all)); } catch (e){ /* ignore */ }
   }
-  var itemStats = loadItemStats();
 
-  var TOTALS_KEY = "mythologyTotals_v1";
-  function loadTotals(){
+  function loadAllTotals(){
     var obj = null;
     try {
       var raw = window.localStorage.getItem(TOTALS_KEY);
       obj = raw ? JSON.parse(raw) : null;
     } catch (e){ obj = null; }
-    if (!obj || typeof obj !== "object") obj = {};
+    return (obj && typeof obj === "object") ? obj : {};
+  }
+  function saveAllTotals(all){
+    try { window.localStorage.setItem(TOTALS_KEY, JSON.stringify(all)); } catch (e){ /* ignore */ }
+  }
+  function loadTotals(subjectKey){
+    var t = loadAllTotals()[subjectKey];
+    if (!t || typeof t !== "object") t = {};
     return {
-      correct: typeof obj.correct === "number" ? obj.correct : 0,
-      attempted: typeof obj.attempted === "number" ? obj.attempted : 0
+      correct: typeof t.correct === "number" ? t.correct : 0,
+      attempted: typeof t.attempted === "number" ? t.attempted : 0
     };
   }
-  function saveTotals(t){
-    try { window.localStorage.setItem(TOTALS_KEY, JSON.stringify(t)); } catch (e){ /* ignore */ }
-  }
-  var totals = loadTotals();
 
-  function recordOutcome(item, result){
+  function recordOutcome(subjectKey, item, result){
     var isCorrect = result.verdict === "correct";
-    itemStats[itemId(item)] = {
+
+    var allItemStats = loadAllItemStats();
+    var subjectItemStats = (allItemStats[subjectKey] && typeof allItemStats[subjectKey] === "object") ? allItemStats[subjectKey] : {};
+    subjectItemStats[itemId(item)] = {
       verdict: result.verdict,
       feedback: result.feedback,
       text: item.prompt,
       lastSeen: new Date().toISOString()
     };
-    saveItemStats();
-    totals.attempted++;
-    if (isCorrect) totals.correct++;
-    saveTotals(totals);
+    allItemStats[subjectKey] = subjectItemStats;
+    saveAllItemStats(allItemStats);
+
+    var allTotals = loadAllTotals();
+    var t = loadTotals(subjectKey);
+    t.attempted++;
+    if (isCorrect) t.correct++;
+    allTotals[subjectKey] = t;
+    saveAllTotals(allTotals);
+
     return isCorrect;
   }
 
@@ -764,25 +1363,28 @@
 
   // Exposed only so the test suite can exercise this without needing to
   // play through whole sessions, or make real network requests.
-  window.__mythologyAllItems = function(){ return MYTHOLOGY_ITEMS; };
+  window.__mythologySubjects = function(){ return SUBJECTS.map(function(s){ return s.key; }); };
+  window.__mythologyItemsForSubject = function(subjectKey){ return ITEMS_BY_SUBJECT[subjectKey] || []; };
   window.__mythologyItemId = itemId;
   window.__mythologyHasAiMarkingKey = hasAiMarkingKey;
   window.__mythologyMarkAnswer = markLongAnswerWithAi;
   window.__mythologyCurrentQueue = function(){ return queue; };
+  window.__mythologyCurrentSubject = function(){ return currentSubject; };
 
   // ---------- Element refs ----------
   var notSetUpCard = document.getElementById("notSetUpCard");
-  var startCard = document.getElementById("startCard");
-  var startSub = document.getElementById("startSub");
-  var startBtn = document.getElementById("startBtn");
+  var subjectPickerCard = document.getElementById("subjectPickerCard");
+  var subjectButtons = Array.prototype.slice.call(document.querySelectorAll(".subject-btn"));
   var aiDisclosureView = document.getElementById("aiDisclosureView");
   var aiDisclosureContinueBtn = document.getElementById("aiDisclosureContinueBtn");
   var aiDisclosureBackBtn = document.getElementById("aiDisclosureBackBtn");
   var quizSection = document.getElementById("quizSection");
+  var quizTitle = document.getElementById("quizTitle");
   var progressRow = document.getElementById("progressRow");
   var progressFill = document.getElementById("progressFill");
   var progressText = document.getElementById("progressText");
   var questionCard = document.getElementById("questionCard");
+  var qTagEl = document.getElementById("qTag");
   var qPromptEl = document.getElementById("qPrompt");
   var qBody = document.getElementById("qBody");
   var qFeedbackEl = document.getElementById("qFeedback");
@@ -797,7 +1399,7 @@
   var quitRow = document.getElementById("quitRow");
   var quitBtn = document.getElementById("quitBtn");
   var progressSection = document.getElementById("progressSection");
-  var progressSummary = document.getElementById("progressSummary");
+  var progressSummaryList = document.getElementById("progressSummaryList");
 
   // ---------- Session state ----------
   var queue = [];
@@ -806,6 +1408,10 @@
   var attemptedCount = 0;
   var checked = false;
   var missed = [];
+  var currentSubject = null;
+  // The subject a child tapped, waiting on the one-off disclosure before a
+  // session actually starts for it.
+  var pendingSubject = null;
   // Bumped every time a session starts (including a retry). A marking
   // request in flight when the session changes — quitting or starting a new
   // one before Claude replies — captures the token at request time, so a
@@ -814,25 +1420,40 @@
   var sessionToken = 0;
 
   function renderProgressSummary(){
-    var hist = loadHistory();
-    var t = loadTotals();
-    if (!hist.length && !t.attempted){
+    var anyData = SUBJECTS.some(function(s){
+      return loadHistory(s.key).length > 0 || loadTotals(s.key).attempted > 0;
+    });
+    if (!anyData){
       progressSection.hidden = true;
       return;
     }
     progressSection.hidden = false;
-    var parts = [];
-    if (hist.length){
-      var last = hist[0];
-      parts.push("Last time: " + formatDate(last.date) + " — " + last.correct + "/" + last.attempted + " (" + last.pct + "%)");
-    }
-    if (t.attempted){
-      parts.push("All-time: " + t.correct + "/" + t.attempted + " (" + Math.round((t.correct / t.attempted) * 100) + "%)");
-    }
-    progressSummary.textContent = parts.join(" · ");
+    progressSummaryList.innerHTML = "";
+    SUBJECTS.forEach(function(s){
+      var hist = loadHistory(s.key);
+      var t = loadTotals(s.key);
+      var li = document.createElement("li");
+      var strong = document.createElement("strong");
+      strong.textContent = s.name;
+      li.appendChild(strong);
+      if (!hist.length && !t.attempted){
+        li.appendChild(document.createTextNode(" — no sessions yet"));
+      } else {
+        var parts = [];
+        if (hist.length){
+          var last = hist[0];
+          parts.push("last time " + last.correct + "/" + last.attempted + " (" + last.pct + "%)");
+        }
+        if (t.attempted){
+          parts.push("all-time " + t.correct + "/" + t.attempted + " (" + Math.round((t.correct / t.attempted) * 100) + "%)");
+        }
+        li.appendChild(document.createTextNode(" — " + parts.join(", ")));
+      }
+      progressSummaryList.appendChild(li);
+    });
   }
 
-  // Shows whichever of "not set up" / "ready to start" applies right now —
+  // Shows whichever of "not set up" / "pick a subject" applies right now —
   // re-checked every time this is called, since a parent could set the key
   // up on admin.html in another tab while this page is still open.
   function showLanding(){
@@ -840,30 +1461,33 @@
     aiDisclosureView.hidden = true;
     if (hasAiMarkingKey()){
       notSetUpCard.hidden = true;
-      startCard.hidden = false;
-      startSub.textContent = MYTHOLOGY_ITEMS.length + " questions, one at a time — take your time and write as much as you know.";
+      subjectPickerCard.hidden = false;
     } else {
       notSetUpCard.hidden = false;
-      startCard.hidden = true;
+      subjectPickerCard.hidden = true;
     }
     renderProgressSummary();
   }
 
-  function showAiDisclosure(){
-    startCard.hidden = true;
+  function showAiDisclosure(subjectKey){
+    pendingSubject = subjectKey;
+    subjectPickerCard.hidden = true;
     notSetUpCard.hidden = true;
     aiDisclosureView.hidden = false;
   }
 
-  function beginSession(){
+  function beginSession(subjectKey){
     sessionToken++;
-    queue = shuffle(MYTHOLOGY_ITEMS);
+    currentSubject = subjectKey;
+    var pool = ITEMS_BY_SUBJECT[subjectKey] || [];
+    queue = shuffle(pool).slice(0, QUESTIONS_PER_SESSION);
     qIndex = 0;
     correctCount = 0;
     attemptedCount = 0;
     missed = [];
+    quizTitle.textContent = SUBJECT_NAME[subjectKey] || "Trivia";
     notSetUpCard.hidden = true;
-    startCard.hidden = true;
+    subjectPickerCard.hidden = true;
     aiDisclosureView.hidden = true;
     quizSection.hidden = false;
     completionPanel.hidden = true;
@@ -874,16 +1498,19 @@
     loadQuestion();
   }
 
-  startBtn.addEventListener("click", function(){
-    if (!hasSeenAiDisclosure()){
-      showAiDisclosure();
-      return;
-    }
-    beginSession();
+  subjectButtons.forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var subjectKey = btn.getAttribute("data-subject");
+      if (!hasSeenAiDisclosure()){
+        showAiDisclosure(subjectKey);
+        return;
+      }
+      beginSession(subjectKey);
+    });
   });
   aiDisclosureContinueBtn.addEventListener("click", function(){
     markAiDisclosureSeen();
-    beginSession();
+    beginSession(pendingSubject);
   });
   aiDisclosureBackBtn.addEventListener("click", showLanding);
 
@@ -904,6 +1531,7 @@
     questionCard.classList.remove("is-correct", "is-incorrect", "is-partial");
     qFeedbackEl.textContent = "";
     qFeedbackEl.className = "q-feedback";
+    qTagEl.textContent = SUBJECT_NAME[item.subject] || "Trivia";
     qPromptEl.textContent = item.prompt;
     qBody.innerHTML = "";
     checkBtn.hidden = true;
@@ -938,7 +1566,7 @@
       // not mutate whatever's on screen now.
       if (myToken !== sessionToken) return;
       checkBtn.hidden = true;
-      var isCorrect = recordOutcome(item, result);
+      var isCorrect = recordOutcome(currentSubject, item, result);
       var isPartial = result.verdict === "partial";
       if (isCorrect){
         correctCount++;
@@ -1017,7 +1645,7 @@
     } else {
       reviewList.hidden = true;
     }
-    addHistoryRecord({
+    addHistoryRecord(currentSubject, {
       date: new Date().toISOString(),
       attempted: attemptedCount,
       correct: correctCount,
@@ -1025,7 +1653,7 @@
     });
   }
 
-  retryBtn.addEventListener("click", beginSession);
+  retryBtn.addEventListener("click", function(){ beginSession(currentSubject); });
   backBtn.addEventListener("click", showLanding);
   quitBtn.addEventListener("click", showLanding);
 
@@ -1055,6 +1683,5 @@
   }
 })();
 </script>
-
 </body>
 </html>
