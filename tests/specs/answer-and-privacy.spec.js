@@ -73,6 +73,25 @@ module.exports = async function run({ browser, baseUrl, check }){
     check("entry-test.html short answer: \"50p\" isn't mistaken for the unrelated \"5p\" answer",
       penceMismatch === false);
 
+    // A decimal typed without the leading zero (".06" instead of "0.06") is
+    // a very natural way to answer a pence-only question and should still
+    // count as correct.
+    const leadingDotCases = [
+      [{ answers: ["0.06", "£0.06"] }, ".06", true],
+      [{ answers: ["0.06", "£0.06"] }, "£.06", true],
+      [{ answers: ["0.06", "£0.06"] }, ".06p", true],
+      [{ answers: ["0.45", "£0.45"] }, ".45", true],
+      [{ answers: ["0.45", "£0.45"] }, ".46", false]
+    ];
+    for (const [item, given, expected] of leadingDotCases){
+      const got = await page.evaluate(
+        ({ item, given }) => window.__entryTestAnswerCheck(item, given),
+        { item, given }
+      );
+      check("entry-test.html short answer: leading-dot decimal " + JSON.stringify(given) + " -> " + expected,
+        got === expected);
+    }
+
     // Comma-separated thousands shouldn't matter either.
     const bigItem = { answers: ["2040.00", "£2040.00", "2040", "£2,040.00", "2,040"] };
     const bigOk = await page.evaluate(
